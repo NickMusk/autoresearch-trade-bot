@@ -1,24 +1,27 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Iterable, Sequence
 
 from .models import Bar
 
 
 def make_series(symbol: str, closes: Sequence[float]) -> list[Bar]:
-    start = datetime(2025, 1, 1, 0, 0, 0)
+    start = datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
     bars = []
     for index, close in enumerate(closes):
         bars.append(
             Bar(
+                exchange="binance",
                 symbol=symbol,
+                timeframe="5m",
                 timestamp=start + timedelta(minutes=index * 5),
                 open=close,
                 high=close,
                 low=close,
                 close=close,
                 volume=1000.0,
+                close_time=start + timedelta(minutes=((index + 1) * 5) - 1),
             )
         )
     return bars

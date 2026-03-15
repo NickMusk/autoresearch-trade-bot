@@ -53,9 +53,9 @@ def build_dashboard_snapshot() -> DashboardSnapshot:
         phase="Render-deployed research kernel",
         research_rollout_ready=False,
         research_blockers=[
-            "Historical Binance ingestion is not implemented yet.",
             "Realtime paper or shadow market data stream is not implemented yet.",
             "Experiment persistence and walk-forward validation are not implemented yet.",
+            "No validated Binance dataset has been materialized into local storage yet.",
         ],
         baseline_strategy="Market-neutral cross-sectional momentum on liquid perpetuals.",
         promotion_gate=asdict(config.promotion_gate),
@@ -69,7 +69,7 @@ def build_dashboard_snapshot() -> DashboardSnapshot:
         },
         accepted_for_paper=result.accepted,
         next_milestones=[
-            "Add Binance historical ingestion and dataset validators.",
+            "Materialize the first Binance historical dataset and pin a manifest.",
             "Add walk-forward evaluation and experiment persistence.",
             "Add realtime paper or shadow replay using the same engine boundaries.",
         ],

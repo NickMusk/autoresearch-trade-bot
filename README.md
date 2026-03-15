@@ -27,6 +27,7 @@ This repository currently contains the research kernel:
 - deterministic backtest engine
 - explicit risk limiter
 - promotion gate evaluator
+- Binance historical dataset contracts, validation pipeline, and parquet storage interface
 
 Realtime exchange adapters, data persistence, and orchestration are intentionally deferred until the kernel is stable.
 
@@ -46,4 +47,19 @@ PYTHONPATH=src python3 -m autoresearch_trade_bot.app
 
 ## Render
 
-`render.yaml` is included, but a Render deployment still needs a connected git repository or another supported source artifact. The dashboard is deployable in shape, but not source-connected from this workspace yet.
+The dashboard is deployed at [autoresearch-trade-bot.onrender.com](https://autoresearch-trade-bot.onrender.com/).
+
+## Historical Data
+
+The repository now includes a Binance-first historical data backbone:
+
+- `DatasetSpec` and `DatasetManifest` for reproducible dataset windows
+- `HistoricalDatasetMaterializer` for `raw -> normalize -> validate -> store`
+- `PyArrowParquetDatasetStore` for parquet-backed symbol datasets
+- `ManifestHistoricalDataSource` for loading validated bars back into the simulator
+
+The parquet path requires project dependencies to be installed:
+
+```bash
+pip install .
+```

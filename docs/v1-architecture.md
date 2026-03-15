@@ -156,3 +156,19 @@ Phase 1 target:
 2. Add historical ingestion and dataset validation for Binance.
 3. Add realtime paper/shadow replay using the same engine boundaries.
 4. Only after stable paper/shadow results, discuss live capital rollout.
+
+## Current implementation status
+
+Implemented:
+
+- deterministic research kernel
+- dashboard deployment on Render
+- dataset spec and manifest contracts
+- Binance historical normalization and validation pipeline
+- parquet-backed storage interface for validated datasets
+
+Still pending:
+
+- first materialized real Binance dataset
+- walk-forward persistence
+- realtime paper/shadow ingestion

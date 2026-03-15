@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 
 from autoresearch_trade_bot.config import ExperimentConfig, PromotionGate, RiskLimits
 from autoresearch_trade_bot.models import Bar
@@ -43,8 +43,10 @@ class BacktestEngineTests(unittest.TestCase):
         misaligned = dict(self.data)
         misaligned["SOLUSDT"] = make_series("SOLUSDT", [100, 101, 102, 103, 104, 105])
         misaligned["SOLUSDT"][0] = Bar(
+            exchange="binance",
             symbol="SOLUSDT",
-            timestamp=datetime(2025, 1, 1, 0, 1, 0),
+            timeframe="5m",
+            timestamp=datetime(2025, 1, 1, 0, 1, 0, tzinfo=timezone.utc),
             open=100,
             high=100,
             low=100,

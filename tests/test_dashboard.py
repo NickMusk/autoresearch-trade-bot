@@ -12,7 +12,7 @@ class DashboardSnapshotTests(unittest.TestCase):
         self.assertEqual(snapshot.phase, "Render-deployed research kernel")
         self.assertFalse(snapshot.research_rollout_ready)
         self.assertTrue(snapshot.accepted_for_paper)
-        self.assertIn("Historical Binance ingestion is not implemented yet.", snapshot.research_blockers)
+        self.assertIn("No validated Binance dataset has been materialized into local storage yet.", snapshot.research_blockers)
         self.assertIn("sharpe", snapshot.baseline_metrics)
         self.assertGreater(snapshot.baseline_metrics["total_return"], 0.01)
 
