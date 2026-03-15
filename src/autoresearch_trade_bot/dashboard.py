@@ -13,8 +13,8 @@ from .strategy import CrossSectionalMomentumStrategy
 class DashboardSnapshot:
     mission: str
     phase: str
-    deployment_ready: bool
-    deployment_blockers: List[str]
+    research_rollout_ready: bool
+    research_blockers: List[str]
     baseline_strategy: str
     promotion_gate: Dict[str, float]
     baseline_metrics: Dict[str, float]
@@ -50,12 +50,12 @@ def build_dashboard_snapshot() -> DashboardSnapshot:
 
     return DashboardSnapshot(
         mission="Find, test, and rank crypto strategies before paper or live rollout.",
-        phase="Research kernel with dashboard",
-        deployment_ready=False,
-        deployment_blockers=[
-            "No connected git repository for Render source deployment yet.",
+        phase="Render-deployed research kernel",
+        research_rollout_ready=False,
+        research_blockers=[
             "Historical Binance ingestion is not implemented yet.",
             "Realtime paper or shadow market data stream is not implemented yet.",
+            "Experiment persistence and walk-forward validation are not implemented yet.",
         ],
         baseline_strategy="Market-neutral cross-sectional momentum on liquid perpetuals.",
         promotion_gate=asdict(config.promotion_gate),

@@ -46,7 +46,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
 def render_dashboard(snapshot: dict) -> str:
     blockers = "".join(
-        f"<li>{html.escape(blocker)}</li>" for blocker in snapshot["deployment_blockers"]
+        f"<li>{html.escape(blocker)}</li>" for blocker in snapshot["research_blockers"]
     )
     milestones = "".join(
         f"<li>{html.escape(item)}</li>" for item in snapshot["next_milestones"]
@@ -71,7 +71,7 @@ def render_dashboard(snapshot: dict) -> str:
     )
 
     accepted_label = "YES" if snapshot["accepted_for_paper"] else "NO"
-    ready_label = "READY" if snapshot["deployment_ready"] else "NOT READY"
+    ready_label = "READY" if snapshot["research_rollout_ready"] else "NOT READY"
 
     return f"""<!doctype html>
 <html lang="en">
@@ -192,7 +192,7 @@ def render_dashboard(snapshot: dict) -> str:
       <div class="badge-row">
         <span class="badge">Phase: {html.escape(snapshot["phase"])}</span>
         <span class="badge">Paper Gate: {accepted_label}</span>
-        <span class="badge">Render Status: {ready_label}</span>
+        <span class="badge">Research Rollout: {ready_label}</span>
       </div>
     </section>
 
@@ -213,7 +213,7 @@ def render_dashboard(snapshot: dict) -> str:
         <div class="metrics">{metric_cards}</div>
       </article>
       <article class="panel warn">
-        <h2>Deployment Blockers</h2>
+        <h2>Research Blockers</h2>
         <ul>{blockers}</ul>
       </article>
     </section>
