@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import os
+from pathlib import Path
 from typing import Dict, List
 
 from .config import ExperimentConfig, PromotionGate, RiskLimits
+from .experiments import discover_latest_manifest, run_baseline_from_manifest_path
 from .research import ResearchEvaluator
 from .sample_data import build_demo_dataset
 from .strategy import CrossSectionalMomentumStrategy
@@ -42,7 +45,18 @@ def default_experiment_config() -> ExperimentConfig:
     )
 
 
-def build_dashboard_snapshot() -> DashboardSnapshot:
+def build_dashboard_snapshot(storage_root: str | None = None) -> DashboardSnapshot:
+    resolved_storage_root = storage_root or os.environ.get("AUTORESEARCH_DATA_ROOT", "data")
+    latest_manifest = discover_latest_manifest(resolved_storage_root)
+    if latest_manifest is not None:
+        real_snapshot = _build_snapshot_from_local_manifest(latest_manifest)
+        if real_snapshot is not None:
+            return real_snapshot
+
+    return _build_demo_snapshot()
+
+
+def _build_demo_snapshot() -> DashboardSnapshot:
     config = default_experiment_config()
     strategy = CrossSectionalMomentumStrategy(lookback_bars=2, top_k=1, gross_target=1.0)
     evaluator = ResearchEvaluator(config)
@@ -72,5 +86,38 @@ def build_dashboard_snapshot() -> DashboardSnapshot:
             "Materialize the first Binance historical dataset and pin a manifest.",
             "Add walk-forward evaluation and experiment persistence.",
             "Add realtime paper or shadow replay using the same engine boundaries.",
+        ],
+    )
+
+
+def _build_snapshot_from_local_manifest(manifest_path: Path) -> DashboardSnapshot | None:
+    try:
+        report = run_baseline_from_manifest_path(manifest_path)
+    except RuntimeError:
+        return None
+
+    return DashboardSnapshot(
+        mission="Find, test, and rank crypto strategies before paper or live rollout.",
+        phase="Local validated Binance dataset available",
+        research_rollout_ready=False,
+        research_blockers=[
+            "Realtime paper or shadow market data stream is not implemented yet.",
+            "Experiment persistence and walk-forward validation are not implemented yet.",
+        ],
+        baseline_strategy="Market-neutral cross-sectional momentum on liquid perpetuals.",
+        promotion_gate=asdict(default_experiment_config().promotion_gate),
+        baseline_metrics={
+            "total_return": round(float(report.metrics["total_return"]), 4),
+            "sharpe": round(float(report.metrics["sharpe"]), 4),
+            "max_drawdown": round(float(report.metrics["max_drawdown"]), 4),
+            "average_turnover": round(float(report.metrics["average_turnover"]), 4),
+            "bars_processed": int(report.metrics["bars_processed"]),
+            "score": round(report.score, 4),
+        },
+        accepted_for_paper=report.accepted,
+        next_milestones=[
+            "Persist this baseline report and compare it across walk-forward windows.",
+            "Add realtime paper or shadow replay using the same engine boundaries.",
+            "Expand the universe after validating data quality and run stability.",
         ],
     )

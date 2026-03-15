@@ -63,3 +63,20 @@ The parquet path requires project dependencies to be installed:
 ```bash
 pip install '.[data]'
 ```
+
+Materialize a real Binance dataset:
+
+```bash
+PYTHONPATH=src python3 -m autoresearch_trade_bot.cli materialize-binance \
+  --symbols BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT \
+  --timeframe 5m \
+  --start 2025-01-01 \
+  --end 2025-01-08
+```
+
+Run the baseline strategy against a materialized manifest:
+
+```bash
+PYTHONPATH=src python3 -m autoresearch_trade_bot.cli run-baseline \
+  --manifest-path data/.../manifest.json
+```

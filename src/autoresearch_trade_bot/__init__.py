@@ -8,6 +8,12 @@ from .data import (
 )
 from .dashboard import DashboardSnapshot, build_dashboard_snapshot, default_experiment_config
 from .datasets import DatasetManifest, DatasetSpec, ValidatedDataset, ValidationIssue
+from .experiments import (
+    BaselineRunReport,
+    build_baseline_experiment_config,
+    discover_latest_manifest,
+    run_baseline_from_manifest_path,
+)
 from .models import Bar, ExperimentResult, SimulationMetrics, SimulationResult
 from .research import ResearchEvaluator
 from .risk import RiskManager
@@ -18,6 +24,7 @@ from .strategy import CrossSectionalMomentumStrategy, Strategy
 __all__ = [
     "Bar",
     "BacktestEngine",
+    "BaselineRunReport",
     "CrossSectionalMomentumStrategy",
     "DataConfig",
     "DataValidationError",
@@ -38,6 +45,9 @@ __all__ = [
     "Strategy",
     "ValidatedDataset",
     "ValidationIssue",
+    "build_baseline_experiment_config",
     "build_dashboard_snapshot",
     "default_experiment_config",
+    "discover_latest_manifest",
+    "run_baseline_from_manifest_path",
 ]

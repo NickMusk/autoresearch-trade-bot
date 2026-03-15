@@ -4,6 +4,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Sequence
+from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -117,8 +118,16 @@ class BinanceUSDMHistoricalClient:
     def _request(self, path: str, params: dict):
         query = urlencode(params)
         url = f"{self.base_url}{path}?{query}"
-        with urlopen(url, timeout=self.data_config.request_timeout_seconds) as response:
-            return json.loads(response.read().decode("utf-8"))
+        try:
+            with urlopen(url, timeout=self.data_config.request_timeout_seconds) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except HTTPError as exc:
+            if path == "/futures/data/openInterestHist" and exc.code == 400:
+                raise ValueError(
+                    "Binance open interest history is only available for the latest 1 month. "
+                    "Choose a dataset window inside the most recent month or disable that field."
+                ) from exc
+            raise
 
 
 class BinanceBarNormalizer:
@@ -140,6 +149,8 @@ class BinanceBarNormalizer:
         bars = []
         for item in raw.klines:
             timestamp = self._from_millis(int(item[0]))
+            if timestamp < spec.start or timestamp >= spec.end:
+                continue
             bars.append(
                 Bar(
                     exchange=self.exchange,

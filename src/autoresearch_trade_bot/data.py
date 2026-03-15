@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import json
 from pathlib import Path
 from typing import Mapping, Protocol, Sequence
 
@@ -101,7 +102,9 @@ class HistoricalDatasetMaterializer:
             self.store.write_manifest(manifest, manifest_path)
         else:
             manifest_path.parent.mkdir(parents=True, exist_ok=True)
-            manifest_path.write_text(str(manifest.to_dict()), encoding="utf-8")
+            manifest_path.write_text(
+                json.dumps(manifest.to_dict(), indent=2), encoding="utf-8"
+            )
 
         return ValidatedDataset(
             spec=dataset_spec,
