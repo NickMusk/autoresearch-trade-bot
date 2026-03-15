@@ -1,28 +1,20 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 import os
 from pathlib import Path
-from typing import Dict, List
-
 from .config import ExperimentConfig, PromotionGate, RiskLimits
 from .experiments import discover_latest_manifest, run_baseline_from_manifest_path
 from .research import ResearchEvaluator
 from .sample_data import build_demo_dataset
+from .state import (
+    ResearchStatusSnapshot,
+    load_status_snapshot_from_path,
+    load_status_snapshot_from_url,
+)
 from .strategy import CrossSectionalMomentumStrategy
 
-
-@dataclass(frozen=True)
-class DashboardSnapshot:
-    mission: str
-    phase: str
-    research_rollout_ready: bool
-    research_blockers: List[str]
-    baseline_strategy: str
-    promotion_gate: Dict[str, float]
-    baseline_metrics: Dict[str, float]
-    accepted_for_paper: bool
-    next_milestones: List[str]
+DashboardSnapshot = ResearchStatusSnapshot
 
 
 def default_experiment_config() -> ExperimentConfig:
@@ -46,6 +38,18 @@ def default_experiment_config() -> ExperimentConfig:
 
 
 def build_dashboard_snapshot(storage_root: str | None = None) -> DashboardSnapshot:
+    status_path = os.environ.get("AUTORESEARCH_STATUS_PATH")
+    if status_path:
+        persisted_snapshot = load_status_snapshot_from_path(status_path)
+        if persisted_snapshot is not None:
+            return persisted_snapshot
+
+    status_url = os.environ.get("AUTORESEARCH_STATUS_URL")
+    if status_url:
+        remote_snapshot = load_status_snapshot_from_url(status_url)
+        if remote_snapshot is not None:
+            return remote_snapshot
+
     resolved_storage_root = storage_root or os.environ.get("AUTORESEARCH_DATA_ROOT", "data")
     latest_manifest = discover_latest_manifest(resolved_storage_root)
     if latest_manifest is not None:
@@ -87,6 +91,13 @@ def _build_demo_snapshot() -> DashboardSnapshot:
             "Add walk-forward evaluation and experiment persistence.",
             "Add realtime paper or shadow replay using the same engine boundaries.",
         ],
+        loop_state="idle",
+        latest_dataset_id="",
+        latest_cycle_completed_at=None,
+        last_processed_bar=None,
+        recent_acceptance_rate=0.0,
+        consecutive_failures=0,
+        leaderboard=[],
     )
 
 
@@ -120,4 +131,11 @@ def _build_snapshot_from_local_manifest(manifest_path: Path) -> DashboardSnapsho
             "Add realtime paper or shadow replay using the same engine boundaries.",
             "Expand the universe after validating data quality and run stability.",
         ],
+        loop_state="manual",
+        latest_dataset_id=report.dataset_id,
+        latest_cycle_completed_at=None,
+        last_processed_bar=None,
+        recent_acceptance_rate=1.0 if report.accepted else 0.0,
+        consecutive_failures=0,
+        leaderboard=[],
     )

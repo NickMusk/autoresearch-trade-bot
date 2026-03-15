@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Tuple
+from typing import Optional, Tuple
 
 
 @dataclass(frozen=True)
@@ -47,3 +47,27 @@ class ExperimentConfig:
     data_config: DataConfig = field(default_factory=DataConfig)
     risk_limits: RiskLimits = field(default_factory=RiskLimits)
     promotion_gate: PromotionGate = field(default_factory=PromotionGate)
+
+
+@dataclass(frozen=True)
+class ResearchTargetGate:
+    min_total_return: float = 0.00
+    min_sharpe: float = 1.00
+    max_drawdown: float = 0.20
+    min_acceptance_rate: float = 0.60
+
+
+@dataclass(frozen=True)
+class WorkerConfig:
+    symbols: Tuple[str, ...] = ("BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT")
+    timeframe: str = "5m"
+    history_window_days: int = 7
+    max_variants_per_cycle: int = 12
+    recent_cycles_for_acceptance: int = 12
+    poll_buffer_seconds: int = 15
+    failure_cooldown_seconds: int = 90
+    state_root: str = "state"
+    artifact_root: str = "artifacts"
+    max_cycles: Optional[int] = None
+    data_config: DataConfig = field(default_factory=DataConfig)
+    target_gate: ResearchTargetGate = field(default_factory=ResearchTargetGate)

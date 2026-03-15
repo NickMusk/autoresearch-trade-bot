@@ -17,6 +17,7 @@ The system is designed so that an agent can iterate on `features`, `signal logic
 - `src/autoresearch_trade_bot/`: core package
 - `tests/`: deterministic tests for the research kernel
 - `render.yaml`: Render deployment blueprint for the dashboard app
+- `render.yaml`: Render deployment blueprint for the dashboard and continuous worker
 
 ## Current status
 
@@ -29,7 +30,12 @@ This repository currently contains the research kernel:
 - promotion gate evaluator
 - Binance historical dataset contracts, validation pipeline, and parquet storage interface
 
-Realtime exchange adapters, data persistence, and orchestration are intentionally deferred until the kernel is stable.
+The repository now also contains a continuous research worker with:
+
+- bar-aligned `5m` research cycles
+- bounded parameter search around the baseline momentum strategy
+- persisted `status`, `leaderboard`, `history`, and `checkpoint` artifacts
+- optional GitHub-backed status publishing for the Render dashboard
 
 ## Dashboard
 
@@ -43,6 +49,12 @@ Run locally:
 
 ```bash
 PYTHONPATH=src python3 -m autoresearch_trade_bot.app
+```
+
+Run one research worker cycle locally:
+
+```bash
+PYTHONPATH=src python3 -m autoresearch_trade_bot.cli run-worker-cycle
 ```
 
 ## Render
@@ -80,3 +92,16 @@ Run the baseline strategy against a materialized manifest:
 PYTHONPATH=src python3 -m autoresearch_trade_bot.cli run-baseline \
   --manifest-path data/.../manifest.json
 ```
+
+## Continuous Worker
+
+The Render worker expects:
+
+- `AUTORESEARCH_DATA_ROOT`, `AUTORESEARCH_STATE_ROOT`, `AUTORESEARCH_ARTIFACT_ROOT`
+- `AUTORESEARCH_STATUS_GITHUB_REPO`
+- `GITHUB_TOKEN` or `GH_TOKEN` if status should be published for the dashboard
+
+The dashboard can read a persisted worker snapshot from:
+
+- `AUTORESEARCH_STATUS_PATH` for local/shared files
+- `AUTORESEARCH_STATUS_URL` for a published JSON artifact such as a raw GitHub URL

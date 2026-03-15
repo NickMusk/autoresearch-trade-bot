@@ -51,6 +51,16 @@ def render_dashboard(snapshot: dict) -> str:
     milestones = "".join(
         f"<li>{html.escape(item)}</li>" for item in snapshot["next_milestones"]
     )
+    leaderboard_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(str(item['strategy_name']))}</strong> "
+            f"(score {html.escape(str(round(float(item['score']), 4)))}, "
+            f"accepted {html.escape('yes' if item['accepted'] else 'no')})"
+            "</li>"
+        )
+        for item in snapshot.get("leaderboard", [])
+    )
     metric_cards = "".join(
         (
             "<div class='metric'>"
@@ -72,6 +82,10 @@ def render_dashboard(snapshot: dict) -> str:
 
     accepted_label = "YES" if snapshot["accepted_for_paper"] else "NO"
     ready_label = "READY" if snapshot["research_rollout_ready"] else "NOT READY"
+    cycle_completed_label = snapshot.get("latest_cycle_completed_at") or "n/a"
+    processed_bar_label = snapshot.get("last_processed_bar") or "n/a"
+    loop_state_label = snapshot.get("loop_state", "idle")
+    acceptance_rate_label = snapshot.get("recent_acceptance_rate", 0.0)
 
     return f"""<!doctype html>
 <html lang="en">
@@ -193,6 +207,7 @@ def render_dashboard(snapshot: dict) -> str:
         <span class="badge">Phase: {html.escape(snapshot["phase"])}</span>
         <span class="badge">Paper Gate: {accepted_label}</span>
         <span class="badge">Research Rollout: {ready_label}</span>
+        <span class="badge">Loop State: {html.escape(str(loop_state_label))}</span>
       </div>
     </section>
 
@@ -222,6 +237,22 @@ def render_dashboard(snapshot: dict) -> str:
       <article class="panel">
         <h2>Next Milestones</h2>
         <ul>{milestones}</ul>
+      </article>
+      <article class="panel">
+        <h2>Worker Status</h2>
+        <ul>
+          <li><code>latest_cycle_completed_at</code>: {html.escape(str(cycle_completed_label))}</li>
+          <li><code>last_processed_bar</code>: {html.escape(str(processed_bar_label))}</li>
+          <li><code>recent_acceptance_rate</code>: {html.escape(str(acceptance_rate_label))}</li>
+          <li><code>consecutive_failures</code>: {html.escape(str(snapshot.get("consecutive_failures", 0)))}</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Leaderboard</h2>
+        <ul>{leaderboard_items or "<li>No persisted leaderboard yet.</li>"}</ul>
       </article>
       <article class="panel">
         <h2>Endpoints</h2>

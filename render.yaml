@@ -6,3 +6,45 @@ services:
     buildCommand: pip install .
     startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.app
     healthCheckPath: /health
+    envVars:
+      - key: AUTORESEARCH_STATUS_URL
+        sync: false
+  - type: worker
+    name: autoresearch-trade-bot-worker
+    runtime: python
+    plan: starter
+    buildCommand: pip install '.[data]'
+    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.worker
+    envVars:
+      - key: AUTORESEARCH_DATA_ROOT
+        value: /var/data/autoresearch/data
+      - key: AUTORESEARCH_STATE_ROOT
+        value: /var/data/autoresearch/state
+      - key: AUTORESEARCH_ARTIFACT_ROOT
+        value: /var/data/autoresearch/artifacts
+      - key: AUTORESEARCH_SYMBOLS
+        value: BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT
+      - key: AUTORESEARCH_TIMEFRAME
+        value: 5m
+      - key: AUTORESEARCH_HISTORY_WINDOW_DAYS
+        value: "7"
+      - key: AUTORESEARCH_MAX_VARIANTS
+        value: "12"
+      - key: AUTORESEARCH_TARGET_MIN_SHARPE
+        value: "1.0"
+      - key: AUTORESEARCH_TARGET_MAX_DRAWDOWN
+        value: "0.20"
+      - key: AUTORESEARCH_TARGET_MIN_ACCEPTANCE_RATE
+        value: "0.60"
+      - key: AUTORESEARCH_STATUS_GITHUB_REPO
+        value: NickMusk/autoresearch-trade-bot
+      - key: AUTORESEARCH_STATUS_GITHUB_BRANCH
+        value: render-state
+      - key: AUTORESEARCH_STATUS_GITHUB_PATH
+        value: status
+      - key: GITHUB_TOKEN
+        sync: false
+    disk:
+      name: autoresearch-trade-bot-worker-disk
+      mountPath: /var/data
+      sizeGB: 5

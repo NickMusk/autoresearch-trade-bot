@@ -8,6 +8,8 @@ from .config import DataConfig
 from .data import HistoricalDatasetMaterializer
 from .datasets import DatasetSpec
 from .experiments import run_baseline_from_manifest_path
+from .state import FilesystemResearchStateStore
+from .worker import ContinuousResearchWorker, worker_config_from_env
 
 
 def parse_datetime(value: str) -> datetime:
@@ -47,6 +49,29 @@ def cmd_run_baseline(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_run_worker_cycle(_args: argparse.Namespace) -> int:
+    worker_config = worker_config_from_env()
+    worker = ContinuousResearchWorker(
+        worker_config=worker_config,
+        state_store=FilesystemResearchStateStore(worker_config.state_root),
+    )
+    result = worker.run_cycle()
+    print(
+        json.dumps(
+            {
+                "cycle_id": result.cycle_id,
+                "dataset_id": result.dataset_id,
+                "manifest_path": result.manifest_path,
+                "rollout_ready": result.rollout_ready,
+                "recent_acceptance_rate": result.recent_acceptance_rate,
+                "best_entry": result.best_entry.to_dict(),
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Autoresearch trade bot workflow CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -69,6 +94,12 @@ def build_parser() -> argparse.ArgumentParser:
     baseline.add_argument("--manifest-path", required=True)
     baseline.add_argument("--output-dir", default="artifacts/baseline-runs")
     baseline.set_defaults(func=cmd_run_baseline)
+
+    worker_cycle = subparsers.add_parser(
+        "run-worker-cycle",
+        help="Run one continuous research worker cycle using environment configuration",
+    )
+    worker_cycle.set_defaults(func=cmd_run_worker_cycle)
 
     return parser
 
