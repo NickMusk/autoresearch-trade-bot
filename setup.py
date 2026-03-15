@@ -7,5 +7,6 @@ setup(
     description="Agentic research kernel for crypto trading strategies.",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
-    install_requires=["pyarrow>=18,<20"],
+    install_requires=[],
+    extras_require={"data": ["pyarrow>=18,<20"]},
 )

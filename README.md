@@ -61,5 +61,5 @@ The repository now includes a Binance-first historical data backbone:
 The parquet path requires project dependencies to be installed:
 
 ```bash
-pip install .
+pip install '.[data]'
 ```
