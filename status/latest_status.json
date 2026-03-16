@@ -1,9 +1,13 @@
 {
   "mission": "Continuously search, test, and rank crypto strategies before paper or live rollout.",
-  "phase": "Continuous research worker degraded",
+  "phase": "Continuous research worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Worker cycle failed: Bybit request failed for /v5/market/kline: Too many visits. Exceeded the API Rate Limit."
+    "No current strategy variant passes the promotion gate on the latest window.",
+    "Recent acceptance rate is still below the rollout threshold.",
+    "Sharpe is below the rollout target.",
+    "Worst drawdown across windows is above the rollout target.",
+    "Total return is below the rollout target."
   ],
   "baseline_strategy": "Market-neutral cross-sectional momentum variant search on liquid perpetuals.",
   "promotion_gate": {
@@ -13,24 +17,25 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": -0.2059,
-    "sharpe": -105.8311,
-    "max_drawdown": 0.2075,
-    "average_turnover": 0.2184,
+    "total_return": -0.2064,
+    "sharpe": -106.1021,
+    "max_drawdown": 0.2076,
+    "average_turnover": 0.2186,
     "bars_processed": 2015,
-    "score": -107.9089
+    "score": -108.1832
   },
   "accepted_for_paper": false,
   "next_milestones": [
-    "Recover the worker and resume the next closed-bar cycle.",
-    "Preserve the last good leaderboard while the failure is investigated."
+    "Promote only the variants that stay above target gate across recent windows.",
+    "Add realtime paper or shadow replay on the same engine boundaries.",
+    "Increase candidate breadth only after a stable multi-window winner appears."
   ],
-  "loop_state": "degraded",
-  "latest_dataset_id": "bybit-linear-5m-20260309T182500Z-20260316T182500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-  "latest_cycle_completed_at": "2026-03-16T18:25:15.000339+00:00",
-  "last_processed_bar": "2026-03-16T18:25:00+00:00",
+  "loop_state": "searching",
+  "latest_dataset_id": "bybit-linear-5m-20260309T183000Z-20260316T183000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+  "latest_cycle_completed_at": "2026-03-16T18:31:47.749677+00:00",
+  "last_processed_bar": "2026-03-16T18:30:00+00:00",
   "recent_acceptance_rate": 0.0,
-  "consecutive_failures": 1,
+  "consecutive_failures": 0,
   "multi_window_summary": {
     "best_variant": {
       "name": "mom-lb24-top1-gross0.5",
@@ -182,12 +187,12 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -107.90886415072472,
+      "score": -108.18315318857388,
       "metrics": {
-        "total_return": -0.20586671244193977,
-        "sharpe": -105.83111124161098,
-        "max_drawdown": 0.2075142660064061,
-        "average_turnover": 0.21836228287841192,
+        "total_return": -0.2064315407468772,
+        "sharpe": -106.10214245243635,
+        "max_drawdown": 0.20756065264172963,
+        "average_turnover": 0.21861042183622828,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -204,12 +209,12 @@
         "gross_target": 1.0
       },
       "accepted": false,
-      "score": -107.90886415072472,
+      "score": -108.18315318857388,
       "metrics": {
-        "total_return": -0.20586671244193977,
-        "sharpe": -105.83111124161098,
-        "max_drawdown": 0.2075142660064061,
-        "average_turnover": 0.21836228287841192,
+        "total_return": -0.2064315407468772,
+        "sharpe": -106.10214245243635,
+        "max_drawdown": 0.20756065264172963,
+        "average_turnover": 0.21861042183622828,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -226,11 +231,11 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -109.79924401932676,
+      "score": -109.7301560389483,
       "metrics": {
-        "total_return": -0.1468892816860119,
-        "sharpe": -108.3232616612424,
-        "max_drawdown": 0.1492177343118416,
+        "total_return": -0.14682640267395108,
+        "sharpe": -108.25397294134477,
+        "max_drawdown": 0.14934651795670306,
         "average_turnover": 0.1446650124069479,
         "bars_processed": 2015
       },
@@ -248,12 +253,12 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -125.93169833638606,
+      "score": -125.53045532297685,
       "metrics": {
-        "total_return": -0.17172564576837768,
-        "sharpe": -124.19077888823907,
-        "max_drawdown": 0.17274402070716854,
-        "average_turnover": 0.1913151364764268,
+        "total_return": -0.17124828265092795,
+        "sharpe": -123.7928312907279,
+        "max_drawdown": 0.17254788799919862,
+        "average_turnover": 0.19119106699751862,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -270,12 +275,12 @@
         "gross_target": 1.0
       },
       "accepted": false,
-      "score": -126.7490834774879,
+      "score": -126.33383897215548,
       "metrics": {
-        "total_return": -0.30445446829604506,
-        "sharpe": -123.62996648716506,
-        "max_drawdown": 0.30616335279187523,
-        "average_turnover": 0.37219123767510864,
+        "total_return": -0.3036524528467187,
+        "sharpe": -123.22029705840743,
+        "max_drawdown": 0.30583413769929035,
+        "average_turnover": 0.3719430987172923,
         "bars_processed": 2015
       },
       "rejection_reasons": [
