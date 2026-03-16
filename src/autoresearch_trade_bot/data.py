@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Mapping, Protocol, Sequence
 
 from .binance import BinanceBarNormalizer, BinanceUSDMHistoricalClient
+from .bybit import BybitBarNormalizer, BybitLinearHistoricalClient
 from .config import DataConfig
 from .datasets import DatasetFile, DatasetManifest, DatasetSpec, RawSymbolHistory, ValidatedDataset
 from .models import Bar
@@ -33,6 +34,11 @@ class HistoricalMarketClient(Protocol):
         ...
 
 
+class HistoricalBarNormalizer(Protocol):
+    def normalize(self, spec: DatasetSpec, raw: RawSymbolHistory) -> list[Bar]:
+        ...
+
+
 class DataValidationError(ValueError):
     def __init__(self, issues) -> None:
         super().__init__("dataset validation failed")
@@ -45,7 +51,7 @@ class HistoricalDatasetMaterializer:
     client: HistoricalMarketClient
     store: DatasetStore
     validator: DatasetValidator
-    normalizer: BinanceBarNormalizer
+    normalizer: HistoricalBarNormalizer
 
     @classmethod
     def for_binance(
@@ -60,6 +66,32 @@ class HistoricalDatasetMaterializer:
             validator=DatasetValidator(),
             normalizer=BinanceBarNormalizer(exchange=data_config.exchange),
         )
+
+    @classmethod
+    def for_bybit(
+        cls,
+        data_config: DataConfig,
+        store: DatasetStore | None = None,
+    ) -> "HistoricalDatasetMaterializer":
+        return cls(
+            data_config=data_config,
+            client=BybitLinearHistoricalClient(data_config=data_config),
+            store=store or PyArrowParquetDatasetStore(data_config.storage_root),
+            validator=DatasetValidator(),
+            normalizer=BybitBarNormalizer(exchange=data_config.exchange),
+        )
+
+    @classmethod
+    def for_exchange(
+        cls,
+        data_config: DataConfig,
+        store: DatasetStore | None = None,
+    ) -> "HistoricalDatasetMaterializer":
+        if data_config.exchange == "binance":
+            return cls.for_binance(data_config, store=store)
+        if data_config.exchange == "bybit":
+            return cls.for_bybit(data_config, store=store)
+        raise ValueError("unsupported historical exchange: %s" % data_config.exchange)
 
     def materialize(self, dataset_spec: DatasetSpec) -> ValidatedDataset:
         bars_by_symbol = {}

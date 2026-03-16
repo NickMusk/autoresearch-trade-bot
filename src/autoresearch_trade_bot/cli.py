@@ -21,24 +21,26 @@ def parse_datetime(value: str) -> datetime:
     return parsed.astimezone(timezone.utc)
 
 
-def cmd_materialize_binance(args: argparse.Namespace) -> int:
+def cmd_materialize_dataset(args: argparse.Namespace) -> int:
+    market = args.market
+    exchange = args.exchange
     spec = DatasetSpec(
-        exchange="binance",
-        market="usdm_futures",
+        exchange=exchange,
+        market=market,
         timeframe=args.timeframe,
         start=parse_datetime(args.start),
         end=parse_datetime(args.end),
         symbols=tuple(symbol.strip().upper() for symbol in args.symbols.split(",") if symbol.strip()),
     )
     data_config = DataConfig(
-        exchange="binance",
-        market="usdm_futures",
+        exchange=exchange,
+        market=market,
         timeframe=args.timeframe,
         storage_root=args.storage_root,
         default_start=spec.start,
         default_end=spec.end,
     )
-    dataset = HistoricalDatasetMaterializer.for_binance(data_config).materialize(spec)
+    dataset = HistoricalDatasetMaterializer.for_exchange(data_config).materialize(spec)
     print(dataset.manifest_path)
     return 0
 
@@ -85,7 +87,26 @@ def build_parser() -> argparse.ArgumentParser:
     materialize.add_argument("--start", required=True)
     materialize.add_argument("--end", required=True)
     materialize.add_argument("--storage-root", default="data")
-    materialize.set_defaults(func=cmd_materialize_binance)
+    materialize.set_defaults(
+        func=cmd_materialize_dataset,
+        exchange="binance",
+        market="usdm_futures",
+    )
+
+    materialize_bybit = subparsers.add_parser(
+        "materialize-bybit",
+        help="Fetch, validate, and materialize a Bybit historical dataset",
+    )
+    materialize_bybit.add_argument("--symbols", required=True, help="Comma-separated symbols")
+    materialize_bybit.add_argument("--timeframe", default="5m")
+    materialize_bybit.add_argument("--start", required=True)
+    materialize_bybit.add_argument("--end", required=True)
+    materialize_bybit.add_argument("--storage-root", default="data")
+    materialize_bybit.set_defaults(
+        func=cmd_materialize_dataset,
+        exchange="bybit",
+        market="linear",
+    )
 
     baseline = subparsers.add_parser(
         "run-baseline",

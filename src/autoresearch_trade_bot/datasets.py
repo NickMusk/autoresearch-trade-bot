@@ -185,5 +185,7 @@ class ValidatedDataset:
 class RawSymbolHistory:
     symbol: str
     klines: List[list]
-    funding_rates: List[dict]
-    open_interest_stats: List[dict]
+    funding_rates: List[dict] = field(default_factory=list)
+    open_interest_stats: List[dict] = field(default_factory=list)
+    mark_price_klines: List[list] = field(default_factory=list)
+    index_price_klines: List[list] = field(default_factory=list)

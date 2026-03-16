@@ -4,7 +4,7 @@
 
 The first milestone is intentionally narrow:
 
-- `Binance-only` historical and realtime interfaces
+- `Bybit-first` continuous research worker, with Binance historical support still available
 - deterministic backtest and paper/shadow execution boundaries
 - a single baseline strategy: market-neutral cross-sectional momentum
 - hard promotion gates before anything is allowed near live capital
@@ -28,7 +28,7 @@ This repository currently contains the research kernel:
 - deterministic backtest engine
 - explicit risk limiter
 - promotion gate evaluator
-- Binance historical dataset contracts, validation pipeline, and parquet storage interface
+- exchange-specific historical dataset contracts, validation pipeline, and parquet storage interface
 
 The repository now also contains a continuous research worker with:
 
@@ -63,7 +63,7 @@ The dashboard is deployed at [autoresearch-trade-bot.onrender.com](https://autor
 
 ## Historical Data
 
-The repository now includes a Binance-first historical data backbone:
+The repository now includes Binance and Bybit historical data providers:
 
 - `DatasetSpec` and `DatasetManifest` for reproducible dataset windows
 - `HistoricalDatasetMaterializer` for `raw -> normalize -> validate -> store`
@@ -80,6 +80,16 @@ Materialize a real Binance dataset:
 
 ```bash
 PYTHONPATH=src python3 -m autoresearch_trade_bot.cli materialize-binance \
+  --symbols BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT \
+  --timeframe 5m \
+  --start 2025-01-01 \
+  --end 2025-01-08
+```
+
+Materialize a real Bybit dataset:
+
+```bash
+PYTHONPATH=src python3 -m autoresearch_trade_bot.cli materialize-bybit \
   --symbols BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT \
   --timeframe 5m \
   --start 2025-01-01 \

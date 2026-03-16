@@ -49,7 +49,7 @@ class ContinuousResearchWorker:
     ) -> None:
         self.worker_config = worker_config
         self.state_store = state_store
-        self.materializer = materializer or HistoricalDatasetMaterializer.for_binance(
+        self.materializer = materializer or HistoricalDatasetMaterializer.for_exchange(
             worker_config.data_config
         )
         self.publisher = publisher

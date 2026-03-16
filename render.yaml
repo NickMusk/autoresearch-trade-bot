@@ -10,7 +10,7 @@ services:
       - key: AUTORESEARCH_STATUS_URL
         sync: false
   - type: worker
-    name: autoresearch-trade-bot-worker
+    name: autoresearch-trade-bot-worker-frankfurt
     runtime: python
     plan: starter
     region: frankfurt
@@ -25,6 +25,10 @@ services:
         value: /var/data/autoresearch/artifacts
       - key: AUTORESEARCH_SYMBOLS
         value: BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT
+      - key: AUTORESEARCH_EXCHANGE
+        value: bybit
+      - key: AUTORESEARCH_MARKET
+        value: linear
       - key: AUTORESEARCH_TIMEFRAME
         value: 5m
       - key: AUTORESEARCH_HISTORY_WINDOW_DAYS
@@ -46,6 +50,6 @@ services:
       - key: GITHUB_TOKEN
         sync: false
     disk:
-      name: autoresearch-trade-bot-worker-disk
+      name: autoresearch-trade-bot-worker-frankfurt-disk
       mountPath: /var/data
       sizeGB: 5
