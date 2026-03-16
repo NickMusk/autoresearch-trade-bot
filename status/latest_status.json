@@ -1,9 +1,13 @@
 {
   "mission": "Continuously search, test, and rank crypto strategies before paper or live rollout.",
-  "phase": "Continuous research worker degraded",
+  "phase": "Continuous research worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Worker cycle failed: Bybit request failed for /v5/market/kline: Too many visits. Exceeded the API Rate Limit."
+    "No current strategy variant passes the promotion gate on the latest window.",
+    "Recent acceptance rate is still below the rollout threshold.",
+    "Sharpe is below the rollout target.",
+    "Worst drawdown across windows is above the rollout target.",
+    "Total return is below the rollout target."
   ],
   "baseline_strategy": "Market-neutral cross-sectional momentum variant search on liquid perpetuals.",
   "promotion_gate": {
@@ -13,24 +17,25 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": -0.1498,
-    "sharpe": -115.1873,
-    "max_drawdown": 0.1502,
-    "average_turnover": 0.1439,
+    "total_return": -0.2119,
+    "sharpe": -114.5731,
+    "max_drawdown": 0.2121,
+    "average_turnover": 0.2176,
     "bars_processed": 2015,
-    "score": -116.6811
+    "score": -116.6983
   },
   "accepted_for_paper": false,
   "next_milestones": [
-    "Recover the worker and resume the next closed-bar cycle.",
-    "Preserve the last good leaderboard while the failure is investigated."
+    "Promote only the variants that stay above target gate across recent windows.",
+    "Add realtime paper or shadow replay on the same engine boundaries.",
+    "Increase candidate breadth only after a stable multi-window winner appears."
   ],
-  "loop_state": "degraded",
-  "latest_dataset_id": "bybit-linear-5m-20260309T102500Z-20260316T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-  "latest_cycle_completed_at": "2026-03-16T10:25:57.787320+00:00",
-  "last_processed_bar": "2026-03-16T10:25:00+00:00",
+  "loop_state": "searching",
+  "latest_dataset_id": "bybit-linear-5m-20260309T103000Z-20260316T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+  "latest_cycle_completed_at": "2026-03-16T10:31:45.996548+00:00",
+  "last_processed_bar": "2026-03-16T10:30:00+00:00",
   "recent_acceptance_rate": 0.0,
-  "consecutive_failures": 1,
+  "consecutive_failures": 0,
   "multi_window_summary": {
     "best_variant": {
       "name": "mom-lb24-top1-gross0.5",
@@ -38,16 +43,16 @@
       "top_k": 1,
       "gross_target": 0.5
     },
-    "aggregate_score": -106.4313,
+    "aggregate_score": -106.4485,
     "acceptance_rate": 0.0,
     "average_metrics": {
-      "total_return": -0.2092,
-      "sharpe": -104.3302,
-      "max_drawdown": 0.2105,
-      "average_turnover": 0.2131,
+      "total_return": -0.2093,
+      "sharpe": -104.3465,
+      "max_drawdown": 0.2106,
+      "average_turnover": 0.213,
       "bars_processed": 2015
     },
-    "worst_max_drawdown": 0.2201,
+    "worst_max_drawdown": 0.2206,
     "windows_passed": 0,
     "total_windows": 4,
     "reports": [
@@ -58,30 +63,30 @@
           "top_k": 1,
           "gross_target": 0.5
         },
-        "aggregate_score": -106.43134427872141,
+        "aggregate_score": -106.44848534442184,
         "acceptance_rate": 0.0,
         "average_metrics": {
-          "total_return": -0.2092463895568209,
-          "sharpe": -104.3301703431926,
-          "max_drawdown": 0.21046316442996893,
-          "average_turnover": 0.2130893300248139,
+          "total_return": -0.20929979171674137,
+          "sharpe": -104.34649476773635,
+          "max_drawdown": 0.2106160807041038,
+          "average_turnover": 0.2130272952853598,
           "bars_processed": 2015
         },
-        "worst_max_drawdown": 0.22010643624939097,
+        "worst_max_drawdown": 0.2205967630511081,
         "windows_passed": 0,
         "total_windows": 4,
         "window_reports": [
           {
-            "dataset_id": "bybit-linear-5m-20260309T102500Z-20260316T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-03-09T10:25:00+00:00",
-            "window_end": "2026-03-16T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260309T103000Z-20260316T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-09T10:30:00+00:00",
+            "window_end": "2026-03-16T10:30:00+00:00",
             "accepted": false,
-            "score": -116.69392565530127,
+            "score": -116.69827653074181,
             "metrics": {
-              "total_return": -0.21185494994952148,
-              "sharpe": -114.56806915306868,
-              "max_drawdown": 0.212178936880555,
-              "average_turnover": 0.21786600496277916,
+              "total_return": -0.2118635699515652,
+              "sharpe": -114.57310812093887,
+              "max_drawdown": 0.21205817351003753,
+              "average_turnover": 0.21761786600496277,
               "bars_processed": 2015
             },
             "rejection_reasons": [
@@ -90,15 +95,15 @@
             ]
           },
           {
-            "dataset_id": "bybit-linear-5m-20260302T102500Z-20260309T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-03-02T10:25:00+00:00",
-            "window_end": "2026-03-09T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260302T103000Z-20260309T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-02T10:30:00+00:00",
+            "window_end": "2026-03-09T10:30:00+00:00",
             "accepted": false,
-            "score": -107.90776885139287,
+            "score": -107.8338606159195,
             "metrics": {
-              "total_return": -0.21725489990102353,
-              "sharpe": -105.73095502142822,
-              "max_drawdown": 0.21804426189527837,
+              "total_return": -0.21715403340736716,
+              "sharpe": -105.65755111842313,
+              "max_drawdown": 0.21804426189528103,
               "average_turnover": 0.21836228287841192,
               "bars_processed": 2015
             },
@@ -108,15 +113,15 @@
             ]
           },
           {
-            "dataset_id": "bybit-linear-5m-20260223T102500Z-20260302T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-02-23T10:25:00+00:00",
-            "window_end": "2026-03-02T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260223T103000Z-20260302T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-23T10:30:00+00:00",
+            "window_end": "2026-03-02T10:30:00+00:00",
             "accepted": false,
-            "score": -88.0418062896516,
+            "score": -88.1481062896532,
             "metrics": {
-              "total_return": -0.1908388677331272,
-              "sharpe": -86.12077544333393,
-              "max_drawdown": 0.19152302269465138,
+              "total_return": -0.19105497293963758,
+              "sharpe": -86.22502651064161,
+              "max_drawdown": 0.1917651243599885,
               "average_turnover": 0.20074441687344913,
               "bars_processed": 2015
             },
@@ -126,15 +131,15 @@
             ]
           },
           {
-            "dataset_id": "bybit-linear-5m-20260216T102500Z-20260223T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-02-16T10:25:00+00:00",
-            "window_end": "2026-02-23T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260216T103000Z-20260223T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-16T10:30:00+00:00",
+            "window_end": "2026-02-23T10:30:00+00:00",
             "accepted": false,
-            "score": -113.08187631853988,
+            "score": -113.11369794137283,
             "metrics": {
-              "total_return": -0.2170368406436114,
-              "sharpe": -110.90088175493963,
-              "max_drawdown": 0.22010643624939097,
+              "total_return": -0.21712659056839556,
+              "sharpe": -110.9302933209418,
+              "max_drawdown": 0.2205967630511081,
               "average_turnover": 0.2153846153846154,
               "bars_processed": 2015
             },
@@ -152,30 +157,30 @@
           "top_k": 1,
           "gross_target": 1.0
         },
-        "aggregate_score": -106.43134427872141,
+        "aggregate_score": -106.44848534442184,
         "acceptance_rate": 0.0,
         "average_metrics": {
-          "total_return": -0.2092463895568209,
-          "sharpe": -104.3301703431926,
-          "max_drawdown": 0.21046316442996893,
-          "average_turnover": 0.2130893300248139,
+          "total_return": -0.20929979171674137,
+          "sharpe": -104.34649476773635,
+          "max_drawdown": 0.2106160807041038,
+          "average_turnover": 0.2130272952853598,
           "bars_processed": 2015
         },
-        "worst_max_drawdown": 0.22010643624939097,
+        "worst_max_drawdown": 0.2205967630511081,
         "windows_passed": 0,
         "total_windows": 4,
         "window_reports": [
           {
-            "dataset_id": "bybit-linear-5m-20260309T102500Z-20260316T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-03-09T10:25:00+00:00",
-            "window_end": "2026-03-16T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260309T103000Z-20260316T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-09T10:30:00+00:00",
+            "window_end": "2026-03-16T10:30:00+00:00",
             "accepted": false,
-            "score": -116.69392565530127,
+            "score": -116.69827653074181,
             "metrics": {
-              "total_return": -0.21185494994952148,
-              "sharpe": -114.56806915306868,
-              "max_drawdown": 0.212178936880555,
-              "average_turnover": 0.21786600496277916,
+              "total_return": -0.2118635699515652,
+              "sharpe": -114.57310812093887,
+              "max_drawdown": 0.21205817351003753,
+              "average_turnover": 0.21761786600496277,
               "bars_processed": 2015
             },
             "rejection_reasons": [
@@ -184,15 +189,15 @@
             ]
           },
           {
-            "dataset_id": "bybit-linear-5m-20260302T102500Z-20260309T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-03-02T10:25:00+00:00",
-            "window_end": "2026-03-09T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260302T103000Z-20260309T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-02T10:30:00+00:00",
+            "window_end": "2026-03-09T10:30:00+00:00",
             "accepted": false,
-            "score": -107.90776885139287,
+            "score": -107.8338606159195,
             "metrics": {
-              "total_return": -0.21725489990102353,
-              "sharpe": -105.73095502142822,
-              "max_drawdown": 0.21804426189527837,
+              "total_return": -0.21715403340736716,
+              "sharpe": -105.65755111842313,
+              "max_drawdown": 0.21804426189528103,
               "average_turnover": 0.21836228287841192,
               "bars_processed": 2015
             },
@@ -202,15 +207,15 @@
             ]
           },
           {
-            "dataset_id": "bybit-linear-5m-20260223T102500Z-20260302T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-02-23T10:25:00+00:00",
-            "window_end": "2026-03-02T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260223T103000Z-20260302T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-23T10:30:00+00:00",
+            "window_end": "2026-03-02T10:30:00+00:00",
             "accepted": false,
-            "score": -88.0418062896516,
+            "score": -88.1481062896532,
             "metrics": {
-              "total_return": -0.1908388677331272,
-              "sharpe": -86.12077544333393,
-              "max_drawdown": 0.19152302269465138,
+              "total_return": -0.19105497293963758,
+              "sharpe": -86.22502651064161,
+              "max_drawdown": 0.1917651243599885,
               "average_turnover": 0.20074441687344913,
               "bars_processed": 2015
             },
@@ -220,15 +225,15 @@
             ]
           },
           {
-            "dataset_id": "bybit-linear-5m-20260216T102500Z-20260223T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-02-16T10:25:00+00:00",
-            "window_end": "2026-02-23T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260216T103000Z-20260223T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-16T10:30:00+00:00",
+            "window_end": "2026-02-23T10:30:00+00:00",
             "accepted": false,
-            "score": -113.08187631853988,
+            "score": -113.11369794137283,
             "metrics": {
-              "total_return": -0.2170368406436114,
-              "sharpe": -110.90088175493963,
-              "max_drawdown": 0.22010643624939097,
+              "total_return": -0.21712659056839556,
+              "sharpe": -110.9302933209418,
+              "max_drawdown": 0.2205967630511081,
               "average_turnover": 0.2153846153846154,
               "bars_processed": 2015
             },
@@ -246,30 +251,30 @@
           "top_k": 2,
           "gross_target": 0.5
         },
-        "aggregate_score": -107.66226129179493,
+        "aggregate_score": -107.79434046570216,
         "acceptance_rate": 0.0,
         "average_metrics": {
-          "total_return": -0.14719740319413446,
-          "sharpe": -106.18790987236133,
-          "max_drawdown": 0.14785878076647704,
-          "average_turnover": 0.14692928039702233,
+          "total_return": -0.14734487097001242,
+          "sharpe": -106.31889086562272,
+          "max_drawdown": 0.14793348252322608,
+          "average_turnover": 0.14699131513647642,
           "bars_processed": 2015
         },
-        "worst_max_drawdown": 0.16381964952009487,
+        "worst_max_drawdown": 0.16379649730132062,
         "windows_passed": 0,
         "total_windows": 4,
         "window_reports": [
           {
-            "dataset_id": "bybit-linear-5m-20260309T102500Z-20260316T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-03-09T10:25:00+00:00",
-            "window_end": "2026-03-16T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260309T103000Z-20260316T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-09T10:30:00+00:00",
+            "window_end": "2026-03-16T10:30:00+00:00",
             "accepted": false,
-            "score": -116.68113057492161,
+            "score": -117.09439150039906,
             "metrics": {
-              "total_return": -0.14983923012203082,
-              "sharpe": -115.18729072876972,
-              "max_drawdown": 0.15018077500205496,
-              "average_turnover": 0.14392059553349876,
+              "total_return": -0.15026856147865297,
+              "sharpe": -115.59757731023457,
+              "max_drawdown": 0.15032566206997489,
+              "average_turnover": 0.14416873449131515,
               "bars_processed": 2015
             },
             "rejection_reasons": [
@@ -278,16 +283,16 @@
             ]
           },
           {
-            "dataset_id": "bybit-linear-5m-20260302T102500Z-20260309T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-03-02T10:25:00+00:00",
-            "window_end": "2026-03-09T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260302T103000Z-20260309T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-02T10:30:00+00:00",
+            "window_end": "2026-03-09T10:30:00+00:00",
             "accepted": false,
-            "score": -119.7716944048964,
+            "score": -119.5866451692047,
             "metrics": {
-              "total_return": -0.16381964952009487,
-              "sharpe": -118.13677165350833,
-              "max_drawdown": 0.16381964952009487,
-              "average_turnover": 0.16054590570719604,
+              "total_return": -0.16363437373796752,
+              "sharpe": -117.95286547508131,
+              "max_drawdown": 0.16379649730132062,
+              "average_turnover": 0.16042183622828785,
               "bars_processed": 2015
             },
             "rejection_reasons": [
@@ -296,16 +301,16 @@
             ]
           },
           {
-            "dataset_id": "bybit-linear-5m-20260223T102500Z-20260302T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-02-23T10:25:00+00:00",
-            "window_end": "2026-03-02T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260223T103000Z-20260302T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-23T10:30:00+00:00",
+            "window_end": "2026-03-02T10:30:00+00:00",
             "accepted": false,
-            "score": -86.68798878527392,
+            "score": -86.8858453631457,
             "metrics": {
-              "total_return": -0.13185992148008874,
-              "sharpe": -85.36180988089208,
-              "max_drawdown": 0.13260071754559677,
-              "average_turnover": 0.13647642679900746,
+              "total_return": -0.13207011202537877,
+              "sharpe": -85.55849143655851,
+              "max_drawdown": 0.13260071754559355,
+              "average_turnover": 0.13660049627791562,
               "bars_processed": 2015
             },
             "rejection_reasons": [
@@ -314,15 +319,15 @@
             ]
           },
           {
-            "dataset_id": "bybit-linear-5m-20260216T102500Z-20260223T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-            "window_start": "2026-02-16T10:25:00+00:00",
-            "window_end": "2026-02-23T10:25:00+00:00",
+            "dataset_id": "bybit-linear-5m-20260216T103000Z-20260223T103000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-16T10:30:00+00:00",
+            "window_end": "2026-02-23T10:30:00+00:00",
             "accepted": false,
-            "score": -107.5082314020878,
+            "score": -107.61047983005918,
             "metrics": {
-              "total_return": -0.14327081165432343,
-              "sharpe": -106.06576722627516,
-              "max_drawdown": 0.14483398099816158,
+              "total_return": -0.14340643663805042,
+              "sharpe": -106.16662924061647,
+              "max_drawdown": 0.14501105317601526,
               "average_turnover": 0.14677419354838708,
               "bars_processed": 2015
             },
@@ -337,28 +342,6 @@
   },
   "leaderboard": [
     {
-      "strategy_name": "mom-lb24-top2-gross0.5",
-      "params": {
-        "name": "mom-lb24-top2-gross0.5",
-        "lookback_bars": 24,
-        "top_k": 2,
-        "gross_target": 0.5
-      },
-      "accepted": false,
-      "score": -116.68113057492161,
-      "metrics": {
-        "total_return": -0.14983923012203082,
-        "sharpe": -115.18729072876972,
-        "max_drawdown": 0.15018077500205496,
-        "average_turnover": 0.14392059553349876,
-        "bars_processed": 2015
-      },
-      "rejection_reasons": [
-        "total_return_below_gate",
-        "sharpe_below_gate"
-      ]
-    },
-    {
       "strategy_name": "mom-lb24-top1-gross0.5",
       "params": {
         "name": "mom-lb24-top1-gross0.5",
@@ -367,12 +350,12 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -116.69392565530127,
+      "score": -116.69827653074181,
       "metrics": {
-        "total_return": -0.21185494994952148,
-        "sharpe": -114.56806915306868,
-        "max_drawdown": 0.212178936880555,
-        "average_turnover": 0.21786600496277916,
+        "total_return": -0.2118635699515652,
+        "sharpe": -114.57310812093887,
+        "max_drawdown": 0.21205817351003753,
+        "average_turnover": 0.21761786600496277,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -389,12 +372,34 @@
         "gross_target": 1.0
       },
       "accepted": false,
-      "score": -116.69392565530127,
+      "score": -116.69827653074181,
       "metrics": {
-        "total_return": -0.21185494994952148,
-        "sharpe": -114.56806915306868,
-        "max_drawdown": 0.212178936880555,
-        "average_turnover": 0.21786600496277916,
+        "total_return": -0.2118635699515652,
+        "sharpe": -114.57310812093887,
+        "max_drawdown": 0.21205817351003753,
+        "average_turnover": 0.21761786600496277,
+        "bars_processed": 2015
+      },
+      "rejection_reasons": [
+        "total_return_below_gate",
+        "sharpe_below_gate"
+      ]
+    },
+    {
+      "strategy_name": "mom-lb24-top2-gross0.5",
+      "params": {
+        "name": "mom-lb24-top2-gross0.5",
+        "lookback_bars": 24,
+        "top_k": 2,
+        "gross_target": 0.5
+      },
+      "accepted": false,
+      "score": -117.09439150039906,
+      "metrics": {
+        "total_return": -0.15026856147865297,
+        "sharpe": -115.59757731023457,
+        "max_drawdown": 0.15032566206997489,
+        "average_turnover": 0.14416873449131515,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -411,12 +416,12 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -134.88206920045388,
+      "score": -134.82179944431323,
       "metrics": {
-        "total_return": -0.17537408370055663,
-        "sharpe": -133.11226324119355,
-        "max_drawdown": 0.17537408370055663,
-        "average_turnover": 0.19143920595533498,
+        "total_return": -0.17529395513455248,
+        "sharpe": -133.052590572668,
+        "max_drawdown": 0.17529395513455248,
+        "average_turnover": 0.19156327543424317,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -433,11 +438,11 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -135.7613527991782,
+      "score": -135.76231001328384,
       "metrics": {
-        "total_return": -0.2562398514095039,
-        "sharpe": -133.17159518167185,
-        "max_drawdown": 0.25648202187650304,
+        "total_return": -0.25624432841561795,
+        "sharpe": -133.17348078459042,
+        "max_drawdown": 0.25624432841561795,
         "average_turnover": 0.2826302729528536,
         "bars_processed": 2015
       },
