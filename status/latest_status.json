@@ -1,13 +1,9 @@
 {
   "mission": "Continuously search, test, and rank crypto strategies before paper or live rollout.",
-  "phase": "Continuous research worker active",
+  "phase": "Continuous research worker degraded",
   "research_rollout_ready": false,
   "research_blockers": [
-    "No current strategy variant passes the promotion gate on the latest window.",
-    "Recent acceptance rate is still below the rollout threshold.",
-    "Sharpe is below the rollout target.",
-    "Worst drawdown across windows is above the rollout target.",
-    "Total return is below the rollout target."
+    "Worker cycle failed: Bybit request failed for /v5/market/kline: Too many visits. Exceeded the API Rate Limit."
   ],
   "baseline_strategy": "Market-neutral cross-sectional momentum variant search on liquid perpetuals.",
   "promotion_gate": {
@@ -26,16 +22,15 @@
   },
   "accepted_for_paper": false,
   "next_milestones": [
-    "Promote only the variants that stay above target gate across recent windows.",
-    "Add realtime paper or shadow replay on the same engine boundaries.",
-    "Increase candidate breadth only after a stable multi-window winner appears."
+    "Recover the worker and resume the next closed-bar cycle.",
+    "Preserve the last good leaderboard while the failure is investigated."
   ],
-  "loop_state": "searching",
+  "loop_state": "degraded",
   "latest_dataset_id": "bybit-linear-5m-20260309T125500Z-20260316T125500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
   "latest_cycle_completed_at": "2026-03-16T12:55:15.000349+00:00",
   "last_processed_bar": "2026-03-16T12:55:00+00:00",
   "recent_acceptance_rate": 0.0,
-  "consecutive_failures": 0,
+  "consecutive_failures": 1,
   "multi_window_summary": {
     "best_variant": {
       "name": "mom-lb24-top1-gross0.5",
