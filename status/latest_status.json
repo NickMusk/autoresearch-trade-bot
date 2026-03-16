@@ -6,7 +6,6 @@
     "No current strategy variant passes the promotion gate on the latest window.",
     "Recent acceptance rate is still below the rollout threshold.",
     "Sharpe is below the rollout target.",
-    "Max drawdown is above the rollout target.",
     "Total return is below the rollout target."
   ],
   "baseline_strategy": "Market-neutral cross-sectional momentum variant search on liquid perpetuals.",
@@ -17,12 +16,12 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": -0.2087,
-    "sharpe": -113.6123,
-    "max_drawdown": 0.2087,
-    "average_turnover": 0.2136,
+    "total_return": -0.1506,
+    "sharpe": -115.893,
+    "max_drawdown": 0.1506,
+    "average_turnover": 0.1438,
     "bars_processed": 2015,
-    "score": -115.7047
+    "score": -117.3923
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -31,12 +30,34 @@
     "Promote only the variants that stay above target gate across recent cycles."
   ],
   "loop_state": "searching",
-  "latest_dataset_id": "binance-usdm_futures-5m-20260309T092000Z-20260316T092000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-  "latest_cycle_completed_at": "2026-03-16T09:20:15.000396+00:00",
-  "last_processed_bar": "2026-03-16T09:20:00+00:00",
+  "latest_dataset_id": "bybit-linear-5m-20260309T092500Z-20260316T092500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+  "latest_cycle_completed_at": "2026-03-16T09:26:14.513157+00:00",
+  "last_processed_bar": "2026-03-16T09:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
   "leaderboard": [
+    {
+      "strategy_name": "mom-lb24-top2-gross0.5",
+      "params": {
+        "name": "mom-lb24-top2-gross0.5",
+        "lookback_bars": 24,
+        "top_k": 2,
+        "gross_target": 0.5
+      },
+      "accepted": false,
+      "score": -117.39234217976102,
+      "metrics": {
+        "total_return": -0.1506141279065527,
+        "sharpe": -115.89301850254745,
+        "max_drawdown": 0.1506141279065527,
+        "average_turnover": 0.14379652605459056,
+        "bars_processed": 2015
+      },
+      "rejection_reasons": [
+        "total_return_below_gate",
+        "sharpe_below_gate"
+      ]
+    },
     {
       "strategy_name": "mom-lb24-top1-gross0.5",
       "params": {
@@ -46,12 +67,12 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -115.70465490343067,
+      "score": -118.03198161268398,
       "metrics": {
-        "total_return": -0.20874487299112165,
-        "sharpe": -113.61230340383067,
-        "max_drawdown": 0.20874487299112165,
-        "average_turnover": 0.21364764267990075,
+        "total_return": -0.21402466019932853,
+        "sharpe": -115.88690111009598,
+        "max_drawdown": 0.21402466019932853,
+        "average_turnover": 0.21885856079404467,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -68,34 +89,12 @@
         "gross_target": 1.0
       },
       "accepted": false,
-      "score": -115.70465490343067,
+      "score": -118.03198161268398,
       "metrics": {
-        "total_return": -0.20874487299112165,
-        "sharpe": -113.61230340383067,
-        "max_drawdown": 0.20874487299112165,
-        "average_turnover": 0.21364764267990075,
-        "bars_processed": 2015
-      },
-      "rejection_reasons": [
-        "total_return_below_gate",
-        "sharpe_below_gate"
-      ]
-    },
-    {
-      "strategy_name": "mom-lb24-top2-gross0.5",
-      "params": {
-        "name": "mom-lb24-top2-gross0.5",
-        "lookback_bars": 24,
-        "top_k": 2,
-        "gross_target": 0.5
-      },
-      "accepted": false,
-      "score": -116.94440180567724,
-      "metrics": {
-        "total_return": -0.14736842635142267,
-        "sharpe": -115.47999663848962,
-        "max_drawdown": 0.14736842635142267,
-        "average_turnover": 0.13808933002481388,
+        "total_return": -0.21402466019932853,
+        "sharpe": -115.88690111009598,
+        "max_drawdown": 0.21402466019932853,
+        "average_turnover": 0.21885856079404467,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -112,12 +111,12 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -131.89469522194136,
+      "score": -135.7306188578274,
       "metrics": {
-        "total_return": -0.17095776814296915,
-        "sharpe": -130.16901633459003,
-        "max_drawdown": 0.17113442232910292,
-        "average_turnover": 0.18635235732009925,
+        "total_return": -0.1761619261757359,
+        "sharpe": -133.9538739196016,
+        "max_drawdown": 0.17618606008740267,
+        "average_turnover": 0.19119106699751862,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -126,20 +125,20 @@
       ]
     },
     {
-      "strategy_name": "baseline",
+      "strategy_name": "mom-lb12-top1-gross0.5",
       "params": {
-        "name": "baseline",
+        "name": "mom-lb12-top1-gross0.5",
         "lookback_bars": 12,
-        "top_k": 2,
-        "gross_target": 1.0
+        "top_k": 1,
+        "gross_target": 0.5
       },
       "accepted": false,
-      "score": -133.4555053850489,
+      "score": -136.33620169360194,
       "metrics": {
-        "total_return": -0.3035156232939442,
-        "sharpe": -130.36025660729302,
-        "max_drawdown": 0.303812383506583,
-        "average_turnover": 0.36242112725983694,
+        "total_return": -0.2564577444260898,
+        "sharpe": -133.7454617262181,
+        "max_drawdown": 0.2565172778145821,
+        "average_turnover": 0.2823821339950372,
         "bars_processed": 2015
       },
       "rejection_reasons": [
