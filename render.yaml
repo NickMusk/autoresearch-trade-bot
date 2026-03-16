@@ -13,6 +13,7 @@ services:
     name: autoresearch-trade-bot-worker
     runtime: python
     plan: starter
+    region: frankfurt
     buildCommand: pip install '.[data]'
     startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.worker
     envVars:
