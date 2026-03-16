@@ -6,6 +6,7 @@
     "No current strategy variant passes the promotion gate on the latest window.",
     "Recent acceptance rate is still below the rollout threshold.",
     "Sharpe is below the rollout target.",
+    "Worst drawdown across windows is above the rollout target.",
     "Total return is below the rollout target."
   ],
   "baseline_strategy": "Market-neutral cross-sectional momentum variant search on liquid perpetuals.",
@@ -16,25 +17,329 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": -0.1501,
-    "sharpe": -115.4208,
+    "total_return": -0.1498,
+    "sharpe": -115.1873,
     "max_drawdown": 0.1502,
     "average_turnover": 0.1439,
     "bars_processed": 2015,
-    "score": -116.9161
+    "score": -116.6811
   },
   "accepted_for_paper": false,
   "next_milestones": [
-    "Add walk-forward ranking across multiple windows for the top parameter sets.",
+    "Promote only the variants that stay above target gate across recent windows.",
     "Add realtime paper or shadow replay on the same engine boundaries.",
-    "Promote only the variants that stay above target gate across recent cycles."
+    "Increase candidate breadth only after a stable multi-window winner appears."
   ],
   "loop_state": "searching",
-  "latest_dataset_id": "bybit-linear-5m-20260309T102000Z-20260316T102000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-  "latest_cycle_completed_at": "2026-03-16T10:20:15.000442+00:00",
-  "last_processed_bar": "2026-03-16T10:20:00+00:00",
+  "latest_dataset_id": "bybit-linear-5m-20260309T102500Z-20260316T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+  "latest_cycle_completed_at": "2026-03-16T10:25:57.787320+00:00",
+  "last_processed_bar": "2026-03-16T10:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
+  "multi_window_summary": {
+    "best_variant": {
+      "name": "mom-lb24-top1-gross0.5",
+      "lookback_bars": 24,
+      "top_k": 1,
+      "gross_target": 0.5
+    },
+    "aggregate_score": -106.4313,
+    "acceptance_rate": 0.0,
+    "average_metrics": {
+      "total_return": -0.2092,
+      "sharpe": -104.3302,
+      "max_drawdown": 0.2105,
+      "average_turnover": 0.2131,
+      "bars_processed": 2015
+    },
+    "worst_max_drawdown": 0.2201,
+    "windows_passed": 0,
+    "total_windows": 4,
+    "reports": [
+      {
+        "variant": {
+          "name": "mom-lb24-top1-gross0.5",
+          "lookback_bars": 24,
+          "top_k": 1,
+          "gross_target": 0.5
+        },
+        "aggregate_score": -106.43134427872141,
+        "acceptance_rate": 0.0,
+        "average_metrics": {
+          "total_return": -0.2092463895568209,
+          "sharpe": -104.3301703431926,
+          "max_drawdown": 0.21046316442996893,
+          "average_turnover": 0.2130893300248139,
+          "bars_processed": 2015
+        },
+        "worst_max_drawdown": 0.22010643624939097,
+        "windows_passed": 0,
+        "total_windows": 4,
+        "window_reports": [
+          {
+            "dataset_id": "bybit-linear-5m-20260309T102500Z-20260316T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-09T10:25:00+00:00",
+            "window_end": "2026-03-16T10:25:00+00:00",
+            "accepted": false,
+            "score": -116.69392565530127,
+            "metrics": {
+              "total_return": -0.21185494994952148,
+              "sharpe": -114.56806915306868,
+              "max_drawdown": 0.212178936880555,
+              "average_turnover": 0.21786600496277916,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          },
+          {
+            "dataset_id": "bybit-linear-5m-20260302T102500Z-20260309T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-02T10:25:00+00:00",
+            "window_end": "2026-03-09T10:25:00+00:00",
+            "accepted": false,
+            "score": -107.90776885139287,
+            "metrics": {
+              "total_return": -0.21725489990102353,
+              "sharpe": -105.73095502142822,
+              "max_drawdown": 0.21804426189527837,
+              "average_turnover": 0.21836228287841192,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          },
+          {
+            "dataset_id": "bybit-linear-5m-20260223T102500Z-20260302T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-23T10:25:00+00:00",
+            "window_end": "2026-03-02T10:25:00+00:00",
+            "accepted": false,
+            "score": -88.0418062896516,
+            "metrics": {
+              "total_return": -0.1908388677331272,
+              "sharpe": -86.12077544333393,
+              "max_drawdown": 0.19152302269465138,
+              "average_turnover": 0.20074441687344913,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          },
+          {
+            "dataset_id": "bybit-linear-5m-20260216T102500Z-20260223T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-16T10:25:00+00:00",
+            "window_end": "2026-02-23T10:25:00+00:00",
+            "accepted": false,
+            "score": -113.08187631853988,
+            "metrics": {
+              "total_return": -0.2170368406436114,
+              "sharpe": -110.90088175493963,
+              "max_drawdown": 0.22010643624939097,
+              "average_turnover": 0.2153846153846154,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          }
+        ]
+      },
+      {
+        "variant": {
+          "name": "mom-lb24-top1-gross1.0",
+          "lookback_bars": 24,
+          "top_k": 1,
+          "gross_target": 1.0
+        },
+        "aggregate_score": -106.43134427872141,
+        "acceptance_rate": 0.0,
+        "average_metrics": {
+          "total_return": -0.2092463895568209,
+          "sharpe": -104.3301703431926,
+          "max_drawdown": 0.21046316442996893,
+          "average_turnover": 0.2130893300248139,
+          "bars_processed": 2015
+        },
+        "worst_max_drawdown": 0.22010643624939097,
+        "windows_passed": 0,
+        "total_windows": 4,
+        "window_reports": [
+          {
+            "dataset_id": "bybit-linear-5m-20260309T102500Z-20260316T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-09T10:25:00+00:00",
+            "window_end": "2026-03-16T10:25:00+00:00",
+            "accepted": false,
+            "score": -116.69392565530127,
+            "metrics": {
+              "total_return": -0.21185494994952148,
+              "sharpe": -114.56806915306868,
+              "max_drawdown": 0.212178936880555,
+              "average_turnover": 0.21786600496277916,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          },
+          {
+            "dataset_id": "bybit-linear-5m-20260302T102500Z-20260309T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-02T10:25:00+00:00",
+            "window_end": "2026-03-09T10:25:00+00:00",
+            "accepted": false,
+            "score": -107.90776885139287,
+            "metrics": {
+              "total_return": -0.21725489990102353,
+              "sharpe": -105.73095502142822,
+              "max_drawdown": 0.21804426189527837,
+              "average_turnover": 0.21836228287841192,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          },
+          {
+            "dataset_id": "bybit-linear-5m-20260223T102500Z-20260302T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-23T10:25:00+00:00",
+            "window_end": "2026-03-02T10:25:00+00:00",
+            "accepted": false,
+            "score": -88.0418062896516,
+            "metrics": {
+              "total_return": -0.1908388677331272,
+              "sharpe": -86.12077544333393,
+              "max_drawdown": 0.19152302269465138,
+              "average_turnover": 0.20074441687344913,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          },
+          {
+            "dataset_id": "bybit-linear-5m-20260216T102500Z-20260223T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-16T10:25:00+00:00",
+            "window_end": "2026-02-23T10:25:00+00:00",
+            "accepted": false,
+            "score": -113.08187631853988,
+            "metrics": {
+              "total_return": -0.2170368406436114,
+              "sharpe": -110.90088175493963,
+              "max_drawdown": 0.22010643624939097,
+              "average_turnover": 0.2153846153846154,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          }
+        ]
+      },
+      {
+        "variant": {
+          "name": "mom-lb24-top2-gross0.5",
+          "lookback_bars": 24,
+          "top_k": 2,
+          "gross_target": 0.5
+        },
+        "aggregate_score": -107.66226129179493,
+        "acceptance_rate": 0.0,
+        "average_metrics": {
+          "total_return": -0.14719740319413446,
+          "sharpe": -106.18790987236133,
+          "max_drawdown": 0.14785878076647704,
+          "average_turnover": 0.14692928039702233,
+          "bars_processed": 2015
+        },
+        "worst_max_drawdown": 0.16381964952009487,
+        "windows_passed": 0,
+        "total_windows": 4,
+        "window_reports": [
+          {
+            "dataset_id": "bybit-linear-5m-20260309T102500Z-20260316T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-09T10:25:00+00:00",
+            "window_end": "2026-03-16T10:25:00+00:00",
+            "accepted": false,
+            "score": -116.68113057492161,
+            "metrics": {
+              "total_return": -0.14983923012203082,
+              "sharpe": -115.18729072876972,
+              "max_drawdown": 0.15018077500205496,
+              "average_turnover": 0.14392059553349876,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          },
+          {
+            "dataset_id": "bybit-linear-5m-20260302T102500Z-20260309T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-03-02T10:25:00+00:00",
+            "window_end": "2026-03-09T10:25:00+00:00",
+            "accepted": false,
+            "score": -119.7716944048964,
+            "metrics": {
+              "total_return": -0.16381964952009487,
+              "sharpe": -118.13677165350833,
+              "max_drawdown": 0.16381964952009487,
+              "average_turnover": 0.16054590570719604,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          },
+          {
+            "dataset_id": "bybit-linear-5m-20260223T102500Z-20260302T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-23T10:25:00+00:00",
+            "window_end": "2026-03-02T10:25:00+00:00",
+            "accepted": false,
+            "score": -86.68798878527392,
+            "metrics": {
+              "total_return": -0.13185992148008874,
+              "sharpe": -85.36180988089208,
+              "max_drawdown": 0.13260071754559677,
+              "average_turnover": 0.13647642679900746,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          },
+          {
+            "dataset_id": "bybit-linear-5m-20260216T102500Z-20260223T102500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+            "window_start": "2026-02-16T10:25:00+00:00",
+            "window_end": "2026-02-23T10:25:00+00:00",
+            "accepted": false,
+            "score": -107.5082314020878,
+            "metrics": {
+              "total_return": -0.14327081165432343,
+              "sharpe": -106.06576722627516,
+              "max_drawdown": 0.14483398099816158,
+              "average_turnover": 0.14677419354838708,
+              "bars_processed": 2015
+            },
+            "rejection_reasons": [
+              "total_return_below_gate",
+              "sharpe_below_gate"
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "leaderboard": [
     {
       "strategy_name": "mom-lb24-top2-gross0.5",
@@ -45,11 +350,11 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -116.91612014104301,
+      "score": -116.68113057492161,
       "metrics": {
-        "total_return": -0.15012681988339716,
-        "sharpe": -115.4208423460843,
-        "max_drawdown": 0.15018077500205596,
+        "total_return": -0.14983923012203082,
+        "sharpe": -115.18729072876972,
+        "max_drawdown": 0.15018077500205496,
         "average_turnover": 0.14392059553349876,
         "bars_processed": 2015
       },
@@ -67,11 +372,11 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -117.06933644871488,
+      "score": -116.69392565530127,
       "metrics": {
-        "total_return": -0.2124083021983001,
-        "sharpe": -114.93952636700502,
-        "max_drawdown": 0.2124756414388963,
+        "total_return": -0.21185494994952148,
+        "sharpe": -114.56806915306868,
+        "max_drawdown": 0.212178936880555,
         "average_turnover": 0.21786600496277916,
         "bars_processed": 2015
       },
@@ -89,11 +394,11 @@
         "gross_target": 1.0
       },
       "accepted": false,
-      "score": -117.06933644871488,
+      "score": -116.69392565530127,
       "metrics": {
-        "total_return": -0.2124083021983001,
-        "sharpe": -114.93952636700502,
-        "max_drawdown": 0.2124756414388963,
+        "total_return": -0.21185494994952148,
+        "sharpe": -114.56806915306868,
+        "max_drawdown": 0.212178936880555,
         "average_turnover": 0.21786600496277916,
         "bars_processed": 2015
       },
@@ -111,12 +416,12 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -135.05967632259623,
+      "score": -134.88206920045388,
       "metrics": {
-        "total_return": -0.17564238999558546,
-        "sharpe": -133.2873315372017,
-        "max_drawdown": 0.17564238999558546,
-        "average_turnover": 0.19156327543424317,
+        "total_return": -0.17537408370055663,
+        "sharpe": -133.11226324119355,
+        "max_drawdown": 0.17537408370055663,
+        "average_turnover": 0.19143920595533498,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -133,11 +438,11 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -135.94277051423057,
+      "score": -135.7613527991782,
       "metrics": {
-        "total_return": -0.2564564400346184,
-        "sharpe": -133.35203228096617,
-        "max_drawdown": 0.2564564400346184,
+        "total_return": -0.2562398514095039,
+        "sharpe": -133.17159518167185,
+        "max_drawdown": 0.25648202187650304,
         "average_turnover": 0.2826302729528536,
         "bars_processed": 2015
       },
