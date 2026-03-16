@@ -15,6 +15,12 @@ class DatasetStore(Protocol):
     def read_bars(self, path: Path) -> list[Bar]:
         ...
 
+    def write_manifest(self, manifest: DatasetManifest, path: Path) -> Path:
+        ...
+
+    def read_manifest(self, path: Path) -> DatasetManifest:
+        ...
+
 
 class PyArrowParquetDatasetStore:
     """Filesystem-backed parquet store for validated research datasets."""

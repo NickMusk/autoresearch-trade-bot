@@ -9,7 +9,12 @@ from pathlib import Path
 from typing import Callable
 
 from .config import DataConfig, ResearchTargetGate, WorkerConfig
-from .data import HistoricalDatasetMaterializer, ManifestHistoricalDataSource
+from .data import (
+    HistoricalDatasetMaterializer,
+    ManifestHistoricalDataSource,
+    find_covering_manifest,
+    find_latest_reusable_manifest,
+)
 from .datasets import DatasetSpec, timeframe_to_timedelta
 from .experiments import (
     MultiWindowVariantReport,
@@ -38,6 +43,7 @@ class ResearchCycleResult:
     best_entry: LeaderboardEntry
     leaderboard: list[LeaderboardEntry]
     multi_window_reports: list[MultiWindowVariantReport]
+    ran_multi_window_validation: bool
     recent_acceptance_rate: float
     rollout_ready: bool
 
@@ -76,6 +82,7 @@ class ContinuousResearchWorker:
             except Exception as exc:  # noqa: BLE001
                 failed_checkpoint = WorkerCheckpoint(
                     last_processed_bar=checkpoint.last_processed_bar,
+                    last_multi_window_bar=checkpoint.last_multi_window_bar,
                     consecutive_failures=checkpoint.consecutive_failures + 1,
                     last_cycle_completed_at=checkpoint.last_cycle_completed_at,
                 )
@@ -89,12 +96,24 @@ class ContinuousResearchWorker:
 
     def run_cycle(self, now: datetime | None = None) -> ResearchCycleResult:
         cycle_now = self._ensure_utc(now or self.now_fn())
+        previous_checkpoint = self.state_store.load_checkpoint()
         latest_closed_bar = self.latest_closed_bar(cycle_now)
         spec = self._build_dataset_spec(latest_closed_bar)
         manifest_path = self._materialize_or_reuse_dataset(spec)
-        cycle_result = self._evaluate_cycle(spec, manifest_path, latest_closed_bar, cycle_now)
+        cycle_result = self._evaluate_cycle(
+            spec,
+            manifest_path,
+            latest_closed_bar,
+            cycle_now,
+            previous_checkpoint,
+        )
         checkpoint = WorkerCheckpoint(
             last_processed_bar=latest_closed_bar,
+            last_multi_window_bar=(
+                latest_closed_bar
+                if cycle_result.ran_multi_window_validation
+                else previous_checkpoint.last_multi_window_bar
+            ),
             consecutive_failures=0,
             last_cycle_completed_at=cycle_result.completed_at,
         )
@@ -145,6 +164,21 @@ class ContinuousResearchWorker:
         )
         if manifest_path.exists():
             return manifest_path
+        covering_manifest = find_covering_manifest(
+            self.worker_config.data_config.storage_root,
+            spec,
+            self.materializer.store,
+        )
+        if covering_manifest is not None:
+            return covering_manifest
+        reusable_manifest = find_latest_reusable_manifest(
+            self.worker_config.data_config.storage_root,
+            spec,
+            self.materializer.store,
+        )
+        if reusable_manifest is not None:
+            dataset = self.materializer.materialize_incremental(spec, reusable_manifest)
+            return dataset.manifest_path
         dataset = self.materializer.materialize(spec)
         return dataset.manifest_path
 
@@ -154,6 +188,7 @@ class ContinuousResearchWorker:
         manifest_path: Path,
         latest_closed_bar: datetime,
         cycle_now: datetime,
+        checkpoint: WorkerCheckpoint,
     ) -> ResearchCycleResult:
         loader = ManifestHistoricalDataSource.from_manifest_path(manifest_path)
         bars = loader.load_bars(spec)
@@ -175,11 +210,18 @@ class ContinuousResearchWorker:
             for report in reports
         ]
         best_entry = leaderboard[0]
-        multi_window_reports = self._run_multi_window_validation(
-            anchor_spec=spec,
-            loader=loader,
-            leaderboard=leaderboard,
+        ran_multi_window_validation = self._should_run_multi_window_validation(
+            checkpoint=checkpoint,
+            latest_closed_bar=latest_closed_bar,
         )
+        if ran_multi_window_validation:
+            multi_window_reports = self._run_multi_window_validation(
+                anchor_spec=spec,
+                loader=loader,
+                leaderboard=leaderboard,
+            )
+        else:
+            multi_window_reports = self._load_previous_multi_window_reports()
         best_multi_window_report = multi_window_reports[0] if multi_window_reports else None
         history = self.state_store.load_history()
         new_summary = CycleSummary(
@@ -220,6 +262,7 @@ class ContinuousResearchWorker:
             best_entry=best_entry,
             leaderboard=leaderboard[:5],
             multi_window_reports=multi_window_reports,
+            ran_multi_window_validation=ran_multi_window_validation,
             recent_acceptance_rate=recent_acceptance_rate,
             rollout_ready=rollout_ready,
         )
@@ -285,7 +328,11 @@ class ContinuousResearchWorker:
             last_processed_bar=cycle_result.last_processed_bar.isoformat(),
             recent_acceptance_rate=round(cycle_result.recent_acceptance_rate, 4),
             consecutive_failures=checkpoint.consecutive_failures,
-            multi_window_summary=self._build_multi_window_summary(cycle_result.multi_window_reports),
+            multi_window_summary=self._build_multi_window_summary(
+                cycle_result.multi_window_reports,
+                checkpoint.last_multi_window_bar,
+                cycle_result.ran_multi_window_validation,
+            ),
             leaderboard=[entry.to_dict() for entry in cycle_result.leaderboard],
         )
 
@@ -349,6 +396,7 @@ class ContinuousResearchWorker:
             "last_processed_bar": cycle_result.last_processed_bar.isoformat(),
             "recent_acceptance_rate": cycle_result.recent_acceptance_rate,
             "rollout_ready": cycle_result.rollout_ready,
+            "ran_multi_window_validation": cycle_result.ran_multi_window_validation,
             "multi_window_reports": [
                 report.to_dict() for report in cycle_result.multi_window_reports
             ],
@@ -448,14 +496,16 @@ class ContinuousResearchWorker:
             gross_target=float(params["gross_target"]),
         )
 
-    @staticmethod
     def _build_multi_window_summary(
+        self,
         reports: list[MultiWindowVariantReport],
+        last_validated_bar: datetime | None,
+        ran_this_cycle: bool,
     ) -> dict[str, object]:
         if not reports:
             return {}
         best = reports[0]
-        return {
+        payload = {
             "best_variant": best.variant.to_dict(),
             "aggregate_score": round(best.aggregate_score, 4),
             "acceptance_rate": round(best.acceptance_rate, 4),
@@ -466,8 +516,32 @@ class ContinuousResearchWorker:
             "worst_max_drawdown": round(best.worst_max_drawdown, 4),
             "windows_passed": best.windows_passed,
             "total_windows": best.total_windows,
+            "validation_interval_bars": self.worker_config.multi_window_validation_interval_bars,
+            "ran_this_cycle": ran_this_cycle,
             "reports": [report.to_dict() for report in reports],
         }
+        if last_validated_bar is not None:
+            payload["last_validated_bar"] = last_validated_bar.isoformat()
+        return payload
+
+    def _should_run_multi_window_validation(
+        self,
+        checkpoint: WorkerCheckpoint,
+        latest_closed_bar: datetime,
+    ) -> bool:
+        if checkpoint.last_multi_window_bar is None:
+            return True
+        step = timeframe_to_timedelta(self.worker_config.timeframe)
+        elapsed = latest_closed_bar - checkpoint.last_multi_window_bar
+        elapsed_bars = int(elapsed.total_seconds() // step.total_seconds())
+        return elapsed_bars >= self.worker_config.multi_window_validation_interval_bars
+
+    def _load_previous_multi_window_reports(self) -> list[MultiWindowVariantReport]:
+        snapshot = self.state_store.load_snapshot()
+        if snapshot is None:
+            return []
+        reports = snapshot.multi_window_summary.get("reports", [])
+        return [MultiWindowVariantReport.from_dict(item) for item in reports]
 
     @staticmethod
     def _acceptance_rate(history: list[CycleSummary]) -> float:
@@ -506,6 +580,9 @@ def worker_config_from_env() -> WorkerConfig:
         multi_window_count=int(os.environ.get("AUTORESEARCH_MULTI_WINDOW_COUNT", "4")),
         multi_window_top_candidates=int(
             os.environ.get("AUTORESEARCH_MULTI_WINDOW_TOP_CANDIDATES", "3")
+        ),
+        multi_window_validation_interval_bars=int(
+            os.environ.get("AUTORESEARCH_MULTI_WINDOW_INTERVAL_BARS", "12")
         ),
         recent_cycles_for_acceptance=int(
             os.environ.get("AUTORESEARCH_RECENT_CYCLES_FOR_ACCEPTANCE", "12")

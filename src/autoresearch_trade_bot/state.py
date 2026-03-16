@@ -90,6 +90,7 @@ class CycleSummary:
 @dataclass(frozen=True)
 class WorkerCheckpoint:
     last_processed_bar: datetime | None = None
+    last_multi_window_bar: datetime | None = None
     consecutive_failures: int = 0
     last_cycle_completed_at: datetime | None = None
 
@@ -99,6 +100,8 @@ class WorkerCheckpoint:
         }
         if self.last_processed_bar is not None:
             payload["last_processed_bar"] = self.last_processed_bar.isoformat()
+        if self.last_multi_window_bar is not None:
+            payload["last_multi_window_bar"] = self.last_multi_window_bar.isoformat()
         if self.last_cycle_completed_at is not None:
             payload["last_cycle_completed_at"] = self.last_cycle_completed_at.isoformat()
         return payload
@@ -109,6 +112,11 @@ class WorkerCheckpoint:
             last_processed_bar=(
                 _ensure_utc(datetime.fromisoformat(payload["last_processed_bar"]))
                 if payload.get("last_processed_bar")
+                else None
+            ),
+            last_multi_window_bar=(
+                _ensure_utc(datetime.fromisoformat(payload["last_multi_window_bar"]))
+                if payload.get("last_multi_window_bar")
                 else None
             ),
             consecutive_failures=int(payload.get("consecutive_failures", 0)),

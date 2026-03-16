@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 from typing import Mapping, Protocol, Sequence
@@ -43,6 +43,65 @@ class DataValidationError(ValueError):
     def __init__(self, issues) -> None:
         super().__init__("dataset validation failed")
         self.issues = issues
+
+
+def _manifest_search_root(storage_root: str | Path, spec: DatasetSpec) -> Path:
+    return Path(storage_root) / spec.exchange / spec.market / spec.timeframe
+
+
+def _manifest_matches_spec(manifest: DatasetManifest, spec: DatasetSpec) -> bool:
+    return (
+        manifest.exchange == spec.exchange
+        and manifest.market == spec.market
+        and manifest.timeframe == spec.timeframe
+        and tuple(manifest.symbols) == tuple(spec.symbols)
+    )
+
+
+def find_covering_manifest(
+    storage_root: str | Path,
+    spec: DatasetSpec,
+    store: DatasetStore,
+) -> Path | None:
+    search_root = _manifest_search_root(storage_root, spec)
+    if not search_root.exists():
+        return None
+
+    candidates: list[tuple[timedelta, datetime, Path]] = []
+    for manifest_path in search_root.glob("**/manifest.json"):
+        manifest = store.read_manifest(manifest_path)
+        if not _manifest_matches_spec(manifest, spec):
+            continue
+        if manifest.start <= spec.start and manifest.end >= spec.end:
+            candidates.append((manifest.end - manifest.start, manifest.generated_at, manifest_path))
+
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: (item[0], item[1]), reverse=False)
+    return candidates[0][2]
+
+
+def find_latest_reusable_manifest(
+    storage_root: str | Path,
+    spec: DatasetSpec,
+    store: DatasetStore,
+) -> Path | None:
+    search_root = _manifest_search_root(storage_root, spec)
+    if not search_root.exists():
+        return None
+
+    candidates: list[tuple[datetime, datetime, Path]] = []
+    for manifest_path in search_root.glob("**/manifest.json"):
+        manifest = store.read_manifest(manifest_path)
+        if not _manifest_matches_spec(manifest, spec):
+            continue
+        if manifest.start <= spec.start and spec.start < manifest.end < spec.end:
+            candidates.append((manifest.end, manifest.generated_at, manifest_path))
+
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    return candidates[0][2]
 
 
 @dataclass
@@ -95,12 +154,64 @@ class HistoricalDatasetMaterializer:
 
     def materialize(self, dataset_spec: DatasetSpec) -> ValidatedDataset:
         bars_by_symbol = {}
-        files = {}
-
         for symbol in dataset_spec.symbols:
             raw = self.client.fetch_symbol_history(dataset_spec, symbol)
             bars = self.normalizer.normalize(dataset_spec, raw)
             bars_by_symbol[symbol] = bars
+
+        return self._write_validated_dataset(dataset_spec, bars_by_symbol)
+
+    def materialize_incremental(
+        self,
+        dataset_spec: DatasetSpec,
+        base_manifest_path: str | Path,
+    ) -> ValidatedDataset:
+        manifest_path = Path(base_manifest_path)
+        base_manifest = self.store.read_manifest(manifest_path)
+        loader = ManifestHistoricalDataSource(
+            manifest_path=manifest_path,
+            store=self.store,
+            manifest=base_manifest,
+            storage_root=Path(self.data_config.storage_root),
+        )
+        cached_end = min(dataset_spec.end, base_manifest.end)
+        cached_spec = DatasetSpec(
+            exchange=dataset_spec.exchange,
+            market=dataset_spec.market,
+            timeframe=dataset_spec.timeframe,
+            start=dataset_spec.start,
+            end=cached_end,
+            symbols=dataset_spec.symbols,
+        )
+        bars_by_symbol = {
+            symbol: list(bars)
+            for symbol, bars in loader.load_bars(cached_spec).items()
+        }
+        if cached_end < dataset_spec.end:
+            tail_spec = DatasetSpec(
+                exchange=dataset_spec.exchange,
+                market=dataset_spec.market,
+                timeframe=dataset_spec.timeframe,
+                start=cached_end,
+                end=dataset_spec.end,
+                symbols=dataset_spec.symbols,
+            )
+            for symbol in dataset_spec.symbols:
+                raw = self.client.fetch_symbol_history(tail_spec, symbol)
+                tail_bars = self.normalizer.normalize(tail_spec, raw)
+                bars_by_symbol[symbol] = self._merge_bars(
+                    bars_by_symbol.get(symbol, []),
+                    tail_bars,
+                )
+
+        return self._write_validated_dataset(dataset_spec, bars_by_symbol)
+
+    def _write_validated_dataset(
+        self,
+        dataset_spec: DatasetSpec,
+        bars_by_symbol: Mapping[str, Sequence[Bar]],
+    ) -> ValidatedDataset:
+        files = {}
 
         report = self.validator.validate(dataset_spec, bars_by_symbol)
         if self.data_config.strict_validation and report.has_errors:
@@ -143,6 +254,13 @@ class HistoricalDatasetMaterializer:
             manifest=manifest,
             manifest_path=manifest_path,
         )
+
+    @staticmethod
+    def _merge_bars(existing_bars: Sequence[Bar], new_bars: Sequence[Bar]) -> list[Bar]:
+        merged = {bar.timestamp: bar for bar in existing_bars}
+        for bar in new_bars:
+            merged[bar.timestamp] = bar
+        return [merged[timestamp] for timestamp in sorted(merged)]
 
 
 @dataclass

@@ -59,6 +59,15 @@ class StrategyVariant:
             "gross_target": self.gross_target,
         }
 
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> "StrategyVariant":
+        return cls(
+            name=str(payload["name"]),
+            lookback_bars=int(payload["lookback_bars"]),
+            top_k=int(payload["top_k"]),
+            gross_target=float(payload["gross_target"]),
+        )
+
 
 @dataclass(frozen=True)
 class VariantRunReport:
@@ -101,6 +110,18 @@ class WindowEvaluationReport:
             "rejection_reasons": self.rejection_reasons,
         }
 
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> "WindowEvaluationReport":
+        return cls(
+            dataset_id=str(payload["dataset_id"]),
+            window_start=str(payload["window_start"]),
+            window_end=str(payload["window_end"]),
+            accepted=bool(payload["accepted"]),
+            score=float(payload["score"]),
+            metrics=dict(payload["metrics"]),
+            rejection_reasons=[str(item) for item in payload.get("rejection_reasons", [])],
+        )
+
 
 @dataclass(frozen=True)
 class MultiWindowVariantReport:
@@ -124,6 +145,22 @@ class MultiWindowVariantReport:
             "total_windows": self.total_windows,
             "window_reports": [report.to_dict() for report in self.window_reports],
         }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> "MultiWindowVariantReport":
+        return cls(
+            variant=StrategyVariant.from_dict(payload["variant"]),
+            aggregate_score=float(payload["aggregate_score"]),
+            acceptance_rate=float(payload["acceptance_rate"]),
+            average_metrics=dict(payload["average_metrics"]),
+            worst_max_drawdown=float(payload["worst_max_drawdown"]),
+            windows_passed=int(payload["windows_passed"]),
+            total_windows=int(payload["total_windows"]),
+            window_reports=[
+                WindowEvaluationReport.from_dict(item)
+                for item in payload.get("window_reports", [])
+            ],
+        )
 
 
 def bars_per_year_for_timeframe(timeframe: str) -> int:

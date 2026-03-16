@@ -12,6 +12,8 @@ from autoresearch_trade_bot.data import (
     DataValidationError,
     HistoricalDatasetMaterializer,
     ManifestHistoricalDataSource,
+    find_covering_manifest,
+    find_latest_reusable_manifest,
 )
 from autoresearch_trade_bot.datasets import DatasetManifest, DatasetSpec, RawSymbolHistory
 from autoresearch_trade_bot.research import ResearchEvaluator
@@ -43,6 +45,46 @@ class FakeHistoricalClient:
 
     def fetch_symbol_history(self, spec: DatasetSpec, symbol: str) -> RawSymbolHistory:
         return self.payload_by_symbol[symbol]
+
+
+class SlicingHistoricalClient:
+    def __init__(self, payload_by_symbol) -> None:
+        self.payload_by_symbol = payload_by_symbol
+        self.calls: list[tuple[str, datetime, datetime]] = []
+
+    def fetch_symbol_history(self, spec: DatasetSpec, symbol: str) -> RawSymbolHistory:
+        self.calls.append((symbol, spec.start, spec.end))
+        source = self.payload_by_symbol[symbol]
+        start_ms = int(spec.start.timestamp() * 1000)
+        end_ms = int(spec.end.timestamp() * 1000)
+        return RawSymbolHistory(
+            symbol=symbol,
+            klines=[
+                row
+                for row in source.klines
+                if start_ms <= int(row[0]) < end_ms
+            ],
+            funding_rates=[
+                row
+                for row in source.funding_rates
+                if start_ms <= int(row.get("fundingTime", 0)) < end_ms
+            ],
+            open_interest_stats=[
+                row
+                for row in source.open_interest_stats
+                if start_ms <= int(row.get("timestamp", 0)) < end_ms
+            ],
+            mark_price_klines=[
+                row
+                for row in source.mark_price_klines
+                if start_ms <= int(row[0]) < end_ms
+            ],
+            index_price_klines=[
+                row
+                for row in source.index_price_klines
+                if start_ms <= int(row[0]) < end_ms
+            ],
+        )
 
 
 class JsonDatasetStore(DatasetStore):
@@ -268,6 +310,145 @@ class DataPipelineTests(unittest.TestCase):
 
             with self.assertRaises(DataValidationError):
                 materializer.materialize(self.spec)
+
+    def test_materialize_incremental_fetches_only_the_tail(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            full_payload = {
+                "BTCUSDT": RawSymbolHistory(
+                    symbol="BTCUSDT",
+                    klines=[
+                        kline(1735689600000 + (index * 300000), 100 + index, 101 + index, 99 + index, 100.5 + index, 1000 + index)
+                        for index in range(5)
+                    ],
+                    funding_rates=[],
+                    open_interest_stats=[
+                        {"timestamp": 1735689600000 + (index * 300000), "sumOpenInterest": str(2500 + (index * 10))}
+                        for index in range(5)
+                    ],
+                ),
+                "ETHUSDT": RawSymbolHistory(
+                    symbol="ETHUSDT",
+                    klines=[
+                        kline(1735689600000 + (index * 300000), 100 - index, 100.5 - index, 99 - index, 99.5 - index, 900 + index)
+                        for index in range(5)
+                    ],
+                    funding_rates=[],
+                    open_interest_stats=[
+                        {"timestamp": 1735689600000 + (index * 300000), "sumOpenInterest": str(1800 + (index * 10))}
+                        for index in range(5)
+                    ],
+                ),
+            }
+            client = SlicingHistoricalClient(full_payload)
+            store = JsonDatasetStore(tempdir)
+            materializer = HistoricalDatasetMaterializer(
+                data_config=DataConfig(storage_root=tempdir, strict_validation=True),
+                client=client,
+                store=store,
+                validator=DatasetValidator(),
+                normalizer=BinanceBarNormalizer(),
+            )
+            initial_spec = DatasetSpec(
+                exchange="binance",
+                market="usdm_futures",
+                timeframe="5m",
+                start=self.start,
+                end=self.start + timedelta(minutes=20),
+                symbols=("BTCUSDT", "ETHUSDT"),
+            )
+            shifted_spec = DatasetSpec(
+                exchange="binance",
+                market="usdm_futures",
+                timeframe="5m",
+                start=self.start + timedelta(minutes=5),
+                end=self.start + timedelta(minutes=25),
+                symbols=("BTCUSDT", "ETHUSDT"),
+            )
+
+            initial_dataset = materializer.materialize(initial_spec)
+            client.calls.clear()
+            shifted_dataset = materializer.materialize_incremental(
+                shifted_spec,
+                initial_dataset.manifest_path,
+            )
+
+            self.assertTrue(shifted_dataset.manifest_path.exists())
+            self.assertEqual(len(client.calls), 2)
+            self.assertTrue(all(call[1] == initial_spec.end for call in client.calls))
+            loader = ManifestHistoricalDataSource(
+                manifest_path=shifted_dataset.manifest_path,
+                store=store,
+                manifest=shifted_dataset.manifest,
+                storage_root=Path(tempdir),
+            )
+            loaded = loader.load_bars(shifted_spec)
+            self.assertEqual(len(loaded["BTCUSDT"]), 4)
+            self.assertEqual(loaded["BTCUSDT"][0].timestamp, self.start + timedelta(minutes=5))
+            self.assertEqual(loaded["BTCUSDT"][-1].timestamp, self.start + timedelta(minutes=20))
+
+    def test_manifest_discovery_prefers_covering_then_latest_reusable(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            store = JsonDatasetStore(tempdir)
+            client = SlicingHistoricalClient(
+                {
+                    "BTCUSDT": RawSymbolHistory(
+                        symbol="BTCUSDT",
+                        klines=[
+                            kline(1735689600000 + (index * 300000), 100 + index, 101 + index, 99 + index, 100.5 + index, 1000 + index)
+                            for index in range(6)
+                        ],
+                    ),
+                    "ETHUSDT": RawSymbolHistory(
+                        symbol="ETHUSDT",
+                        klines=[
+                            kline(1735689600000 + (index * 300000), 100 - index, 100.5 - index, 99 - index, 99.5 - index, 900 + index)
+                            for index in range(6)
+                        ],
+                    ),
+                }
+            )
+            materializer = HistoricalDatasetMaterializer(
+                data_config=DataConfig(storage_root=tempdir, strict_validation=True),
+                client=client,
+                store=store,
+                validator=DatasetValidator(),
+                normalizer=BinanceBarNormalizer(),
+            )
+            reusable_spec = DatasetSpec(
+                exchange="binance",
+                market="usdm_futures",
+                timeframe="5m",
+                start=self.start,
+                end=self.start + timedelta(minutes=20),
+                symbols=("BTCUSDT", "ETHUSDT"),
+            )
+            covering_spec = DatasetSpec(
+                exchange="binance",
+                market="usdm_futures",
+                timeframe="5m",
+                start=self.start,
+                end=self.start + timedelta(minutes=30),
+                symbols=("BTCUSDT", "ETHUSDT"),
+            )
+            requested_spec = DatasetSpec(
+                exchange="binance",
+                market="usdm_futures",
+                timeframe="5m",
+                start=self.start + timedelta(minutes=5),
+                end=self.start + timedelta(minutes=25),
+                symbols=("BTCUSDT", "ETHUSDT"),
+            )
+            reusable_dataset = materializer.materialize(reusable_spec)
+            covering_dataset = materializer.materialize(covering_spec)
+
+            self.assertEqual(
+                find_covering_manifest(tempdir, requested_spec, store),
+                covering_dataset.manifest_path,
+            )
+            self.assertEqual(
+                find_latest_reusable_manifest(tempdir, requested_spec, store),
+                reusable_dataset.manifest_path,
+            )
 
 
 if __name__ == "__main__":
