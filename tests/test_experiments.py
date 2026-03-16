@@ -9,7 +9,11 @@ from autoresearch_trade_bot.config import DataConfig
 from autoresearch_trade_bot.data import HistoricalDatasetMaterializer
 from autoresearch_trade_bot.datasets import DatasetSpec, RawSymbolHistory
 from autoresearch_trade_bot.experiments import (
+    StrategyVariant,
+    WindowEvaluationReport,
+    aggregate_window_reports,
     bars_per_year_for_timeframe,
+    build_rolling_window_specs,
     build_strategy_variants,
     discover_latest_manifest,
     run_baseline_from_manifest_path,
@@ -80,6 +84,66 @@ class ExperimentWorkflowTests(unittest.TestCase):
         variants = build_strategy_variants(symbol_count=5, max_variants=4)
         self.assertEqual(len(variants), 4)
         self.assertEqual(variants[0].name, "baseline")
+
+    def test_build_rolling_window_specs_walks_backwards(self) -> None:
+        spec = DatasetSpec(
+            exchange="bybit",
+            market="linear",
+            timeframe="5m",
+            start=datetime(2026, 3, 10, 0, 0, tzinfo=timezone.utc),
+            end=datetime(2026, 3, 17, 0, 0, tzinfo=timezone.utc),
+            symbols=("BTCUSDT", "ETHUSDT"),
+        )
+        windows = build_rolling_window_specs(spec, window_count=3)
+        self.assertEqual(len(windows), 3)
+        self.assertEqual(windows[0].start, datetime(2026, 3, 10, 0, 0, tzinfo=timezone.utc))
+        self.assertEqual(windows[0].end, datetime(2026, 3, 17, 0, 0, tzinfo=timezone.utc))
+        self.assertEqual(windows[1].start, datetime(2026, 3, 3, 0, 0, tzinfo=timezone.utc))
+        self.assertEqual(windows[2].start, datetime(2026, 2, 24, 0, 0, tzinfo=timezone.utc))
+
+    def test_aggregate_window_reports_summarizes_stability(self) -> None:
+        variant = StrategyVariant(name="baseline", lookback_bars=12, top_k=2, gross_target=1.0)
+        aggregated = aggregate_window_reports(
+            variant,
+            [
+                WindowEvaluationReport(
+                    dataset_id="window-1",
+                    window_start="2026-03-01T00:00:00+00:00",
+                    window_end="2026-03-08T00:00:00+00:00",
+                    accepted=True,
+                    score=1.5,
+                    metrics={
+                        "total_return": 0.10,
+                        "sharpe": 1.2,
+                        "max_drawdown": 0.08,
+                        "average_turnover": 0.20,
+                        "bars_processed": 100,
+                    },
+                    rejection_reasons=[],
+                ),
+                WindowEvaluationReport(
+                    dataset_id="window-2",
+                    window_start="2026-02-22T00:00:00+00:00",
+                    window_end="2026-03-01T00:00:00+00:00",
+                    accepted=False,
+                    score=-0.5,
+                    metrics={
+                        "total_return": -0.02,
+                        "sharpe": 0.1,
+                        "max_drawdown": 0.14,
+                        "average_turnover": 0.25,
+                        "bars_processed": 110,
+                    },
+                    rejection_reasons=["sharpe_below_gate"],
+                ),
+            ],
+        )
+        self.assertEqual(aggregated.windows_passed, 1)
+        self.assertEqual(aggregated.total_windows, 2)
+        self.assertAlmostEqual(aggregated.acceptance_rate, 0.5)
+        self.assertAlmostEqual(aggregated.aggregate_score, 0.5)
+        self.assertAlmostEqual(aggregated.average_metrics["total_return"], 0.04)
+        self.assertAlmostEqual(aggregated.worst_max_drawdown, 0.14)
 
     def test_discover_latest_manifest_and_run_baseline(self) -> None:
         start = datetime(2025, 1, 1, 0, 0, tzinfo=timezone.utc)

@@ -63,6 +63,8 @@ class WorkerConfig:
     timeframe: str = "5m"
     history_window_days: int = 7
     max_variants_per_cycle: int = 12
+    multi_window_count: int = 4
+    multi_window_top_candidates: int = 3
     recent_cycles_for_acceptance: int = 12
     poll_buffer_seconds: int = 15
     failure_cooldown_seconds: int = 90

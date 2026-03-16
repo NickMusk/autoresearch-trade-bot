@@ -12,6 +12,10 @@ from .config import DataConfig, ResearchTargetGate, WorkerConfig
 from .data import HistoricalDatasetMaterializer, ManifestHistoricalDataSource
 from .datasets import DatasetSpec, timeframe_to_timedelta
 from .experiments import (
+    MultiWindowVariantReport,
+    StrategyVariant,
+    build_rolling_window_specs,
+    evaluate_variant_across_windows,
     run_variant_search,
 )
 from .state import (
@@ -33,6 +37,7 @@ class ResearchCycleResult:
     completed_at: datetime
     best_entry: LeaderboardEntry
     leaderboard: list[LeaderboardEntry]
+    multi_window_reports: list[MultiWindowVariantReport]
     recent_acceptance_rate: float
     rollout_ready: bool
 
@@ -170,22 +175,42 @@ class ContinuousResearchWorker:
             for report in reports
         ]
         best_entry = leaderboard[0]
+        multi_window_reports = self._run_multi_window_validation(
+            anchor_spec=spec,
+            loader=loader,
+            leaderboard=leaderboard,
+        )
+        best_multi_window_report = multi_window_reports[0] if multi_window_reports else None
         history = self.state_store.load_history()
         new_summary = CycleSummary(
             cycle_id=spec.dataset_id,
             dataset_id=spec.dataset_id,
             completed_at=cycle_now,
             last_processed_bar=latest_closed_bar,
-            accepted=best_entry.accepted,
-            score=best_entry.score,
-            strategy_name=best_entry.strategy_name,
-            params=best_entry.params,
-            metrics=best_entry.metrics,
+            accepted=best_multi_window_report.acceptance_rate >= self.worker_config.target_gate.min_acceptance_rate
+            if best_multi_window_report is not None
+            else best_entry.accepted,
+            score=best_multi_window_report.aggregate_score
+            if best_multi_window_report is not None
+            else best_entry.score,
+            strategy_name=best_multi_window_report.variant.name
+            if best_multi_window_report is not None
+            else best_entry.strategy_name,
+            params=best_multi_window_report.variant.to_dict()
+            if best_multi_window_report is not None
+            else best_entry.params,
+            metrics=best_multi_window_report.average_metrics
+            if best_multi_window_report is not None
+            else best_entry.metrics,
         )
         recent_history = (history + [new_summary])[-self.worker_config.recent_cycles_for_acceptance :]
         self.state_store.save_history(recent_history)
         recent_acceptance_rate = self._acceptance_rate(recent_history)
-        rollout_ready = self._is_rollout_ready(best_entry, recent_acceptance_rate)
+        rollout_ready = self._is_rollout_ready(
+            best_entry,
+            best_multi_window_report,
+            recent_acceptance_rate,
+        )
         return ResearchCycleResult(
             cycle_id=spec.dataset_id,
             dataset_id=spec.dataset_id,
@@ -194,6 +219,7 @@ class ContinuousResearchWorker:
             completed_at=cycle_now,
             best_entry=best_entry,
             leaderboard=leaderboard[:5],
+            multi_window_reports=multi_window_reports,
             recent_acceptance_rate=recent_acceptance_rate,
             rollout_ready=rollout_ready,
         )
@@ -205,16 +231,27 @@ class ContinuousResearchWorker:
     ) -> ResearchStatusSnapshot:
         target_gate = self.worker_config.target_gate
         blockers = []
+        best_multi_window_report = (
+            cycle_result.multi_window_reports[0] if cycle_result.multi_window_reports else None
+        )
         if not cycle_result.best_entry.accepted:
             blockers.append("No current strategy variant passes the promotion gate on the latest window.")
         if cycle_result.recent_acceptance_rate < target_gate.min_acceptance_rate:
             blockers.append("Recent acceptance rate is still below the rollout threshold.")
-        if cycle_result.best_entry.metrics["sharpe"] < target_gate.min_sharpe:
-            blockers.append("Sharpe is below the rollout target.")
-        if cycle_result.best_entry.metrics["max_drawdown"] > target_gate.max_drawdown:
-            blockers.append("Max drawdown is above the rollout target.")
-        if cycle_result.best_entry.metrics["total_return"] < target_gate.min_total_return:
-            blockers.append("Total return is below the rollout target.")
+        if best_multi_window_report is not None:
+            if best_multi_window_report.average_metrics["sharpe"] < target_gate.min_sharpe:
+                blockers.append("Sharpe is below the rollout target.")
+            if best_multi_window_report.worst_max_drawdown > target_gate.max_drawdown:
+                blockers.append("Worst drawdown across windows is above the rollout target.")
+            if best_multi_window_report.average_metrics["total_return"] < target_gate.min_total_return:
+                blockers.append("Total return is below the rollout target.")
+        else:
+            if cycle_result.best_entry.metrics["sharpe"] < target_gate.min_sharpe:
+                blockers.append("Sharpe is below the rollout target.")
+            if cycle_result.best_entry.metrics["max_drawdown"] > target_gate.max_drawdown:
+                blockers.append("Max drawdown is above the rollout target.")
+            if cycle_result.best_entry.metrics["total_return"] < target_gate.min_total_return:
+                blockers.append("Total return is below the rollout target.")
 
         return ResearchStatusSnapshot(
             mission="Continuously search, test, and rank crypto strategies before paper or live rollout.",
@@ -238,9 +275,9 @@ class ContinuousResearchWorker:
             },
             accepted_for_paper=cycle_result.best_entry.accepted,
             next_milestones=[
-                "Add walk-forward ranking across multiple windows for the top parameter sets.",
+                "Promote only the variants that stay above target gate across recent windows.",
                 "Add realtime paper or shadow replay on the same engine boundaries.",
-                "Promote only the variants that stay above target gate across recent cycles.",
+                "Increase candidate breadth only after a stable multi-window winner appears.",
             ],
             loop_state="holding" if cycle_result.rollout_ready else "searching",
             latest_dataset_id=cycle_result.dataset_id,
@@ -248,6 +285,7 @@ class ContinuousResearchWorker:
             last_processed_bar=cycle_result.last_processed_bar.isoformat(),
             recent_acceptance_rate=round(cycle_result.recent_acceptance_rate, 4),
             consecutive_failures=checkpoint.consecutive_failures,
+            multi_window_summary=self._build_multi_window_summary(cycle_result.multi_window_reports),
             leaderboard=[entry.to_dict() for entry in cycle_result.leaderboard],
         )
 
@@ -293,6 +331,9 @@ class ContinuousResearchWorker:
                 latest_snapshot.recent_acceptance_rate if latest_snapshot else 0.0
             ),
             consecutive_failures=checkpoint.consecutive_failures,
+            multi_window_summary=(
+                latest_snapshot.multi_window_summary if latest_snapshot else {}
+            ),
             leaderboard=leaderboard,
         )
 
@@ -308,6 +349,9 @@ class ContinuousResearchWorker:
             "last_processed_bar": cycle_result.last_processed_bar.isoformat(),
             "recent_acceptance_rate": cycle_result.recent_acceptance_rate,
             "rollout_ready": cycle_result.rollout_ready,
+            "multi_window_reports": [
+                report.to_dict() for report in cycle_result.multi_window_reports
+            ],
             "leaderboard": [entry.to_dict() for entry in cycle_result.leaderboard],
         }
         path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -337,9 +381,19 @@ class ContinuousResearchWorker:
     def _is_rollout_ready(
         self,
         entry: LeaderboardEntry,
+        multi_window_report: MultiWindowVariantReport | None,
         recent_acceptance_rate: float,
     ) -> bool:
         gate = self.worker_config.target_gate
+        if multi_window_report is not None:
+            return (
+                entry.accepted
+                and multi_window_report.average_metrics["total_return"] >= gate.min_total_return
+                and multi_window_report.average_metrics["sharpe"] >= gate.min_sharpe
+                and multi_window_report.worst_max_drawdown <= gate.max_drawdown
+                and multi_window_report.acceptance_rate >= gate.min_acceptance_rate
+                and recent_acceptance_rate >= gate.min_acceptance_rate
+            )
         return (
             entry.accepted
             and entry.metrics["total_return"] >= gate.min_total_return
@@ -347,6 +401,73 @@ class ContinuousResearchWorker:
             and entry.metrics["max_drawdown"] <= gate.max_drawdown
             and recent_acceptance_rate >= gate.min_acceptance_rate
         )
+
+    def _run_multi_window_validation(
+        self,
+        anchor_spec: DatasetSpec,
+        loader: ManifestHistoricalDataSource,
+        leaderboard: list[LeaderboardEntry],
+    ) -> list[MultiWindowVariantReport]:
+        candidate_entries = leaderboard[: self.worker_config.multi_window_top_candidates]
+        if not candidate_entries:
+            return []
+
+        window_specs = build_rolling_window_specs(
+            anchor_spec=anchor_spec,
+            window_count=self.worker_config.multi_window_count,
+        )
+        window_bars = {}
+        for spec in window_specs:
+            manifest_path = self._materialize_or_reuse_dataset(spec)
+            window_loader = (
+                loader
+                if manifest_path == Path(loader.manifest_path)
+                else ManifestHistoricalDataSource.from_manifest_path(manifest_path)
+            )
+            window_bars[spec.dataset_id] = window_loader.load_bars(spec)
+
+        reports = []
+        for entry in candidate_entries:
+            reports.append(
+                evaluate_variant_across_windows(
+                    variant=self._variant_from_entry(entry),
+                    window_specs=window_specs,
+                    bars_by_dataset_id=window_bars,
+                    storage_root=str(loader.storage_root),
+                )
+            )
+        return sorted(reports, key=lambda item: item.aggregate_score, reverse=True)
+
+    @staticmethod
+    def _variant_from_entry(entry: LeaderboardEntry):
+        params = entry.params
+        return StrategyVariant(
+            name=str(params["name"]),
+            lookback_bars=int(params["lookback_bars"]),
+            top_k=int(params["top_k"]),
+            gross_target=float(params["gross_target"]),
+        )
+
+    @staticmethod
+    def _build_multi_window_summary(
+        reports: list[MultiWindowVariantReport],
+    ) -> dict[str, object]:
+        if not reports:
+            return {}
+        best = reports[0]
+        return {
+            "best_variant": best.variant.to_dict(),
+            "aggregate_score": round(best.aggregate_score, 4),
+            "acceptance_rate": round(best.acceptance_rate, 4),
+            "average_metrics": {
+                key: round(float(value), 4) if isinstance(value, float) else value
+                for key, value in best.average_metrics.items()
+            },
+            "worst_max_drawdown": round(best.worst_max_drawdown, 4),
+            "windows_passed": best.windows_passed,
+            "total_windows": best.total_windows,
+            "reports": [report.to_dict() for report in reports],
+        }
 
     @staticmethod
     def _acceptance_rate(history: list[CycleSummary]) -> float:
@@ -382,6 +503,10 @@ def worker_config_from_env() -> WorkerConfig:
         timeframe=timeframe,
         history_window_days=int(os.environ.get("AUTORESEARCH_HISTORY_WINDOW_DAYS", "7")),
         max_variants_per_cycle=int(os.environ.get("AUTORESEARCH_MAX_VARIANTS", "12")),
+        multi_window_count=int(os.environ.get("AUTORESEARCH_MULTI_WINDOW_COUNT", "4")),
+        multi_window_top_candidates=int(
+            os.environ.get("AUTORESEARCH_MULTI_WINDOW_TOP_CANDIDATES", "3")
+        ),
         recent_cycles_for_acceptance=int(
             os.environ.get("AUTORESEARCH_RECENT_CYCLES_FOR_ACCEPTANCE", "12")
         ),

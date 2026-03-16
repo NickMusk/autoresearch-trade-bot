@@ -97,6 +97,7 @@ def _build_demo_snapshot() -> DashboardSnapshot:
         last_processed_bar=None,
         recent_acceptance_rate=0.0,
         consecutive_failures=0,
+        multi_window_summary={},
         leaderboard=[],
     )
 
@@ -137,5 +138,6 @@ def _build_snapshot_from_local_manifest(manifest_path: Path) -> DashboardSnapsho
         last_processed_bar=None,
         recent_acceptance_rate=1.0 if report.accepted else 0.0,
         consecutive_failures=0,
+        multi_window_summary={},
         leaderboard=[],
     )

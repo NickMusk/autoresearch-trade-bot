@@ -40,6 +40,7 @@ class DashboardSnapshotTests(unittest.TestCase):
                     last_processed_bar="2026-03-15T00:00:00+00:00",
                     recent_acceptance_rate=1.0,
                     consecutive_failures=0,
+                    multi_window_summary={"aggregate_score": 1.2, "acceptance_rate": 0.75},
                     leaderboard=[],
                 )
             )
@@ -56,6 +57,7 @@ class DashboardSnapshotTests(unittest.TestCase):
             self.assertEqual(snapshot.phase, "Continuous research worker active")
             self.assertTrue(snapshot.research_rollout_ready)
             self.assertEqual(snapshot.loop_state, "holding")
+            self.assertEqual(snapshot.multi_window_summary["aggregate_score"], 1.2)
 
 
 if __name__ == "__main__":

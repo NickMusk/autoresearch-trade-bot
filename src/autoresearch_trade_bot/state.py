@@ -137,6 +137,7 @@ class ResearchStatusSnapshot:
     last_processed_bar: str | None
     recent_acceptance_rate: float
     consecutive_failures: int
+    multi_window_summary: dict[str, Any] = field(default_factory=dict)
     leaderboard: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -156,6 +157,7 @@ class ResearchStatusSnapshot:
             "last_processed_bar": self.last_processed_bar,
             "recent_acceptance_rate": self.recent_acceptance_rate,
             "consecutive_failures": self.consecutive_failures,
+            "multi_window_summary": dict(self.multi_window_summary),
             "leaderboard": list(self.leaderboard),
         }
 
@@ -177,6 +179,7 @@ class ResearchStatusSnapshot:
             last_processed_bar=payload.get("last_processed_bar"),
             recent_acceptance_rate=float(payload.get("recent_acceptance_rate", 0.0)),
             consecutive_failures=int(payload.get("consecutive_failures", 0)),
+            multi_window_summary=dict(payload.get("multi_window_summary", {})),
             leaderboard=[dict(item) for item in payload.get("leaderboard", [])],
         )
 

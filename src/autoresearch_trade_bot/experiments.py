@@ -80,6 +80,52 @@ class VariantRunReport:
         }
 
 
+@dataclass(frozen=True)
+class WindowEvaluationReport:
+    dataset_id: str
+    window_start: str
+    window_end: str
+    accepted: bool
+    score: float
+    metrics: dict[str, Any]
+    rejection_reasons: list[str]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "dataset_id": self.dataset_id,
+            "window_start": self.window_start,
+            "window_end": self.window_end,
+            "accepted": self.accepted,
+            "score": self.score,
+            "metrics": self.metrics,
+            "rejection_reasons": self.rejection_reasons,
+        }
+
+
+@dataclass(frozen=True)
+class MultiWindowVariantReport:
+    variant: StrategyVariant
+    aggregate_score: float
+    acceptance_rate: float
+    average_metrics: dict[str, Any]
+    worst_max_drawdown: float
+    windows_passed: int
+    total_windows: int
+    window_reports: list[WindowEvaluationReport]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "variant": self.variant.to_dict(),
+            "aggregate_score": self.aggregate_score,
+            "acceptance_rate": self.acceptance_rate,
+            "average_metrics": self.average_metrics,
+            "worst_max_drawdown": self.worst_max_drawdown,
+            "windows_passed": self.windows_passed,
+            "total_windows": self.total_windows,
+            "window_reports": [report.to_dict() for report in self.window_reports],
+        }
+
+
 def bars_per_year_for_timeframe(timeframe: str) -> int:
     step = timeframe_to_timedelta(timeframe)
     minutes = step.total_seconds() / 60.0
@@ -162,6 +208,29 @@ def discover_latest_manifest(storage_root: str | Path) -> Path | None:
     return manifests[-1]
 
 
+def build_rolling_window_specs(
+    anchor_spec: DatasetSpec,
+    window_count: int,
+) -> list[DatasetSpec]:
+    window_size = anchor_spec.end - anchor_spec.start
+    windows = []
+    current_end = anchor_spec.end
+    for _ in range(window_count):
+        current_start = current_end - window_size
+        windows.append(
+            DatasetSpec(
+                exchange=anchor_spec.exchange,
+                market=anchor_spec.market,
+                timeframe=anchor_spec.timeframe,
+                start=current_start,
+                end=current_end,
+                symbols=anchor_spec.symbols,
+            )
+        )
+        current_end = current_start
+    return windows
+
+
 def run_baseline_from_manifest_path(
     manifest_path: str | Path,
     output_dir: str | Path | None = None,
@@ -205,7 +274,7 @@ def run_variant_search(
     bars_by_symbol: Mapping[str, Sequence[Bar]],
     storage_root: str = "data",
     max_variants: int = 12,
-) -> list[VariantRunReport]:
+    ) -> list[VariantRunReport]:
     config = build_baseline_experiment_config(dataset_spec, storage_root=storage_root)
     evaluator = ResearchEvaluator(config)
     reports = []
@@ -231,6 +300,82 @@ def run_variant_search(
             )
         )
     return sorted(reports, key=lambda item: item.score, reverse=True)
+
+
+def evaluate_variant_across_windows(
+    variant: StrategyVariant,
+    window_specs: Sequence[DatasetSpec],
+    bars_by_dataset_id: Mapping[str, Mapping[str, Sequence[Bar]]],
+    storage_root: str = "data",
+) -> MultiWindowVariantReport:
+    window_reports = []
+    for spec in window_specs:
+        bars_by_symbol = bars_by_dataset_id[spec.dataset_id]
+        result = ResearchEvaluator(
+            build_baseline_experiment_config(spec, storage_root=storage_root)
+        ).evaluate(bars_by_symbol, variant.build())
+        window_reports.append(
+            WindowEvaluationReport(
+                dataset_id=spec.dataset_id,
+                window_start=spec.start.isoformat(),
+                window_end=spec.end.isoformat(),
+                accepted=result.accepted,
+                score=result.score,
+                metrics={
+                    "total_return": result.metrics.total_return,
+                    "sharpe": result.metrics.sharpe,
+                    "max_drawdown": result.metrics.max_drawdown,
+                    "average_turnover": result.metrics.average_turnover,
+                    "bars_processed": result.metrics.bars_processed,
+                },
+                rejection_reasons=list(result.rejection_reasons),
+            )
+        )
+    return aggregate_window_reports(variant, window_reports)
+
+
+def aggregate_window_reports(
+    variant: StrategyVariant,
+    window_reports: Sequence[WindowEvaluationReport],
+) -> MultiWindowVariantReport:
+    if not window_reports:
+        raise ValueError("window_reports must not be empty")
+
+    total_windows = len(window_reports)
+    windows_passed = sum(1 for report in window_reports if report.accepted)
+    acceptance_rate = windows_passed / total_windows
+    aggregate_score = sum(report.score for report in window_reports) / total_windows
+    average_total_return = sum(
+        float(report.metrics["total_return"]) for report in window_reports
+    ) / total_windows
+    average_sharpe = sum(float(report.metrics["sharpe"]) for report in window_reports) / total_windows
+    average_turnover = sum(
+        float(report.metrics["average_turnover"]) for report in window_reports
+    ) / total_windows
+    worst_max_drawdown = max(float(report.metrics["max_drawdown"]) for report in window_reports)
+    average_bars_processed = int(
+        round(sum(int(report.metrics["bars_processed"]) for report in window_reports) / total_windows)
+    )
+
+    return MultiWindowVariantReport(
+        variant=variant,
+        aggregate_score=aggregate_score,
+        acceptance_rate=acceptance_rate,
+        average_metrics={
+            "total_return": average_total_return,
+            "sharpe": average_sharpe,
+            "max_drawdown": sum(
+                float(report.metrics["max_drawdown"]) for report in window_reports
+            )
+            / total_windows,
+            "average_turnover": average_turnover,
+            "bars_processed": average_bars_processed,
+        },
+        worst_max_drawdown=worst_max_drawdown,
+        windows_passed=windows_passed,
+        total_windows=total_windows,
+        window_reports=list(window_reports),
+    )
 
 
 def save_baseline_run(report: BaselineRunReport, output_dir: str | Path) -> Path:

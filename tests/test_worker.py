@@ -61,9 +61,10 @@ def build_bars() -> dict[str, list[Bar]]:
 
 
 class FakeLoader:
-    def __init__(self, bars_by_symbol, storage_root: Path) -> None:
+    def __init__(self, bars_by_symbol, storage_root: Path, manifest_path: Path | None = None) -> None:
         self._bars_by_symbol = bars_by_symbol
         self.storage_root = storage_root
+        self.manifest_path = manifest_path or storage_root / "manifest.json"
 
     def load_bars(self, _spec: DatasetSpec):
         return self._bars_by_symbol
@@ -113,7 +114,11 @@ class ContinuousResearchWorkerTests(unittest.TestCase):
 
             with patch(
                 "autoresearch_trade_bot.worker.ManifestHistoricalDataSource.from_manifest_path",
-                return_value=FakeLoader(bars_by_symbol, temp_path / "data"),
+                return_value=FakeLoader(
+                    bars_by_symbol,
+                    temp_path / "data",
+                    manifest_path=manifest_path,
+                ),
             ):
                 result = worker.run_cycle()
 
@@ -127,6 +132,7 @@ class ContinuousResearchWorkerTests(unittest.TestCase):
             snapshot_text = snapshot_path.read_text(encoding="utf-8")
             self.assertIn('"loop_state": "holding"', snapshot_text)
             self.assertIn('"latest_dataset_id"', snapshot_text)
+            self.assertIn('"multi_window_summary"', snapshot_text)
             self.assertIn('"leaderboard"', snapshot_text)
 
     def test_latest_closed_bar_and_sleep_align_to_timeframe(self) -> None:

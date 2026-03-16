@@ -51,6 +51,15 @@ def render_dashboard(snapshot: dict) -> str:
     milestones = "".join(
         f"<li>{html.escape(item)}</li>" for item in snapshot["next_milestones"]
     )
+    multi_window = snapshot.get("multi_window_summary", {})
+    multi_window_items = "".join(
+        (
+            f"<li><code>{html.escape(str(key))}</code>: {html.escape(str(value))}</li>"
+            if key != "reports"
+            else ""
+        )
+        for key, value in multi_window.items()
+    )
     leaderboard_items = "".join(
         (
             "<li>"
@@ -239,6 +248,13 @@ def render_dashboard(snapshot: dict) -> str:
         <ul>{milestones}</ul>
       </article>
       <article class="panel">
+        <h2>Multi-Window</h2>
+        <ul>{multi_window_items or "<li>No multi-window summary yet.</li>"}</ul>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
         <h2>Worker Status</h2>
         <ul>
           <li><code>latest_cycle_completed_at</code>: {html.escape(str(cycle_completed_label))}</li>
@@ -247,9 +263,6 @@ def render_dashboard(snapshot: dict) -> str:
           <li><code>consecutive_failures</code>: {html.escape(str(snapshot.get("consecutive_failures", 0)))}</li>
         </ul>
       </article>
-    </section>
-
-    <section class="grid">
       <article class="panel">
         <h2>Leaderboard</h2>
         <ul>{leaderboard_items or "<li>No persisted leaderboard yet.</li>"}</ul>
