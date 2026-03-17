@@ -1,9 +1,11 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker degraded",
+  "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "The read operation timed out"
+    "Latest kept candidate still fails gate: total_return_below_gate.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -13,23 +15,46 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": 0.0,
-    "sharpe": 0.0,
-    "max_drawdown": 0.0,
-    "average_turnover": 0.0,
-    "bars_processed": 0,
-    "score": 0.0
+    "total_return": -0.0008,
+    "sharpe": -1.2984,
+    "max_drawdown": 0.0041,
+    "average_turnover": 0.0017,
+    "bars_processed": 2015,
+    "score": -1.3203
   },
   "accepted_for_paper": false,
   "next_milestones": [
-    "Recover the worker from the latest API, repo, or campaign failure."
+    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
+    "Accumulate multiple kept improvements in the research branch.",
+    "Promote only candidates that satisfy the hard rollout gates."
   ],
-  "loop_state": "degraded",
-  "latest_dataset_id": "",
-  "latest_cycle_completed_at": "2026-03-17T13:46:55.389838+00:00",
-  "last_processed_bar": null,
-  "recent_acceptance_rate": 0.0,
-  "consecutive_failures": 3,
-  "multi_window_summary": {},
+  "loop_state": "searching",
+  "latest_dataset_id": "render-bybit-linear-5m-20260317t103000z",
+  "latest_cycle_completed_at": "2026-03-17T15:35:01.778404+00:00",
+  "last_processed_bar": "2026-03-17T15:35:00+00:00",
+  "recent_acceptance_rate": 0.5,
+  "consecutive_failures": 0,
+  "multi_window_summary": {
+    "campaign_path": "/var/data/autoresearch/llm/campaigns/render-bybit-linear-5m-20260317t103000z.json",
+    "campaign_refreshed_this_cycle": false,
+    "latest_decision": {
+      "decision": "keep",
+      "stage": "full",
+      "mutation_label": "llm-195fd0a7",
+      "baseline_score": -1.6331437647444977,
+      "candidate_score": -1.3202997757346335,
+      "kept_commit": "879c59e7903fbe5395aded890ac86aa25b3db38f",
+      "failure_reason": "",
+      "provider_name": "llm",
+      "model_name": "gpt-5-mini-2025-08-07",
+      "gate_failures": [
+        "total_return_below_gate",
+        "sharpe_below_gate",
+        "acceptance_rate_below_gate"
+      ]
+    },
+    "model_name": "gpt-5-mini-2025-08-07",
+    "provider_name": "llm"
+  },
   "leaderboard": []
 }
