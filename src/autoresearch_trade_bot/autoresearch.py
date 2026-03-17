@@ -431,12 +431,13 @@ def evaluate_train_file(
     started_at = time.perf_counter()
     campaign = load_campaign(campaign_path, campaign_name=campaign_name)
     train_file = Path(train_path)
+    train_file_resolved = train_file.resolve()
     module = _load_train_module(train_file)
     strategy_builder = _load_strategy_builder(module)
     strategy_name = str(getattr(module, "STRATEGY_NAME", train_file.stem))
-    train_sha1 = _git(["hash-object", str(train_file)], cwd=train_file.parent.resolve())
-    git_branch = _safe_git(["branch", "--show-current"], cwd=train_file.parent.resolve())
-    git_commit = _safe_git(["rev-parse", "HEAD"], cwd=train_file.parent.resolve())
+    train_sha1 = _git(["hash-object", str(train_file_resolved)], cwd=train_file_resolved.parent)
+    git_branch = _safe_git(["branch", "--show-current"], cwd=train_file_resolved.parent)
+    git_commit = _safe_git(["rev-parse", "HEAD"], cwd=train_file_resolved.parent)
     timestamp = ensure_utc(recorded_at or datetime.now(timezone.utc))
 
     window_reports = []
