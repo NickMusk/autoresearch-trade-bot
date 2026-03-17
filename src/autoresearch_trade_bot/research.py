@@ -6,6 +6,15 @@ from .simulator import BacktestEngine
 from .strategy import Strategy
 
 
+def compute_research_score(metrics) -> float:
+    return (
+        metrics.sharpe
+        + (metrics.total_return * 5.0)
+        - (metrics.max_drawdown * 4.0)
+        - metrics.average_turnover
+    )
+
+
 class ResearchEvaluator:
     """Scores a strategy and decides whether it is allowed into the next stage."""
 
@@ -28,12 +37,7 @@ class ResearchEvaluator:
         if metrics.average_turnover > gate.max_average_turnover:
             rejection_reasons.append("turnover_above_gate")
 
-        score = (
-            metrics.sharpe
-            + (metrics.total_return * 5.0)
-            - (metrics.max_drawdown * 4.0)
-            - metrics.average_turnover
-        )
+        score = compute_research_score(metrics)
         return ExperimentResult(
             accepted=not rejection_reasons,
             score=score,

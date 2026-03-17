@@ -5,7 +5,16 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .autoresearch import GitAutoresearchRunner, append_results_row, evaluate_train_file, prepare_campaign
+from .autoresearch import (
+    DEFAULT_ACTIVE_CAMPAIGN,
+    DEFAULT_CAMPAIGNS_ROOT,
+    GitAutoresearchRunner,
+    append_results_row,
+    evaluate_train_file,
+    prepare_campaign,
+    resolve_campaign_path,
+    run_deterministic_mutation_campaign,
+)
 from .config import DataConfig
 from .data import HistoricalDatasetMaterializer
 from .datasets import DatasetSpec
@@ -90,16 +99,26 @@ def cmd_prepare_autoresearch(args: argparse.Namespace) -> int:
         window_count=args.window_count,
         storage_root=args.storage_root,
         campaign_path=args.campaign_path,
+        campaigns_root=args.campaigns_root,
+        active_pointer_path=args.active_campaign_path,
     )
     print(campaign_path)
     return 0
 
 
 def cmd_eval_autoresearch(args: argparse.Namespace) -> int:
+    campaign_path = resolve_campaign_path(
+        args.campaign_path,
+        campaign_name=args.campaign_name,
+        campaigns_root=args.campaigns_root,
+        pointer_path=args.active_campaign_path,
+    )
     report = evaluate_train_file(
-        campaign_path=args.campaign_path,
+        campaign_path=campaign_path,
         train_path=args.train_path,
         artifact_root=args.artifact_root,
+        stage=args.stage,
+        mutation_label=args.mutation_label,
     )
     append_results_row(
         results_path=args.results_path,
@@ -111,27 +130,70 @@ def cmd_eval_autoresearch(args: argparse.Namespace) -> int:
 
 
 def cmd_apply_autoresearch_candidate(args: argparse.Namespace) -> int:
+    campaign_path = resolve_campaign_path(
+        args.campaign_path,
+        campaign_name=args.campaign_name,
+        campaigns_root=args.campaigns_root,
+        pointer_path=args.active_campaign_path,
+    )
     runner = GitAutoresearchRunner(
         repo_root=args.repo_root,
         branch_name=args.branch_name,
         train_relpath=args.train_path,
         results_relpath=args.results_path,
         artifact_relpath=args.artifact_root,
+        worktrees_root=args.worktrees_root,
     )
-    decision = runner.apply_candidate(
-        campaign_path=args.campaign_path,
+    decision = runner.apply_candidate_staged(
+        campaign_path=campaign_path,
         candidate_text=parse_candidate_text(args.candidate_file),
         commit_message=args.commit_message,
+        mutation_label=args.mutation_label,
     )
     print(
         json.dumps(
             {
                 "decision": decision.decision,
+                "stage": decision.stage,
+                "mutation_label": decision.mutation_label,
                 "baseline_score": decision.baseline_score,
                 "candidate_score": decision.candidate_score,
                 "kept_commit": decision.kept_commit,
                 "report": decision.report.to_dict(),
             },
+            indent=2,
+        )
+    )
+    return 0
+
+
+def cmd_run_deterministic_autoresearch(args: argparse.Namespace) -> int:
+    campaign_path = resolve_campaign_path(
+        args.campaign_path,
+        campaign_name=args.campaign_name,
+        campaigns_root=args.campaigns_root,
+        pointer_path=args.active_campaign_path,
+    )
+    decisions = run_deterministic_mutation_campaign(
+        campaign_path=campaign_path,
+        repo_root=args.repo_root,
+        branch_name=args.branch_name,
+        max_mutations=args.max_mutations,
+        worktrees_root=args.worktrees_root,
+    )
+    print(
+        json.dumps(
+            [
+                {
+                    "decision": item.decision,
+                    "stage": item.stage,
+                    "mutation_label": item.mutation_label,
+                    "baseline_score": item.baseline_score,
+                    "candidate_score": item.candidate_score,
+                    "kept_commit": item.kept_commit,
+                }
+                for item in decisions
+            ],
             indent=2,
         )
     )
@@ -206,33 +268,59 @@ def build_parser() -> argparse.ArgumentParser:
     prepare_autoresearch.add_argument("--window-count", type=int, default=2)
     prepare_autoresearch.add_argument("--end", required=True)
     prepare_autoresearch.add_argument("--storage-root", default="data")
-    prepare_autoresearch.add_argument("--campaign-path", default=".autoresearch/campaign.json")
+    prepare_autoresearch.add_argument("--campaign-path")
+    prepare_autoresearch.add_argument("--campaigns-root", default=DEFAULT_CAMPAIGNS_ROOT)
+    prepare_autoresearch.add_argument("--active-campaign-path", default=DEFAULT_ACTIVE_CAMPAIGN)
     prepare_autoresearch.set_defaults(func=cmd_prepare_autoresearch)
 
     eval_autoresearch = subparsers.add_parser(
         "eval-autoresearch",
         help="Evaluate the current train.py against a frozen autoresearch campaign",
     )
-    eval_autoresearch.add_argument("--campaign-path", default=".autoresearch/campaign.json")
+    eval_autoresearch.add_argument("--campaign-path")
+    eval_autoresearch.add_argument("--campaign-name")
+    eval_autoresearch.add_argument("--campaigns-root", default=DEFAULT_CAMPAIGNS_ROOT)
+    eval_autoresearch.add_argument("--active-campaign-path", default=DEFAULT_ACTIVE_CAMPAIGN)
     eval_autoresearch.add_argument("--train-path", default="train.py")
     eval_autoresearch.add_argument("--artifact-root", default=".autoresearch/runs")
     eval_autoresearch.add_argument("--results-path", default="results.tsv")
     eval_autoresearch.add_argument("--decision", default="observed")
+    eval_autoresearch.add_argument("--stage", default="full")
+    eval_autoresearch.add_argument("--mutation-label", default="manual")
     eval_autoresearch.set_defaults(func=cmd_eval_autoresearch)
 
     apply_candidate = subparsers.add_parser(
         "apply-autoresearch-candidate",
         help="Apply a candidate train.py mutation on a research branch and keep it only if the score improves",
     )
-    apply_candidate.add_argument("--campaign-path", default=".autoresearch/campaign.json")
+    apply_candidate.add_argument("--campaign-path")
+    apply_candidate.add_argument("--campaign-name")
+    apply_candidate.add_argument("--campaigns-root", default=DEFAULT_CAMPAIGNS_ROOT)
+    apply_candidate.add_argument("--active-campaign-path", default=DEFAULT_ACTIVE_CAMPAIGN)
     apply_candidate.add_argument("--candidate-file", required=True)
     apply_candidate.add_argument("--repo-root", default=".")
     apply_candidate.add_argument("--branch-name", required=True)
     apply_candidate.add_argument("--train-path", default="train.py")
     apply_candidate.add_argument("--results-path", default="results.tsv")
     apply_candidate.add_argument("--artifact-root", default=".autoresearch/runs")
+    apply_candidate.add_argument("--worktrees-root", default=".autoresearch/worktrees")
+    apply_candidate.add_argument("--mutation-label", default="manual-candidate")
     apply_candidate.add_argument("--commit-message", required=True)
     apply_candidate.set_defaults(func=cmd_apply_autoresearch_candidate)
+
+    deterministic = subparsers.add_parser(
+        "run-deterministic-autoresearch",
+        help="Run a staged deterministic mutation batch against the active frozen campaign",
+    )
+    deterministic.add_argument("--campaign-path")
+    deterministic.add_argument("--campaign-name")
+    deterministic.add_argument("--campaigns-root", default=DEFAULT_CAMPAIGNS_ROOT)
+    deterministic.add_argument("--active-campaign-path", default=DEFAULT_ACTIVE_CAMPAIGN)
+    deterministic.add_argument("--repo-root", default=".")
+    deterministic.add_argument("--branch-name", required=True)
+    deterministic.add_argument("--worktrees-root", default=".autoresearch/worktrees")
+    deterministic.add_argument("--max-mutations", type=int, default=8)
+    deterministic.set_defaults(func=cmd_run_deterministic_autoresearch)
 
     return parser
 

@@ -35,7 +35,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--window-count", type=int, default=2)
     parser.add_argument("--end", required=True, help="Frozen campaign anchor end, ISO-8601")
     parser.add_argument("--storage-root", default="data")
-    parser.add_argument("--campaign-path", default=".autoresearch/campaign.json")
+    parser.add_argument("--campaign-path")
+    parser.add_argument("--campaigns-root", default=".autoresearch/campaigns")
+    parser.add_argument("--active-campaign-path", default=".autoresearch/active_campaign.txt")
     return parser
 
 
@@ -56,6 +58,8 @@ def main() -> None:
         window_count=args.window_count,
         storage_root=args.storage_root,
         campaign_path=args.campaign_path,
+        campaigns_root=args.campaigns_root,
+        active_pointer_path=args.active_campaign_path,
     )
     print(campaign_path)
 

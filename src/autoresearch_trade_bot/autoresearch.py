@@ -4,7 +4,10 @@ import csv
 import importlib.util
 import inspect
 import json
+import pprint
+import re
 import subprocess
+import sys
 import time
 import uuid
 from dataclasses import dataclass, replace
@@ -13,22 +16,32 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from .config import DataConfig, ResearchTargetGate
-from .data import HistoricalDatasetMaterializer, ManifestHistoricalDataSource
+from .data import (
+    HistoricalDatasetMaterializer,
+    ManifestHistoricalDataSource,
+    find_covering_manifest,
+)
 from .datasets import DatasetSpec, ensure_utc
 from .experiments import WindowEvaluationReport, build_baseline_experiment_config, build_rolling_window_specs
-from .research import ResearchEvaluator
+from .research import ResearchEvaluator, compute_research_score
 from .strategy import Strategy
 
 
 RESULTS_TSV_COLUMNS = (
     "recorded_at",
+    "campaign_id",
     "decision",
+    "stage",
+    "mutation_label",
     "run_id",
     "campaign_name",
     "strategy_name",
     "git_branch",
     "git_commit",
+    "parent_commit",
     "train_sha1",
+    "baseline_score",
+    "delta_score",
     "research_score",
     "acceptance_rate",
     "average_total_return",
@@ -37,8 +50,13 @@ RESULTS_TSV_COLUMNS = (
     "worst_max_drawdown",
     "average_turnover",
     "ready_for_paper",
+    "runtime_seconds",
     "artifact_path",
 )
+
+DEFAULT_CAMPAIGNS_ROOT = ".autoresearch/campaigns"
+DEFAULT_ACTIVE_CAMPAIGN = ".autoresearch/active_campaign.txt"
+DEFAULT_WORKTREE_ROOT = ".autoresearch/worktrees"
 
 
 @dataclass(frozen=True)
@@ -68,6 +86,7 @@ class FrozenResearchWindow:
 
 @dataclass(frozen=True)
 class AutoresearchCampaign:
+    campaign_id: str
     name: str
     exchange: str
     market: str
@@ -79,6 +98,7 @@ class AutoresearchCampaign:
 
     def to_dict(self) -> dict[str, Any]:
         return {
+            "campaign_id": self.campaign_id,
             "name": self.name,
             "exchange": self.exchange,
             "market": self.market,
@@ -98,6 +118,7 @@ class AutoresearchCampaign:
     def from_dict(cls, payload: Mapping[str, Any]) -> "AutoresearchCampaign":
         gate = payload["target_gate"]
         return cls(
+            campaign_id=str(payload.get("campaign_id", payload["name"])),
             name=str(payload["name"]),
             exchange=str(payload["exchange"]),
             market=str(payload["market"]),
@@ -120,12 +141,18 @@ class AutoresearchCampaign:
 class AutoresearchRunReport:
     run_id: str
     recorded_at: str
+    campaign_id: str
     campaign_name: str
     strategy_name: str
     git_branch: str
     git_commit: str
+    parent_commit: str
     train_file: str
     train_sha1: str
+    stage: str
+    mutation_label: str
+    baseline_score: float | None
+    delta_score: float | None
     research_score: float
     acceptance_rate: float
     average_metrics: dict[str, float]
@@ -135,18 +162,25 @@ class AutoresearchRunReport:
     windows_passed: int
     total_windows: int
     window_reports: list[WindowEvaluationReport]
+    runtime_seconds: float
     artifact_path: str
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "run_id": self.run_id,
             "recorded_at": self.recorded_at,
+            "campaign_id": self.campaign_id,
             "campaign_name": self.campaign_name,
             "strategy_name": self.strategy_name,
             "git_branch": self.git_branch,
             "git_commit": self.git_commit,
+            "parent_commit": self.parent_commit,
             "train_file": self.train_file,
             "train_sha1": self.train_sha1,
+            "stage": self.stage,
+            "mutation_label": self.mutation_label,
+            "baseline_score": self.baseline_score,
+            "delta_score": self.delta_score,
             "research_score": self.research_score,
             "acceptance_rate": self.acceptance_rate,
             "average_metrics": dict(self.average_metrics),
@@ -156,6 +190,7 @@ class AutoresearchRunReport:
             "windows_passed": self.windows_passed,
             "total_windows": self.total_windows,
             "window_reports": [report.to_dict() for report in self.window_reports],
+            "runtime_seconds": self.runtime_seconds,
             "artifact_path": self.artifact_path,
         }
 
@@ -163,10 +198,64 @@ class AutoresearchRunReport:
 @dataclass(frozen=True)
 class GitAutoresearchDecision:
     decision: str
+    stage: str
+    mutation_label: str
     baseline_score: float
     candidate_score: float
     kept_commit: str | None
     report: AutoresearchRunReport
+
+
+@dataclass(frozen=True)
+class DeterministicMutationProposal:
+    label: str
+    config_updates: dict[str, Any]
+    commit_message: str
+
+
+def slugify(value: str) -> str:
+    slug = re.sub(r"[^a-zA-Z0-9]+", "-", value.strip()).strip("-").lower()
+    return slug or "campaign"
+
+
+def campaign_path_for_name(
+    campaign_name: str,
+    campaigns_root: str | Path = DEFAULT_CAMPAIGNS_ROOT,
+) -> Path:
+    return Path(campaigns_root) / f"{slugify(campaign_name)}.json"
+
+
+def active_campaign_path(
+    path: str | Path = DEFAULT_ACTIVE_CAMPAIGN,
+) -> Path:
+    return Path(path)
+
+
+def set_active_campaign(
+    campaign_path: str | Path,
+    pointer_path: str | Path = DEFAULT_ACTIVE_CAMPAIGN,
+) -> Path:
+    pointer = active_campaign_path(pointer_path)
+    pointer.parent.mkdir(parents=True, exist_ok=True)
+    pointer.write_text(str(Path(campaign_path).resolve()), encoding="utf-8")
+    return pointer
+
+
+def resolve_campaign_path(
+    campaign_path: str | Path | None = None,
+    *,
+    campaign_name: str | None = None,
+    campaigns_root: str | Path = DEFAULT_CAMPAIGNS_ROOT,
+    pointer_path: str | Path = DEFAULT_ACTIVE_CAMPAIGN,
+) -> Path:
+    if campaign_path is not None:
+        return Path(campaign_path)
+    if campaign_name is not None:
+        return campaign_path_for_name(campaign_name, campaigns_root=campaigns_root)
+    pointer = active_campaign_path(pointer_path)
+    if pointer.exists():
+        return Path(pointer.read_text(encoding="utf-8").strip())
+    raise FileNotFoundError("no active autoresearch campaign configured")
 
 
 def build_campaign_specs(
@@ -202,7 +291,10 @@ def prepare_campaign(
     window_days: int,
     window_count: int,
     storage_root: str = "data",
-    campaign_path: str | Path = ".autoresearch/campaign.json",
+    campaign_path: str | Path | None = None,
+    campaigns_root: str | Path = DEFAULT_CAMPAIGNS_ROOT,
+    set_active: bool = True,
+    active_pointer_path: str | Path = DEFAULT_ACTIVE_CAMPAIGN,
     target_gate: ResearchTargetGate | None = None,
     materializer: HistoricalDatasetMaterializer | None = None,
 ) -> Path:
@@ -226,17 +318,23 @@ def prepare_campaign(
         window_days=window_days,
         window_count=window_count,
     ):
-        dataset = resolved_materializer.materialize(spec)
+        reusable_manifest = find_covering_manifest(storage_root, spec, resolved_materializer.store)
+        if reusable_manifest is not None:
+            dataset_manifest_path = reusable_manifest
+        else:
+            dataset = resolved_materializer.materialize(spec)
+            dataset_manifest_path = dataset.manifest_path
         windows.append(
             FrozenResearchWindow(
                 dataset_id=spec.dataset_id,
-                manifest_path=str(dataset.manifest_path),
+                manifest_path=str(dataset_manifest_path),
                 start=spec.start.isoformat(),
                 end=spec.end.isoformat(),
             )
         )
 
     campaign = AutoresearchCampaign(
+        campaign_id=slugify(campaign_name),
         name=campaign_name,
         exchange=exchange,
         market=market,
@@ -246,26 +344,51 @@ def prepare_campaign(
         target_gate=target,
         windows=tuple(windows),
     )
-    path = Path(campaign_path)
+    path = resolve_campaign_path(
+        campaign_path,
+        campaign_name=campaign_name if campaign_path is None else None,
+        campaigns_root=campaigns_root,
+        pointer_path=active_pointer_path,
+    )
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(campaign.to_dict(), indent=2), encoding="utf-8")
+    if set_active:
+        set_active_campaign(path, pointer_path=active_pointer_path)
     return path
 
 
-def load_campaign(campaign_path: str | Path) -> AutoresearchCampaign:
-    payload = json.loads(Path(campaign_path).read_text(encoding="utf-8"))
+def load_campaign(
+    campaign_path: str | Path | None = None,
+    *,
+    campaign_name: str | None = None,
+    campaigns_root: str | Path = DEFAULT_CAMPAIGNS_ROOT,
+    pointer_path: str | Path = DEFAULT_ACTIVE_CAMPAIGN,
+) -> AutoresearchCampaign:
+    path = resolve_campaign_path(
+        campaign_path,
+        campaign_name=campaign_name,
+        campaigns_root=campaigns_root,
+        pointer_path=pointer_path,
+    )
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
     return AutoresearchCampaign.from_dict(payload)
 
 
 def evaluate_train_file(
     *,
-    campaign_path: str | Path,
+    campaign_path: str | Path | None = None,
+    campaign_name: str | None = None,
     train_path: str | Path = "train.py",
     artifact_root: str | Path = ".autoresearch/runs",
+    stage: str = "full",
+    mutation_label: str = "manual",
+    baseline_score: float | None = None,
+    parent_commit: str = "",
+    window_limit: int | None = None,
     recorded_at: datetime | None = None,
 ) -> AutoresearchRunReport:
     started_at = time.perf_counter()
-    campaign = load_campaign(campaign_path)
+    campaign = load_campaign(campaign_path, campaign_name=campaign_name)
     train_file = Path(train_path)
     module = _load_train_module(train_file)
     strategy_builder = _load_strategy_builder(module)
@@ -276,7 +399,8 @@ def evaluate_train_file(
     timestamp = ensure_utc(recorded_at or datetime.now(timezone.utc))
 
     window_reports = []
-    for window in campaign.windows:
+    selected_windows = campaign.windows[:window_limit] if window_limit is not None else campaign.windows
+    for window in selected_windows:
         loader = ManifestHistoricalDataSource.from_manifest_path(window.manifest_path)
         manifest = loader.manifest
         spec = DatasetSpec(
@@ -320,12 +444,22 @@ def evaluate_train_file(
     report = AutoresearchRunReport(
         run_id=run_id,
         recorded_at=timestamp.isoformat(),
+        campaign_id=campaign.campaign_id,
         campaign_name=campaign.name,
         strategy_name=strategy_name,
         git_branch=git_branch,
         git_commit=git_commit,
+        parent_commit=parent_commit,
         train_file=str(train_file),
         train_sha1=train_sha1,
+        stage=stage,
+        mutation_label=mutation_label,
+        baseline_score=baseline_score,
+        delta_score=(
+            aggregated["research_score"] - baseline_score
+            if baseline_score is not None
+            else None
+        ),
         research_score=aggregated["research_score"],
         acceptance_rate=aggregated["acceptance_rate"],
         average_metrics=aggregated["average_metrics"],
@@ -335,16 +469,11 @@ def evaluate_train_file(
         windows_passed=aggregated["windows_passed"],
         total_windows=aggregated["total_windows"],
         window_reports=window_reports,
+        runtime_seconds=round(time.perf_counter() - started_at, 6),
         artifact_path=str(artifact_path),
     )
     artifact_path.write_text(
-        json.dumps(
-            {
-                **report.to_dict(),
-                "runtime_seconds": round(time.perf_counter() - started_at, 6),
-            },
-            indent=2,
-        ),
+        json.dumps(report.to_dict(), indent=2),
         encoding="utf-8",
     )
     return report
@@ -360,13 +489,23 @@ def append_results_row(
     path.parent.mkdir(parents=True, exist_ok=True)
     row = {
         "recorded_at": report.recorded_at,
+        "campaign_id": report.campaign_id,
         "decision": decision,
+        "stage": report.stage,
+        "mutation_label": report.mutation_label,
         "run_id": report.run_id,
         "campaign_name": report.campaign_name,
         "strategy_name": report.strategy_name,
         "git_branch": report.git_branch,
         "git_commit": report.git_commit,
+        "parent_commit": report.parent_commit,
         "train_sha1": report.train_sha1,
+        "baseline_score": (
+            f"{report.baseline_score:.6f}" if report.baseline_score is not None else ""
+        ),
+        "delta_score": (
+            f"{report.delta_score:.6f}" if report.delta_score is not None else ""
+        ),
         "research_score": f"{report.research_score:.6f}",
         "acceptance_rate": f"{report.acceptance_rate:.6f}",
         "average_total_return": f"{report.average_metrics['total_return']:.6f}",
@@ -375,6 +514,7 @@ def append_results_row(
         "worst_max_drawdown": f"{report.worst_max_drawdown:.6f}",
         "average_turnover": f"{report.average_metrics['average_turnover']:.6f}",
         "ready_for_paper": str(report.ready_for_paper).lower(),
+        "runtime_seconds": f"{report.runtime_seconds:.6f}",
         "artifact_path": report.artifact_path,
     }
     should_write_header = not path.exists()
@@ -396,6 +536,8 @@ class GitAutoresearchRunner:
         train_relpath: str = "train.py",
         results_relpath: str = "results.tsv",
         artifact_relpath: str = ".autoresearch/runs",
+        worktrees_root: str | Path = DEFAULT_WORKTREE_ROOT,
+        screen_window_count: int = 1,
     ) -> None:
         self.repo_root = Path(repo_root)
         self.branch_name = branch_name
@@ -403,31 +545,42 @@ class GitAutoresearchRunner:
         self.train_relpath = train_relpath
         self.results_relpath = results_relpath
         self.artifact_relpath = artifact_relpath
+        self.worktrees_root = Path(worktrees_root)
+        self.screen_window_count = screen_window_count
+
+    @property
+    def worktree_root(self) -> Path:
+        return self.worktrees_root / slugify(self.branch_name)
 
     @property
     def train_path(self) -> Path:
-        return self.repo_root / self.train_relpath
+        return self.worktree_root / self.train_relpath
 
     @property
     def results_path(self) -> Path:
-        return self.repo_root / self.results_relpath
+        return self.worktree_root / self.results_relpath
 
     @property
     def artifact_root(self) -> Path:
-        return self.repo_root / self.artifact_relpath
+        return self.worktree_root / self.artifact_relpath
 
-    def ensure_branch(self) -> None:
+    def ensure_worktree(self) -> None:
+        self.worktree_root.parent.mkdir(parents=True, exist_ok=True)
+        if self.worktree_root.exists():
+            return
         branch_exists = self._git(["branch", "--list", self.branch_name]).strip()
         if branch_exists:
-            self._git(["checkout", self.branch_name])
+            self._git(["worktree", "add", str(self.worktree_root), self.branch_name])
         else:
-            self._git(["checkout", "-b", self.branch_name])
+            self._git(["worktree", "add", "-b", self.branch_name, str(self.worktree_root), "HEAD"])
 
     def evaluate_current(self, *, campaign_path: str | Path) -> AutoresearchRunReport:
+        self.ensure_worktree()
         return self.evaluator(
             campaign_path=campaign_path,
             train_path=self.train_path,
             artifact_root=self.artifact_root,
+            mutation_label="baseline",
         )
 
     def apply_candidate(
@@ -436,8 +589,9 @@ class GitAutoresearchRunner:
         campaign_path: str | Path,
         candidate_text: str,
         commit_message: str,
+        mutation_label: str = "candidate",
     ) -> GitAutoresearchDecision:
-        self.ensure_branch()
+        self.ensure_worktree()
         baseline_report = self.evaluate_current(campaign_path=campaign_path)
         original_text = self.train_path.read_text(encoding="utf-8")
         self.train_path.write_text(candidate_text, encoding="utf-8")
@@ -446,11 +600,14 @@ class GitAutoresearchRunner:
                 campaign_path=campaign_path,
                 train_path=self.train_path,
                 artifact_root=self.artifact_root,
+                mutation_label=mutation_label,
+                parent_commit=baseline_report.git_commit,
+                baseline_score=baseline_report.research_score,
             )
             if candidate_report.research_score > baseline_report.research_score:
-                self._git(["add", self.train_relpath])
-                self._git(["commit", "-m", commit_message])
-                kept_commit = self._git(["rev-parse", "HEAD"]).strip()
+                self._git_in_worktree(["add", self.train_relpath])
+                self._git_in_worktree(["commit", "-m", commit_message])
+                kept_commit = self._git_in_worktree(["rev-parse", "HEAD"]).strip()
                 candidate_report = replace(candidate_report, git_commit=kept_commit)
                 decision = "keep"
             else:
@@ -464,6 +621,8 @@ class GitAutoresearchRunner:
             )
             return GitAutoresearchDecision(
                 decision=decision,
+                stage=candidate_report.stage,
+                mutation_label=mutation_label,
                 baseline_score=baseline_report.research_score,
                 candidate_score=candidate_report.research_score,
                 kept_commit=kept_commit,
@@ -473,8 +632,301 @@ class GitAutoresearchRunner:
             self.train_path.write_text(original_text, encoding="utf-8")
             raise
 
+    def apply_candidate_staged(
+        self,
+        *,
+        campaign_path: str | Path,
+        candidate_text: str,
+        commit_message: str,
+        mutation_label: str,
+    ) -> GitAutoresearchDecision:
+        self.ensure_worktree()
+        baseline_screen = self.evaluator(
+            campaign_path=campaign_path,
+            train_path=self.train_path,
+            artifact_root=self.artifact_root,
+            stage="screen",
+            mutation_label="baseline",
+            window_limit=self.screen_window_count,
+        )
+        baseline_full = self.evaluate_current(campaign_path=campaign_path)
+        original_text = self.train_path.read_text(encoding="utf-8")
+        self.train_path.write_text(candidate_text, encoding="utf-8")
+        try:
+            screen_report = self.evaluator(
+                campaign_path=campaign_path,
+                train_path=self.train_path,
+                artifact_root=self.artifact_root,
+                stage="screen",
+                mutation_label=mutation_label,
+                baseline_score=baseline_screen.research_score,
+                parent_commit=baseline_full.git_commit,
+                window_limit=self.screen_window_count,
+            )
+            if screen_report.research_score <= baseline_screen.research_score:
+                self.train_path.write_text(original_text, encoding="utf-8")
+                append_results_row(
+                    results_path=self.results_path,
+                    report=screen_report,
+                    decision="discard_screen",
+                )
+                return GitAutoresearchDecision(
+                    decision="discard_screen",
+                    stage="screen",
+                    mutation_label=mutation_label,
+                    baseline_score=baseline_screen.research_score,
+                    candidate_score=screen_report.research_score,
+                    kept_commit=None,
+                    report=screen_report,
+                )
+
+            full_report = self.evaluator(
+                campaign_path=campaign_path,
+                train_path=self.train_path,
+                artifact_root=self.artifact_root,
+                stage="full",
+                mutation_label=mutation_label,
+                baseline_score=baseline_full.research_score,
+                parent_commit=baseline_full.git_commit,
+            )
+            if full_report.research_score > baseline_full.research_score:
+                self._git_in_worktree(["add", self.train_relpath])
+                self._git_in_worktree(["commit", "-m", commit_message])
+                kept_commit = self._git_in_worktree(["rev-parse", "HEAD"]).strip()
+                full_report = replace(full_report, git_commit=kept_commit)
+                decision = "keep"
+            else:
+                self.train_path.write_text(original_text, encoding="utf-8")
+                kept_commit = None
+                decision = "discard_full"
+            append_results_row(
+                results_path=self.results_path,
+                report=screen_report,
+                decision="screen_pass",
+            )
+            append_results_row(
+                results_path=self.results_path,
+                report=full_report,
+                decision=decision,
+            )
+            return GitAutoresearchDecision(
+                decision=decision,
+                stage="full",
+                mutation_label=mutation_label,
+                baseline_score=baseline_full.research_score,
+                candidate_score=full_report.research_score,
+                kept_commit=kept_commit,
+                report=full_report,
+            )
+        except Exception:
+            self.train_path.write_text(original_text, encoding="utf-8")
+            raise
+
+    def remove_worktree(self) -> None:
+        if self.worktree_root.exists():
+            self._git(["worktree", "remove", str(self.worktree_root)])
+
     def _git(self, args: Sequence[str]) -> str:
         return _git(args, cwd=self.repo_root)
+
+    def _git_in_worktree(self, args: Sequence[str]) -> str:
+        return _git(args, cwd=self.worktree_root)
+
+
+class DeterministicTrainMutator:
+    def generate(self, train_path: str | Path) -> list[DeterministicMutationProposal]:
+        module = _load_train_module(Path(train_path))
+        if not hasattr(module, "TRAIN_CONFIG"):
+            raise AttributeError("train.py must define TRAIN_CONFIG for deterministic mutations")
+        config = dict(getattr(module, "TRAIN_CONFIG"))
+        proposals: list[DeterministicMutationProposal] = []
+        for lookback in (12, 24, 36):
+            if lookback != int(config["lookback_bars"]):
+                proposals.append(
+                    DeterministicMutationProposal(
+                        label=f"lookback-{lookback}",
+                        config_updates={"lookback_bars": lookback},
+                        commit_message=f"Mutate train.py: lookback={lookback}",
+                    )
+                )
+        for top_k in (1, 2):
+            if top_k != int(config["top_k"]):
+                proposals.append(
+                    DeterministicMutationProposal(
+                        label=f"topk-{top_k}",
+                        config_updates={"top_k": top_k},
+                        commit_message=f"Mutate train.py: top_k={top_k}",
+                    )
+                )
+        for gross_target in (0.25, 0.5, 0.75, 1.0):
+            if gross_target != float(config["gross_target"]):
+                proposals.append(
+                    DeterministicMutationProposal(
+                        label=f"gross-{gross_target:.2f}",
+                        config_updates={"gross_target": gross_target},
+                        commit_message=f"Mutate train.py: gross_target={gross_target:.2f}",
+                    )
+                )
+        for ranking_mode in ("raw_return", "risk_adjusted"):
+            if ranking_mode != str(config["ranking_mode"]):
+                proposals.append(
+                    DeterministicMutationProposal(
+                        label=f"ranking-{ranking_mode}",
+                        config_updates={"ranking_mode": ranking_mode},
+                        commit_message=f"Mutate train.py: ranking_mode={ranking_mode}",
+                    )
+                )
+        for regime_filter in (False, True):
+            if regime_filter != bool(config["use_regime_filter"]):
+                proposals.append(
+                    DeterministicMutationProposal(
+                        label=f"regime-{str(regime_filter).lower()}",
+                        config_updates={"use_regime_filter": regime_filter},
+                        commit_message=f"Mutate train.py: use_regime_filter={regime_filter}",
+                    )
+                )
+        for signal_floor in (0.0, 0.01, 0.02):
+            if signal_floor != float(config["min_signal_strength"]):
+                proposals.append(
+                    DeterministicMutationProposal(
+                        label=f"signal-floor-{signal_floor:.2f}",
+                        config_updates={"min_signal_strength": signal_floor},
+                        commit_message=f"Mutate train.py: min_signal_strength={signal_floor:.2f}",
+                    )
+                )
+        return proposals
+
+
+def render_train_file(train_config: Mapping[str, Any]) -> str:
+    payload = pprint.pformat(dict(train_config), sort_dicts=True, width=88)
+    return "\n".join(
+        [
+            "from __future__ import annotations",
+            "",
+            "from dataclasses import dataclass",
+            "import math",
+            "import statistics",
+            "from typing import Dict, Mapping, Sequence",
+            "",
+            "from autoresearch_trade_bot.models import Bar",
+            "from autoresearch_trade_bot.strategy import Strategy",
+            "",
+            f"TRAIN_CONFIG = {payload}",
+            'STRATEGY_NAME = "configurable-momentum"',
+            "",
+            "",
+            "@dataclass(frozen=True)",
+            "class ConfigurableMomentumStrategy:",
+            "    lookback_bars: int",
+            "    top_k: int",
+            "    gross_target: float",
+            "    ranking_mode: str",
+            "    use_regime_filter: bool",
+            "    regime_lookback_bars: int",
+            "    regime_threshold: float",
+            "    min_signal_strength: float",
+            "",
+            "    def target_weights(self, history_by_symbol: Mapping[str, Sequence[Bar]]) -> Dict[str, float]:",
+            "        if not history_by_symbol:",
+            "            return {}",
+            "        if self.use_regime_filter and not self._passes_regime_filter(history_by_symbol):",
+            "            return {}",
+            "        ready_scores = []",
+            "        for symbol, history in history_by_symbol.items():",
+            "            if len(history) <= self.lookback_bars:",
+            "                continue",
+            "            score = self._score(history)",
+            "            if abs(score) < self.min_signal_strength:",
+            "                continue",
+            "            ready_scores.append((symbol, score))",
+            "        if len(ready_scores) < self.top_k * 2:",
+            "            return {}",
+            "        ranked = sorted(ready_scores, key=lambda item: item[1], reverse=True)",
+            "        longs = ranked[: self.top_k]",
+            "        shorts = ranked[-self.top_k:]",
+            "        side_gross = self.gross_target / 2.0",
+            "        long_weight = side_gross / len(longs)",
+            "        short_weight = -side_gross / len(shorts)",
+            "        weights: Dict[str, float] = {}",
+            "        for symbol, _score in longs:",
+            "            weights[symbol] = long_weight",
+            "        for symbol, _score in shorts:",
+            "            weights[symbol] = short_weight",
+            "        return weights",
+            "",
+            "    def _score(self, history: Sequence[Bar]) -> float:",
+            "        recent = history[-(self.lookback_bars + 1):]",
+            "        start_close = recent[0].close",
+            "        end_close = recent[-1].close",
+            "        raw_return = (end_close / start_close) - 1.0",
+            "        if self.ranking_mode == 'raw_return':",
+            "            return raw_return",
+            "        one_bar_returns = []",
+            "        for index in range(1, len(recent)):",
+            "            previous = recent[index - 1].close",
+            "            current = recent[index].close",
+            "            one_bar_returns.append((current / previous) - 1.0)",
+            "        volatility = statistics.pstdev(one_bar_returns)",
+            "        if math.isclose(volatility, 0.0):",
+            "            return raw_return",
+            "        return raw_return / volatility",
+            "",
+            "    def _passes_regime_filter(self, history_by_symbol: Mapping[str, Sequence[Bar]]) -> bool:",
+            "        anchor_symbol = 'BTCUSDT' if 'BTCUSDT' in history_by_symbol else next(iter(history_by_symbol))",
+            "        history = history_by_symbol[anchor_symbol]",
+            "        if len(history) <= self.regime_lookback_bars:",
+            "            return True",
+            "        recent = history[-(self.regime_lookback_bars + 1):]",
+            "        regime_return = (recent[-1].close / recent[0].close) - 1.0",
+            "        return abs(regime_return) >= self.regime_threshold",
+            "",
+            "",
+            "def build_strategy(_dataset_spec=None):",
+            "    return ConfigurableMomentumStrategy(",
+            "        lookback_bars=int(TRAIN_CONFIG['lookback_bars']),",
+            "        top_k=int(TRAIN_CONFIG['top_k']),",
+            "        gross_target=float(TRAIN_CONFIG['gross_target']),",
+            "        ranking_mode=str(TRAIN_CONFIG['ranking_mode']),",
+            "        use_regime_filter=bool(TRAIN_CONFIG['use_regime_filter']),",
+            "        regime_lookback_bars=int(TRAIN_CONFIG['regime_lookback_bars']),",
+            "        regime_threshold=float(TRAIN_CONFIG['regime_threshold']),",
+            "        min_signal_strength=float(TRAIN_CONFIG['min_signal_strength']),",
+            "    )",
+            "",
+        ]
+    )
+
+
+def run_deterministic_mutation_campaign(
+    *,
+    campaign_path: str | Path,
+    repo_root: str | Path,
+    branch_name: str,
+    max_mutations: int = 8,
+    worktrees_root: str | Path = DEFAULT_WORKTREE_ROOT,
+) -> list[GitAutoresearchDecision]:
+    runner = GitAutoresearchRunner(
+        repo_root=repo_root,
+        branch_name=branch_name,
+        worktrees_root=worktrees_root,
+    )
+    runner.ensure_worktree()
+    mutator = DeterministicTrainMutator()
+    decisions = []
+    for proposal in mutator.generate(runner.train_path)[:max_mutations]:
+        module = _load_train_module(runner.train_path)
+        config = dict(getattr(module, "TRAIN_CONFIG"))
+        config.update(proposal.config_updates)
+        candidate_text = render_train_file(config)
+        decisions.append(
+            runner.apply_candidate_staged(
+                campaign_path=campaign_path,
+                candidate_text=candidate_text,
+                commit_message=proposal.commit_message,
+                mutation_label=proposal.label,
+            )
+        )
+    return decisions
 
 
 def _aggregate_reports(window_reports: Sequence[WindowEvaluationReport]) -> dict[str, Any]:
@@ -536,6 +988,7 @@ def _load_train_module(train_path: Path):
     if spec is None or spec.loader is None:
         raise RuntimeError(f"failed to load train file: {train_path}")
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
