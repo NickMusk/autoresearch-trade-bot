@@ -256,6 +256,280 @@ class MutationTests(unittest.TestCase):
             self.assertEqual(duplicate_decision.decision, "skip_duplicate")
             self.assertEqual(duplicate_decision.report.failure_reason, "duplicate_candidate")
 
+    def test_runner_sets_local_git_identity_before_keep_commit(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            repo_root = Path(tempdir) / "repo"
+            repo_root.mkdir()
+            self._git(repo_root, "init")
+            self._git(repo_root, "config", "user.email", "bot@example.com")
+            self._git(repo_root, "config", "user.name", "Bot")
+            baseline_text = render_train_file(
+                {
+                    "lookback_bars": 24,
+                    "top_k": 1,
+                    "gross_target": 0.5,
+                    "ranking_mode": "risk_adjusted",
+                    "use_regime_filter": False,
+                    "regime_lookback_bars": 36,
+                    "regime_threshold": 0.015,
+                    "min_signal_strength": 0.0,
+                }
+            )
+            (repo_root / "train.py").write_text(baseline_text, encoding="utf-8")
+            self._git(repo_root, "add", "train.py")
+            self._git(repo_root, "commit", "-m", "Initial train file")
+            self._git(repo_root, "config", "--unset", "user.email")
+            self._git(repo_root, "config", "--unset", "user.name")
+
+            campaign_path = repo_root / "campaign.json"
+            campaign_path.write_text(
+                json.dumps(
+                    {
+                        "campaign_id": "unit",
+                        "name": "unit-campaign",
+                        "exchange": "bybit",
+                        "market": "linear",
+                        "timeframe": "5m",
+                        "symbols": ["BTCUSDT", "ETHUSDT"],
+                        "storage_root": str(repo_root / "data"),
+                        "target_gate": {
+                            "min_total_return": 0.0,
+                            "min_sharpe": 1.0,
+                            "max_drawdown": 0.2,
+                            "min_acceptance_rate": 0.6,
+                        },
+                        "windows": [],
+                    },
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+
+            def fake_evaluator(**kwargs):
+                artifact_dir = Path(kwargs["artifact_root"])
+                artifact_dir.mkdir(parents=True, exist_ok=True)
+                train_text = Path(kwargs["train_path"]).read_text(encoding="utf-8")
+                score = 1.5 if "'lookback_bars': 12" in train_text else 0.5
+                artifact_path = artifact_dir / f"{kwargs.get('mutation_label','x')}.json"
+                artifact_path.write_text("{}", encoding="utf-8")
+                return AutoresearchRunReport(
+                    run_id=str(kwargs.get("mutation_label", "x")),
+                    recorded_at=datetime.now(timezone.utc).isoformat(),
+                    campaign_id="unit",
+                    campaign_name="unit-campaign",
+                    strategy_name="fake",
+                    git_branch="",
+                    git_commit="",
+                    parent_commit=str(kwargs.get("parent_commit", "")),
+                    train_file=str(kwargs["train_path"]),
+                    train_sha1="sha",
+                    stage=str(kwargs.get("stage", "full")),
+                    mutation_label=str(kwargs.get("mutation_label", "manual")),
+                    baseline_score=kwargs.get("baseline_score"),
+                    delta_score=None,
+                    research_score=score,
+                    acceptance_rate=0.0,
+                    average_metrics={
+                        "total_return": score,
+                        "sharpe": score,
+                        "max_drawdown": 0.1,
+                        "average_turnover": 0.1,
+                        "bars_processed": 10,
+                    },
+                    worst_max_drawdown=0.1,
+                    ready_for_paper=False,
+                    gate_failures=["acceptance_rate_below_gate"],
+                    windows_passed=0,
+                    total_windows=1,
+                    window_reports=[],
+                    runtime_seconds=0.01,
+                    artifact_path=str(artifact_path),
+                )
+
+            from autoresearch_trade_bot.autoresearch import GitAutoresearchRunner
+
+            runner = GitAutoresearchRunner(
+                repo_root=repo_root,
+                branch_name="codex/llm-test-identity",
+                evaluator=fake_evaluator,
+                worktrees_root=repo_root / ".autoresearch" / "worktrees",
+            )
+
+            valid_candidate = render_train_file(
+                {
+                    "lookback_bars": 12,
+                    "top_k": 1,
+                    "gross_target": 0.5,
+                    "ranking_mode": "risk_adjusted",
+                    "use_regime_filter": False,
+                    "regime_lookback_bars": 36,
+                    "regime_threshold": 0.015,
+                    "min_signal_strength": 0.0,
+                }
+            )
+            keep_decision = runner.apply_mutation_proposal_staged(
+                campaign_path=campaign_path,
+                proposal=MutationProposal(
+                    label="good-identity",
+                    candidate_text=valid_candidate,
+                    commit_message="good mutation",
+                    provider_name="llm",
+                    model_name="fake-gpt",
+                    prompt_id="resp_good",
+                ),
+                validator=validate_train_candidate_text,
+            )
+
+            self.assertEqual(keep_decision.decision, "keep")
+            self.assertEqual(
+                self._git(repo_root, "config", "--local", "--get", "user.name"),
+                "Autoresearch Bot",
+            )
+            self.assertEqual(
+                self._git(repo_root, "config", "--local", "--get", "user.email"),
+                "autoresearch-bot@local",
+            )
+
+    def test_runner_reports_subprocess_details_on_candidate_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            repo_root = Path(tempdir) / "repo"
+            repo_root.mkdir()
+            self._git(repo_root, "init")
+            self._git(repo_root, "config", "user.email", "bot@example.com")
+            self._git(repo_root, "config", "user.name", "Bot")
+            baseline_text = render_train_file(
+                {
+                    "lookback_bars": 24,
+                    "top_k": 1,
+                    "gross_target": 0.5,
+                    "ranking_mode": "risk_adjusted",
+                    "use_regime_filter": False,
+                    "regime_lookback_bars": 36,
+                    "regime_threshold": 0.015,
+                    "min_signal_strength": 0.0,
+                }
+            )
+            (repo_root / "train.py").write_text(baseline_text, encoding="utf-8")
+            self._git(repo_root, "add", "train.py")
+            self._git(repo_root, "commit", "-m", "Initial train file")
+
+            campaign_path = repo_root / "campaign.json"
+            campaign_path.write_text(
+                json.dumps(
+                    {
+                        "campaign_id": "unit",
+                        "name": "unit-campaign",
+                        "exchange": "bybit",
+                        "market": "linear",
+                        "timeframe": "5m",
+                        "symbols": ["BTCUSDT", "ETHUSDT"],
+                        "storage_root": str(repo_root / "data"),
+                        "target_gate": {
+                            "min_total_return": 0.0,
+                            "min_sharpe": 1.0,
+                            "max_drawdown": 0.2,
+                            "min_acceptance_rate": 0.6,
+                        },
+                        "windows": [],
+                    },
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+
+            def fake_evaluator(**kwargs):
+                artifact_dir = Path(kwargs["artifact_root"])
+                artifact_dir.mkdir(parents=True, exist_ok=True)
+                artifact_path = artifact_dir / f"{kwargs.get('mutation_label','x')}.json"
+                artifact_path.write_text("{}", encoding="utf-8")
+                train_text = Path(kwargs["train_path"]).read_text(encoding="utf-8")
+                score = 2.0 if "'lookback_bars': 12" in train_text else 0.5
+                return AutoresearchRunReport(
+                    run_id=str(kwargs.get("mutation_label", "x")),
+                    recorded_at=datetime.now(timezone.utc).isoformat(),
+                    campaign_id="unit",
+                    campaign_name="unit-campaign",
+                    strategy_name="fake",
+                    git_branch="",
+                    git_commit="",
+                    parent_commit=str(kwargs.get("parent_commit", "")),
+                    train_file=str(kwargs["train_path"]),
+                    train_sha1="sha",
+                    stage=str(kwargs.get("stage", "full")),
+                    mutation_label=str(kwargs.get("mutation_label", "manual")),
+                    baseline_score=kwargs.get("baseline_score"),
+                    delta_score=None,
+                    research_score=score,
+                    acceptance_rate=0.0,
+                    average_metrics={
+                        "total_return": score,
+                        "sharpe": score,
+                        "max_drawdown": 0.1,
+                        "average_turnover": 0.1,
+                        "bars_processed": 10,
+                    },
+                    worst_max_drawdown=0.1,
+                    ready_for_paper=False,
+                    gate_failures=["acceptance_rate_below_gate"],
+                    windows_passed=0,
+                    total_windows=1,
+                    window_reports=[],
+                    runtime_seconds=0.01,
+                    artifact_path=str(artifact_path),
+                )
+
+            from autoresearch_trade_bot.autoresearch import GitAutoresearchRunner
+
+            runner = GitAutoresearchRunner(
+                repo_root=repo_root,
+                branch_name="codex/llm-test-error",
+                evaluator=fake_evaluator,
+                worktrees_root=repo_root / ".autoresearch" / "worktrees",
+            )
+            runner.ensure_worktree()
+            original_git_in_worktree = runner._git_in_worktree
+
+            def fail_commit(args):  # type: ignore[no-untyped-def]
+                if list(args[:2]) == ["commit", "-m"]:
+                    raise subprocess.CalledProcessError(
+                        128,
+                        ["git", "commit", "-m", "good mutation"],
+                        stderr="Author identity unknown\nfatal: unable to auto-detect email address",
+                    )
+                return original_git_in_worktree(args)
+
+            runner._git_in_worktree = fail_commit  # type: ignore[method-assign]
+
+            valid_candidate = render_train_file(
+                {
+                    "lookback_bars": 12,
+                    "top_k": 1,
+                    "gross_target": 0.5,
+                    "ranking_mode": "risk_adjusted",
+                    "use_regime_filter": False,
+                    "regime_lookback_bars": 36,
+                    "regime_threshold": 0.015,
+                    "min_signal_strength": 0.0,
+                }
+            )
+            decision = runner.apply_mutation_proposal_staged(
+                campaign_path=campaign_path,
+                proposal=MutationProposal(
+                    label="good-error",
+                    candidate_text=valid_candidate,
+                    commit_message="good mutation",
+                    provider_name="llm",
+                    model_name="fake-gpt",
+                    prompt_id="resp_good",
+                ),
+                validator=validate_train_candidate_text,
+            )
+
+            self.assertEqual(decision.decision, "discard_error")
+            self.assertIn("cmd=git commit -m good mutation", decision.report.failure_reason)
+            self.assertIn("rc=128", decision.report.failure_reason)
+            self.assertIn("Author identity unknown", decision.report.failure_reason)
+
     @staticmethod
     def _git(repo_root: Path, *args: str) -> str:
         completed = subprocess.run(

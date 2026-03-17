@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import inspect
 import json
+import os
 import pprint
 import re
 import subprocess
@@ -64,6 +65,8 @@ RESULTS_TSV_COLUMNS = (
 DEFAULT_CAMPAIGNS_ROOT = ".autoresearch/campaigns"
 DEFAULT_ACTIVE_CAMPAIGN = ".autoresearch/active_campaign.txt"
 DEFAULT_WORKTREE_ROOT = ".autoresearch/worktrees"
+DEFAULT_GIT_USER_NAME = "Autoresearch Bot"
+DEFAULT_GIT_USER_EMAIL = "autoresearch-bot@local"
 
 
 @dataclass(frozen=True)
@@ -621,6 +624,7 @@ class GitAutoresearchRunner:
 
     def ensure_worktree(self) -> None:
         self.worktree_root.parent.mkdir(parents=True, exist_ok=True)
+        ensure_git_identity(self.repo_root)
         if self.worktree_root.exists():
             return
         branch_exists = self._git(["branch", "--list", self.branch_name]).strip()
@@ -874,7 +878,7 @@ class GitAutoresearchRunner:
                 baseline_score=baseline_full.research_score,
                 parent_commit=baseline_full.git_commit,
                 candidate_sha1=candidate_sha1,
-                failure_reason=f"candidate_error:{type(exc).__name__}",
+                failure_reason=format_failure_reason(exc),
                 proposal_artifact_path=proposal.proposal_artifact_path,
             )
             append_results_row(
@@ -1286,6 +1290,33 @@ def _build_strategy(
     if len(signature.parameters) == 0:
         return builder()
     return builder(dataset_spec)
+
+
+def ensure_git_identity(repo_root: str | Path) -> None:
+    root = Path(repo_root)
+    user_name = _safe_git(["config", "--local", "--get", "user.name"], cwd=root)
+    user_email = _safe_git(["config", "--local", "--get", "user.email"], cwd=root)
+    desired_name = os.environ.get("AUTORESEARCH_GIT_USER_NAME", DEFAULT_GIT_USER_NAME)
+    desired_email = os.environ.get("AUTORESEARCH_GIT_USER_EMAIL", DEFAULT_GIT_USER_EMAIL)
+    if not user_name:
+        _git(["config", "--local", "user.name", desired_name], cwd=root)
+    if not user_email:
+        _git(["config", "--local", "user.email", desired_email], cwd=root)
+
+
+def format_failure_reason(exc: Exception) -> str:
+    if isinstance(exc, subprocess.CalledProcessError):
+        command = (
+            " ".join(str(part) for part in exc.cmd)
+            if isinstance(exc.cmd, Sequence) and not isinstance(exc.cmd, (str, bytes))
+            else str(exc.cmd)
+        )
+        stderr = (exc.stderr or exc.stdout or "").strip().replace("\n", " ")
+        if stderr:
+            stderr = re.sub(r"\s+", " ", stderr)[:240]
+            return f"candidate_error:CalledProcessError:cmd={command}:rc={exc.returncode}:stderr={stderr}"
+        return f"candidate_error:CalledProcessError:cmd={command}:rc={exc.returncode}"
+    return f"candidate_error:{type(exc).__name__}"
 
 
 def _git(args: Sequence[str], cwd: Path) -> str:

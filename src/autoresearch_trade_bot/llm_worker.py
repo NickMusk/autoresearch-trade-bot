@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable, Sequence
 
-from .autoresearch import prepare_campaign, resolve_campaign_path
+from .autoresearch import ensure_git_identity, prepare_campaign, resolve_campaign_path
 from .config import DataConfig, LLMWorkerConfig, ResearchTargetGate
 from .datasets import timeframe_to_timedelta
 from .mutations import load_recent_results, run_llm_mutation_campaign
@@ -201,6 +201,7 @@ class LLMAutoresearchWorker:
                 capture_output=True,
                 text=True,
             )
+            ensure_git_identity(repo_root)
             return
         subprocess.run(
             ["git", "checkout", "main"],
@@ -216,6 +217,7 @@ class LLMAutoresearchWorker:
             capture_output=True,
             text=True,
         )
+        ensure_git_identity(repo_root)
 
     def _record_cycle(
         self,
