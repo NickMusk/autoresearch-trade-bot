@@ -129,6 +129,39 @@ class WorkerCheckpoint:
 
 
 @dataclass(frozen=True)
+class LLMWorkerCheckpoint:
+    last_cycle_completed_at: datetime | None = None
+    last_campaign_refreshed_at: datetime | None = None
+    consecutive_failures: int = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "consecutive_failures": self.consecutive_failures,
+        }
+        if self.last_cycle_completed_at is not None:
+            payload["last_cycle_completed_at"] = self.last_cycle_completed_at.isoformat()
+        if self.last_campaign_refreshed_at is not None:
+            payload["last_campaign_refreshed_at"] = self.last_campaign_refreshed_at.isoformat()
+        return payload
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "LLMWorkerCheckpoint":
+        return cls(
+            last_cycle_completed_at=(
+                _ensure_utc(datetime.fromisoformat(payload["last_cycle_completed_at"]))
+                if payload.get("last_cycle_completed_at")
+                else None
+            ),
+            last_campaign_refreshed_at=(
+                _ensure_utc(datetime.fromisoformat(payload["last_campaign_refreshed_at"]))
+                if payload.get("last_campaign_refreshed_at")
+                else None
+            ),
+            consecutive_failures=int(payload.get("consecutive_failures", 0)),
+        )
+
+
+@dataclass(frozen=True)
 class ResearchStatusSnapshot:
     mission: str
     phase: str
@@ -212,6 +245,10 @@ class FilesystemResearchStateStore:
     def checkpoint_path(self) -> Path:
         return self.root / "checkpoint.json"
 
+    @property
+    def llm_checkpoint_path(self) -> Path:
+        return self.root / "llm_checkpoint.json"
+
     def save_snapshot(self, snapshot: ResearchStatusSnapshot) -> Path:
         return self._write_json(self.latest_status_path, snapshot.to_dict())
 
@@ -243,6 +280,15 @@ class FilesystemResearchStateStore:
 
     def save_checkpoint(self, checkpoint: WorkerCheckpoint) -> Path:
         return self._write_json(self.checkpoint_path, checkpoint.to_dict())
+
+    def load_llm_checkpoint(self) -> LLMWorkerCheckpoint:
+        if not self.llm_checkpoint_path.exists():
+            return LLMWorkerCheckpoint()
+        payload = json.loads(self.llm_checkpoint_path.read_text(encoding="utf-8"))
+        return LLMWorkerCheckpoint.from_dict(payload)
+
+    def save_llm_checkpoint(self, checkpoint: LLMWorkerCheckpoint) -> Path:
+        return self._write_json(self.llm_checkpoint_path, checkpoint.to_dict())
 
     def _write_json(self, path: Path, payload: dict[str, Any]) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)

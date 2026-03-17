@@ -74,3 +74,28 @@ class WorkerConfig:
     max_cycles: Optional[int] = None
     data_config: DataConfig = field(default_factory=DataConfig)
     target_gate: ResearchTargetGate = field(default_factory=ResearchTargetGate)
+
+
+@dataclass(frozen=True)
+class LLMWorkerConfig:
+    repo_url: str
+    symbols: Tuple[str, ...] = ("BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT")
+    repo_root: str = "repo"
+    branch_name: str = "codex/autoresearch-crypto"
+    model_name: str = "gpt-5-mini"
+    cycle_interval_seconds: int = 3600
+    campaign_refresh_interval_seconds: int = 86400
+    failure_cooldown_seconds: int = 900
+    max_mutations_per_cycle: int = 1
+    recent_results_limit: int = 5
+    history_window_days: int = 7
+    campaign_window_count: int = 1
+    campaigns_root: str = "campaigns"
+    active_campaign_path: str = "active_campaign.txt"
+    worktrees_root: str = "worktrees"
+    state_root: str = "state"
+    artifact_root: str = "artifacts"
+    results_path: str = "results.tsv"
+    max_cycles: Optional[int] = None
+    data_config: DataConfig = field(default_factory=DataConfig)
+    target_gate: ResearchTargetGate = field(default_factory=ResearchTargetGate)

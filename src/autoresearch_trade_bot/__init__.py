@@ -20,6 +20,7 @@ from .autoresearch import (
 from .config import (
     DataConfig,
     ExperimentConfig,
+    LLMWorkerConfig,
     PromotionGate,
     ResearchTargetGate,
     RiskLimits,
@@ -42,6 +43,7 @@ from .experiments import (
     run_variant_search,
 )
 from .models import Bar, ExperimentResult, SimulationMetrics, SimulationResult
+from .llm_worker import LLMAutoresearchWorker
 from .mutations import (
     DeterministicMutationProvider,
     LLMCompletion,
@@ -91,8 +93,10 @@ __all__ = [
     "GitAutoresearchDecision",
     "GitAutoresearchRunner",
     "HistoricalDatasetMaterializer",
+    "LLMAutoresearchWorker",
     "LLMCompletion",
     "LLMMutationProvider",
+    "LLMWorkerConfig",
     "LeaderboardEntry",
     "ManifestHistoricalDataSource",
     "MutationProposal",

@@ -4,7 +4,7 @@
 
 The first milestone is intentionally narrow:
 
-- `Bybit-first` continuous research worker, with Binance historical support still available
+- `Bybit-first` frozen-campaign LLM autoresearch worker on Render, with Binance historical support still available
 - deterministic backtest and paper/shadow execution boundaries
 - a single baseline strategy: market-neutral cross-sectional momentum
 - hard promotion gates before anything is allowed near live capital
@@ -26,8 +26,7 @@ The system is designed so that an agent can iterate on `features`, `signal logic
 - `docs/v1-architecture.md`: scope, boundaries, and rollout plan
 - `src/autoresearch_trade_bot/`: core package
 - `tests/`: deterministic tests for the research kernel
-- `render.yaml`: Render deployment blueprint for the dashboard app
-- `render.yaml`: Render deployment blueprint for the dashboard and continuous worker
+- `render.yaml`: Render deployment blueprint for the dashboard and single LLM worker
 
 ## Current status
 
@@ -40,11 +39,11 @@ This repository currently contains the research kernel:
 - promotion gate evaluator
 - exchange-specific historical dataset contracts, validation pipeline, and parquet storage interface
 
-The repository now also contains a continuous research worker with:
+The repository now also contains a long-running LLM autoresearch worker with:
 
-- bar-aligned `5m` research cycles
-- bounded parameter search around the baseline momentum strategy
-- persisted `status`, `leaderboard`, `history`, and `checkpoint` artifacts
+- frozen campaign preparation and refresh
+- staged `screen -> full` mutation evaluation
+- persisted `status`, `leaderboard`, `history`, `checkpoint`, and proposal artifacts
 - optional GitHub-backed status publishing for the Render dashboard
 
 ## Dashboard
@@ -61,7 +60,7 @@ Run locally:
 PYTHONPATH=src python3 -m autoresearch_trade_bot.app
 ```
 
-Run one research worker cycle locally:
+Run one legacy variant-search worker cycle locally:
 
 ```bash
 PYTHONPATH=src python3 -m autoresearch_trade_bot.cli run-worker-cycle
@@ -123,6 +122,11 @@ The LLM path keeps the same staged harness:
 
 The dashboard is deployed at [autoresearch-trade-bot.onrender.com](https://autoresearch-trade-bot.onrender.com/).
 
+Render now targets a single backend worker model:
+
+- `web`: read-only dashboard
+- `worker`: long-running LLM autoresearch loop on a mounted disk
+
 ## Historical Data
 
 The repository now includes Binance and Bybit historical data providers:
@@ -167,10 +171,13 @@ PYTHONPATH=src python3 -m autoresearch_trade_bot.cli run-baseline \
 
 ## Continuous Worker
 
-The Render worker expects:
+The Render LLM worker expects:
 
-- `AUTORESEARCH_DATA_ROOT`, `AUTORESEARCH_STATE_ROOT`, `AUTORESEARCH_ARTIFACT_ROOT`
+- `AUTORESEARCH_LLM_DATA_ROOT`, `AUTORESEARCH_LLM_STATE_ROOT`, `AUTORESEARCH_LLM_ARTIFACT_ROOT`
+- `AUTORESEARCH_LLM_REPO_ROOT`, `AUTORESEARCH_LLM_CAMPAIGNS_ROOT`, `AUTORESEARCH_LLM_WORKTREES_ROOT`
+- `AUTORESEARCH_LLM_RESULTS_PATH`, `AUTORESEARCH_LLM_MODEL_NAME`, `AUTORESEARCH_LLM_MAX_MUTATIONS_PER_CYCLE`
 - `AUTORESEARCH_STATUS_GITHUB_REPO`
+- `OPENAI_API_KEY`
 - `GITHUB_TOKEN` or `GH_TOKEN` if status should be published for the dashboard
 
 The dashboard can read a persisted worker snapshot from:

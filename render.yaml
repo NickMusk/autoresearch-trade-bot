@@ -10,19 +10,49 @@ services:
       - key: AUTORESEARCH_STATUS_URL
         sync: false
   - type: worker
-    name: autoresearch-trade-bot-worker-frankfurt
+    name: autoresearch-trade-bot-llm-worker
     runtime: python
     plan: starter
     region: frankfurt
     buildCommand: pip install '.[data]'
-    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.worker
+    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.llm_worker
     envVars:
-      - key: AUTORESEARCH_DATA_ROOT
-        value: /var/data/autoresearch/data
-      - key: AUTORESEARCH_STATE_ROOT
-        value: /var/data/autoresearch/state
-      - key: AUTORESEARCH_ARTIFACT_ROOT
-        value: /var/data/autoresearch/artifacts
+      - key: AUTORESEARCH_LLM_DATA_ROOT
+        value: /var/data/autoresearch/llm/data
+      - key: AUTORESEARCH_LLM_STATE_ROOT
+        value: /var/data/autoresearch/llm/state
+      - key: AUTORESEARCH_LLM_ARTIFACT_ROOT
+        value: /var/data/autoresearch/llm/artifacts
+      - key: AUTORESEARCH_LLM_REPO_ROOT
+        value: /var/data/autoresearch/llm/repo
+      - key: AUTORESEARCH_LLM_CAMPAIGNS_ROOT
+        value: /var/data/autoresearch/llm/campaigns
+      - key: AUTORESEARCH_LLM_ACTIVE_CAMPAIGN_PATH
+        value: /var/data/autoresearch/llm/active_campaign.txt
+      - key: AUTORESEARCH_LLM_WORKTREES_ROOT
+        value: /var/data/autoresearch/llm/worktrees
+      - key: AUTORESEARCH_LLM_RESULTS_PATH
+        value: /var/data/autoresearch/llm/results.tsv
+      - key: AUTORESEARCH_LLM_REPO_URL
+        value: https://github.com/NickMusk/autoresearch-trade-bot.git
+      - key: AUTORESEARCH_LLM_BRANCH_NAME
+        value: codex/autoresearch-crypto
+      - key: AUTORESEARCH_LLM_MODEL_NAME
+        value: gpt-5-mini
+      - key: AUTORESEARCH_LLM_CYCLE_INTERVAL_SECONDS
+        value: "3600"
+      - key: AUTORESEARCH_LLM_CAMPAIGN_REFRESH_INTERVAL_SECONDS
+        value: "86400"
+      - key: AUTORESEARCH_LLM_FAILURE_COOLDOWN_SECONDS
+        value: "900"
+      - key: AUTORESEARCH_LLM_MAX_MUTATIONS_PER_CYCLE
+        value: "1"
+      - key: AUTORESEARCH_LLM_RECENT_RESULTS_LIMIT
+        value: "5"
+      - key: AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS
+        value: "7"
+      - key: AUTORESEARCH_LLM_CAMPAIGN_WINDOW_COUNT
+        value: "1"
       - key: AUTORESEARCH_SYMBOLS
         value: BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT
       - key: AUTORESEARCH_EXCHANGE
@@ -31,16 +61,6 @@ services:
         value: linear
       - key: AUTORESEARCH_TIMEFRAME
         value: 5m
-      - key: AUTORESEARCH_HISTORY_WINDOW_DAYS
-        value: "7"
-      - key: AUTORESEARCH_MAX_VARIANTS
-        value: "12"
-      - key: AUTORESEARCH_MULTI_WINDOW_COUNT
-        value: "2"
-      - key: AUTORESEARCH_MULTI_WINDOW_TOP_CANDIDATES
-        value: "2"
-      - key: AUTORESEARCH_MULTI_WINDOW_INTERVAL_BARS
-        value: "12"
       - key: AUTORESEARCH_TARGET_MIN_SHARPE
         value: "1.0"
       - key: AUTORESEARCH_TARGET_MAX_DRAWDOWN
@@ -55,7 +75,9 @@ services:
         value: status
       - key: GITHUB_TOKEN
         sync: false
+      - key: OPENAI_API_KEY
+        sync: false
     disk:
-      name: autoresearch-trade-bot-worker-frankfurt-disk
+      name: autoresearch-trade-bot-llm-worker-disk
       mountPath: /var/data
       sizeGB: 5
