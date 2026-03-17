@@ -1,9 +1,13 @@
 {
   "mission": "Continuously search, test, and rank crypto strategies before paper or live rollout.",
-  "phase": "Continuous research worker degraded",
+  "phase": "Continuous research worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Worker cycle failed: Bybit request failed for /v5/market/kline: Too many visits. Exceeded the API Rate Limit."
+    "No current strategy variant passes the promotion gate on the latest window.",
+    "Recent acceptance rate is still below the rollout threshold.",
+    "Sharpe is below the rollout target.",
+    "Worst drawdown across windows is above the rollout target.",
+    "Total return is below the rollout target."
   ],
   "baseline_strategy": "Market-neutral cross-sectional momentum variant search on liquid perpetuals.",
   "promotion_gate": {
@@ -13,24 +17,25 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": -0.1912,
-    "sharpe": -93.1599,
+    "total_return": -0.1913,
+    "sharpe": -93.1718,
     "max_drawdown": 0.1945,
     "average_turnover": 0.2089,
     "bars_processed": 2015,
-    "score": -95.1033
+    "score": -95.1153
   },
   "accepted_for_paper": false,
   "next_milestones": [
-    "Recover the worker and resume the next closed-bar cycle.",
-    "Preserve the last good leaderboard while the failure is investigated."
+    "Promote only the variants that stay above target gate across recent windows.",
+    "Add realtime paper or shadow replay on the same engine boundaries.",
+    "Increase candidate breadth only after a stable multi-window winner appears."
   ],
-  "loop_state": "degraded",
-  "latest_dataset_id": "bybit-linear-5m-20260310T062500Z-20260317T062500Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
-  "latest_cycle_completed_at": "2026-03-17T06:25:15.000331+00:00",
-  "last_processed_bar": "2026-03-17T06:25:00+00:00",
+  "loop_state": "searching",
+  "latest_dataset_id": "bybit-linear-5m-20260310T063000Z-20260317T063000Z-BNBUSDT-BTCUSDT-ETHUSDT-SOLUSDT-XRPUSDT",
+  "latest_cycle_completed_at": "2026-03-17T06:31:50.999172+00:00",
+  "last_processed_bar": "2026-03-17T06:30:00+00:00",
   "recent_acceptance_rate": 0.0,
-  "consecutive_failures": 1,
+  "consecutive_failures": 0,
   "multi_window_summary": {
     "best_variant": {
       "name": "mom-lb24-top1-gross0.5",
@@ -182,11 +187,11 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -95.10332348981856,
+      "score": -95.11526387542952,
       "metrics": {
-        "total_return": -0.19124858641465914,
-        "sharpe": -93.15994964346561,
-        "max_drawdown": 0.19454947794956823,
+        "total_return": -0.19127391507730018,
+        "sharpe": -93.17176338576334,
+        "max_drawdown": 0.19454947794957,
         "average_turnover": 0.20893300248138957,
         "bars_processed": 2015
       },
@@ -204,11 +209,11 @@
         "gross_target": 1.0
       },
       "accepted": false,
-      "score": -95.10332348981856,
+      "score": -95.11526387542952,
       "metrics": {
-        "total_return": -0.19124858641465914,
-        "sharpe": -93.15994964346561,
-        "max_drawdown": 0.19454947794956823,
+        "total_return": -0.19127391507730018,
+        "sharpe": -93.17176338576334,
+        "max_drawdown": 0.19454947794957,
         "average_turnover": 0.20893300248138957,
         "bars_processed": 2015
       },
@@ -226,12 +231,12 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -104.51863857355016,
+      "score": -105.12006449540127,
       "metrics": {
-        "total_return": -0.1444466895457457,
-        "sharpe": -103.06542065103119,
-        "max_drawdown": 0.14630070926828131,
-        "average_turnover": 0.14578163771712158,
+        "total_return": -0.1450084757337814,
+        "sharpe": -103.66350747364164,
+        "max_drawdown": 0.1464022339736708,
+        "average_turnover": 0.14590570719602977,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -248,12 +253,12 @@
         "gross_target": 0.5
       },
       "accepted": false,
-      "score": -113.65059454111822,
+      "score": -113.39653244683616,
       "metrics": {
-        "total_return": -0.1621783768656181,
-        "sharpe": -112.00164541049554,
-        "max_drawdown": 0.16236790958853642,
-        "average_turnover": 0.18858560794044665,
+        "total_return": -0.16175757337205243,
+        "sharpe": -111.75159793545374,
+        "max_drawdown": 0.1619522938848852,
+        "average_turnover": 0.18833746898263026,
         "bars_processed": 2015
       },
       "rejection_reasons": [
@@ -270,12 +275,12 @@
         "gross_target": 1.0
       },
       "accepted": false,
-      "score": -114.29343414056893,
+      "score": -114.03234825076098,
       "metrics": {
-        "total_return": -0.28988129561502063,
-        "sharpe": -111.31582440060936,
-        "max_drawdown": 0.2902023443484556,
-        "average_turnover": 0.3673938844906587,
+        "total_return": -0.28916761440766814,
+        "sharpe": -111.06162208865776,
+        "max_drawdown": 0.28949762087246245,
+        "average_turnover": 0.3668976065750259,
         "bars_processed": 2015
       },
       "rejection_reasons": [
