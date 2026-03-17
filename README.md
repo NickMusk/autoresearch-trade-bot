@@ -9,6 +9,14 @@ The first milestone is intentionally narrow:
 - a single baseline strategy: market-neutral cross-sectional momentum
 - hard promotion gates before anything is allowed near live capital
 
+The repository now also contains a Karpathy-style offline autoresearch core:
+
+- root-level `program.md` for human-owned research policy
+- root-level `prepare.py` to freeze comparable research windows
+- root-level `train.py` as the single editable strategy surface
+- `results.tsv` as the untracked experiment ledger
+- git `keep/discard` semantics through the autoresearch runner
+
 The system is designed so that an agent can iterate on `features`, `signal logic`, and `parameters` without being allowed to mutate the execution or risk engine.
 
 ## Repository layout
@@ -55,6 +63,30 @@ Run one research worker cycle locally:
 
 ```bash
 PYTHONPATH=src python3 -m autoresearch_trade_bot.cli run-worker-cycle
+```
+
+Prepare a frozen autoresearch campaign:
+
+```bash
+python3 prepare.py --end 2026-03-17T00:00:00Z
+```
+
+Evaluate the current editable `train.py` against that frozen campaign:
+
+```bash
+PYTHONPATH=src python3 -m autoresearch_trade_bot.cli eval-autoresearch \
+  --campaign-path .autoresearch/campaign.json \
+  --train-path train.py
+```
+
+Apply a candidate `train.py` mutation on a research branch and keep it only if the score improves:
+
+```bash
+PYTHONPATH=src python3 -m autoresearch_trade_bot.cli apply-autoresearch-candidate \
+  --campaign-path .autoresearch/campaign.json \
+  --candidate-file /tmp/train_candidate.py \
+  --branch-name codex/autoresearch-crypto \
+  --commit-message "Try a new train.py mutation"
 ```
 
 ## Render

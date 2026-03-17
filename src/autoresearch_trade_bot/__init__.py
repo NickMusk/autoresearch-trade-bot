@@ -1,5 +1,15 @@
 """Core research kernel for the autoresearch trading system."""
 
+from .autoresearch import (
+    AutoresearchCampaign,
+    AutoresearchRunReport,
+    FrozenResearchWindow,
+    GitAutoresearchDecision,
+    GitAutoresearchRunner,
+    append_results_row,
+    evaluate_train_file,
+    prepare_campaign,
+)
 from .config import (
     DataConfig,
     ExperimentConfig,
@@ -40,6 +50,8 @@ from .strategy import CrossSectionalMomentumStrategy, Strategy
 from .worker import ContinuousResearchWorker
 
 __all__ = [
+    "AutoresearchCampaign",
+    "AutoresearchRunReport",
     "Bar",
     "BacktestEngine",
     "BaselineRunReport",
@@ -54,6 +66,9 @@ __all__ = [
     "ExperimentConfig",
     "ExperimentResult",
     "FilesystemResearchStateStore",
+    "FrozenResearchWindow",
+    "GitAutoresearchDecision",
+    "GitAutoresearchRunner",
     "HistoricalDatasetMaterializer",
     "LeaderboardEntry",
     "ManifestHistoricalDataSource",
@@ -77,6 +92,9 @@ __all__ = [
     "build_dashboard_snapshot",
     "default_experiment_config",
     "discover_latest_manifest",
+    "append_results_row",
+    "evaluate_train_file",
+    "prepare_campaign",
     "run_baseline_from_manifest_path",
     "run_variant_search",
 ]
