@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import socket
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -328,8 +329,7 @@ class GitHubStatusPublisher:
             method="PUT",
             headers=self._headers(),
         )
-        with urlopen(request, timeout=30):
-            return
+        self._urlopen_with_retry(request)
 
     def _lookup_existing_sha(self, path: str) -> str | None:
         request = Request(
@@ -337,13 +337,32 @@ class GitHubStatusPublisher:
             headers=self._headers(),
         )
         try:
-            with urlopen(request, timeout=30) as response:
+            with self._urlopen_with_retry(request) as response:
                 payload = json.loads(response.read().decode("utf-8"))
         except HTTPError as exc:
             if exc.code == 404:
                 return None
             raise
         return str(payload["sha"])
+
+    def _urlopen_with_retry(self, request: Request):
+        attempts = 2
+        for attempt in range(1, attempts + 1):
+            try:
+                return urlopen(request, timeout=30)
+            except TimeoutError:
+                if attempt == attempts:
+                    raise RuntimeError("github_publish_timeout")
+            except socket.timeout:
+                if attempt == attempts:
+                    raise RuntimeError("github_publish_timeout")
+            except URLError as exc:
+                if isinstance(exc.reason, (TimeoutError, socket.timeout)):
+                    if attempt == attempts:
+                        raise RuntimeError("github_publish_timeout") from exc
+                    continue
+                raise
+        raise RuntimeError("github_publish_timeout")
 
     def _headers(self) -> dict[str, str]:
         return {

@@ -67,6 +67,7 @@ class LLMAutoresearchWorker:
             try:
                 self.run_cycle(now=now)
             except Exception as exc:  # noqa: BLE001
+                failure_message = self._normalize_failure_message(exc)
                 failed_checkpoint = LLMWorkerCheckpoint(
                     last_cycle_completed_at=checkpoint.last_cycle_completed_at,
                     last_campaign_refreshed_at=checkpoint.last_campaign_refreshed_at,
@@ -75,9 +76,13 @@ class LLMAutoresearchWorker:
                 self.state_store.save_llm_checkpoint(failed_checkpoint)
                 snapshot = self._build_failure_snapshot(
                     checkpoint=failed_checkpoint,
-                    failure_message=str(exc),
+                    failure_message=failure_message,
                 )
-                self._persist_snapshot(snapshot, message="Publish degraded LLM autoresearch status")
+                self._persist_snapshot(
+                    snapshot,
+                    message="Publish degraded LLM autoresearch status",
+                    suppress_publish_errors=True,
+                )
                 self.sleep_fn(float(self.config.failure_cooldown_seconds))
             finally:
                 cycle_attempts += 1
@@ -416,20 +421,30 @@ class LLMAutoresearchWorker:
             leaderboard=[],
         )
 
-    def _persist_snapshot(self, snapshot: ResearchStatusSnapshot, message: str) -> None:
+    def _persist_snapshot(
+        self,
+        snapshot: ResearchStatusSnapshot,
+        message: str,
+        *,
+        suppress_publish_errors: bool = False,
+    ) -> None:
         self.state_store.save_snapshot(snapshot)
         if self.publisher is not None:
-            self.publisher.publish_json(
-                "latest_status.json",
-                snapshot.to_dict(),
-                message=message,
-            )
-            leaderboard = {"leaderboard": list(snapshot.leaderboard)}
-            self.publisher.publish_json(
-                "leaderboard.json",
-                leaderboard,
-                message=message,
-            )
+            try:
+                self.publisher.publish_json(
+                    "latest_status.json",
+                    snapshot.to_dict(),
+                    message=message,
+                )
+                leaderboard = {"leaderboard": list(snapshot.leaderboard)}
+                self.publisher.publish_json(
+                    "leaderboard.json",
+                    leaderboard,
+                    message=message,
+                )
+            except Exception:
+                if not suppress_publish_errors:
+                    raise
 
     @staticmethod
     def _build_leaderboard(rows: Sequence[dict[str, str]]) -> list[dict[str, object]]:
@@ -471,6 +486,17 @@ class LLMAutoresearchWorker:
             return 0.0
         accepted = sum(1 for item in history if item.accepted)
         return accepted / len(history)
+
+    @staticmethod
+    def _normalize_failure_message(exc: Exception) -> str:
+        raw = str(exc).strip()
+        if raw == "openai_timeout":
+            return "OpenAI request timed out"
+        if raw == "github_publish_timeout":
+            return "GitHub status publish timed out"
+        if not raw:
+            return type(exc).__name__
+        return raw
 
     @staticmethod
     def _ensure_utc(value: datetime) -> datetime:

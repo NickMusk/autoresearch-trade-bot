@@ -5,6 +5,7 @@ import csv
 import json
 import os
 import re
+import socket
 import subprocess
 import urllib.error
 import urllib.request
@@ -138,14 +139,7 @@ class OpenAIResponsesClient:
             },
             method="POST",
         )
-        try:
-            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
-                raw_payload = json.loads(response.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            detail = exc.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"openai_http_error:{exc.code}:{detail}") from exc
-        except urllib.error.URLError as exc:
-            raise RuntimeError(f"openai_transport_error:{exc.reason}") from exc
+        raw_payload = self._execute_with_retry(request)
 
         content = extract_response_text(raw_payload)
         if not content.strip():
@@ -156,6 +150,30 @@ class OpenAIResponsesClient:
             prompt_id=str(raw_payload.get("id", "")),
             raw_response=raw_payload,
         )
+
+    def _execute_with_retry(self, request: urllib.request.Request) -> dict[str, Any]:
+        attempts = 2
+        for attempt in range(1, attempts + 1):
+            try:
+                with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+                    return json.loads(response.read().decode("utf-8"))
+            except urllib.error.HTTPError as exc:
+                detail = exc.read().decode("utf-8", errors="replace")
+                raise RuntimeError(f"openai_http_error:{exc.code}:{detail}") from exc
+            except TimeoutError as exc:
+                if attempt == attempts:
+                    raise RuntimeError("openai_timeout") from exc
+            except socket.timeout as exc:
+                if attempt == attempts:
+                    raise RuntimeError("openai_timeout") from exc
+            except urllib.error.URLError as exc:
+                reason = exc.reason
+                if isinstance(reason, (TimeoutError, socket.timeout)):
+                    if attempt == attempts:
+                        raise RuntimeError("openai_timeout") from exc
+                    continue
+                raise RuntimeError(f"openai_transport_error:{reason}") from exc
+        raise RuntimeError("openai_timeout")
 
 
 class LLMMutationProvider:

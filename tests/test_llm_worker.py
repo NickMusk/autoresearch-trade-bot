@@ -221,6 +221,97 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertIn("openai_http_error:429", snapshot.research_blockers[0])
             self.assertEqual(sleep_calls, [123.0])
 
+    def test_run_forever_classifies_openai_timeout(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            sleep_calls: list[float] = []
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                cycle_interval_seconds=1,
+                failure_cooldown_seconds=45,
+                max_cycles=1,
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                llm_runner=lambda **_kwargs: (_ for _ in ()).throw(RuntimeError("openai_timeout")),
+                campaign_preparer=lambda **_kwargs: temp_path / "campaign.json",
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda seconds: sleep_calls.append(seconds),
+            )
+            worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+            worker._ensure_active_campaign = lambda **_kwargs: (temp_path / "campaign.json", False)  # type: ignore[method-assign]
+
+            worker.run_forever()
+
+            snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
+            self.assertIsNotNone(snapshot)
+            assert snapshot is not None
+            self.assertEqual(snapshot.loop_state, "degraded")
+            self.assertIn("OpenAI request timed out", snapshot.research_blockers[0])
+            self.assertEqual(sleep_calls, [45.0])
+
+    def test_persist_snapshot_suppresses_publish_timeout_for_degraded_status(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+
+            class FailingPublisher:
+                def publish_json(self, filename, payload, message):  # type: ignore[no-untyped-def]
+                    raise RuntimeError("github_publish_timeout")
+
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                publisher=FailingPublisher(),  # type: ignore[arg-type]
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+
+            snapshot = worker._build_failure_snapshot(  # type: ignore[attr-defined]
+                checkpoint=worker.state_store.load_llm_checkpoint(),
+                failure_message="GitHub status publish timed out",
+            )
+            worker._persist_snapshot(  # type: ignore[attr-defined]
+                snapshot,
+                message="Publish degraded LLM autoresearch status",
+                suppress_publish_errors=True,
+            )
+
+            stored_snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
+            self.assertIsNotNone(stored_snapshot)
+            assert stored_snapshot is not None
+            self.assertIn("GitHub status publish timed out", stored_snapshot.research_blockers[0])
+
 
 if __name__ == "__main__":
     unittest.main()
