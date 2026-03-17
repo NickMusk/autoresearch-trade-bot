@@ -19,6 +19,7 @@ from .config import DataConfig
 from .data import HistoricalDatasetMaterializer
 from .datasets import DatasetSpec
 from .experiments import run_baseline_from_manifest_path
+from .mutations import run_llm_mutation_campaign
 from .state import FilesystemResearchStateStore
 from .worker import ContinuousResearchWorker, worker_config_from_env
 
@@ -200,6 +201,44 @@ def cmd_run_deterministic_autoresearch(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_run_llm_autoresearch(args: argparse.Namespace) -> int:
+    campaign_path = resolve_campaign_path(
+        args.campaign_path,
+        campaign_name=args.campaign_name,
+        campaigns_root=args.campaigns_root,
+        pointer_path=args.active_campaign_path,
+    )
+    decisions = run_llm_mutation_campaign(
+        campaign_path=campaign_path,
+        repo_root=args.repo_root,
+        branch_name=args.branch_name,
+        model_name=args.model_name,
+        max_mutations=args.max_mutations,
+        worktrees_root=args.worktrees_root,
+        recent_results_limit=args.recent_results_limit,
+    )
+    print(
+        json.dumps(
+            [
+                {
+                    "decision": item.decision,
+                    "stage": item.stage,
+                    "mutation_label": item.mutation_label,
+                    "baseline_score": item.baseline_score,
+                    "candidate_score": item.candidate_score,
+                    "kept_commit": item.kept_commit,
+                    "failure_reason": item.report.failure_reason,
+                    "provider_name": item.report.provider_name,
+                    "model_name": item.report.model_name,
+                }
+                for item in decisions
+            ],
+            indent=2,
+        )
+    )
+    return 0
+
+
 def parse_candidate_text(path: str) -> str:
     return Path(path).read_text(encoding="utf-8")
 
@@ -321,6 +360,22 @@ def build_parser() -> argparse.ArgumentParser:
     deterministic.add_argument("--worktrees-root", default=".autoresearch/worktrees")
     deterministic.add_argument("--max-mutations", type=int, default=8)
     deterministic.set_defaults(func=cmd_run_deterministic_autoresearch)
+
+    llm = subparsers.add_parser(
+        "run-llm-autoresearch",
+        help="Run a staged LLM mutation batch against the active frozen campaign",
+    )
+    llm.add_argument("--campaign-path")
+    llm.add_argument("--campaign-name")
+    llm.add_argument("--campaigns-root", default=DEFAULT_CAMPAIGNS_ROOT)
+    llm.add_argument("--active-campaign-path", default=DEFAULT_ACTIVE_CAMPAIGN)
+    llm.add_argument("--repo-root", default=".")
+    llm.add_argument("--branch-name", required=True)
+    llm.add_argument("--worktrees-root", default=".autoresearch/worktrees")
+    llm.add_argument("--model-name", default="gpt-5-mini")
+    llm.add_argument("--max-mutations", type=int, default=1)
+    llm.add_argument("--recent-results-limit", type=int, default=5)
+    llm.set_defaults(func=cmd_run_llm_autoresearch)
 
     return parser
 

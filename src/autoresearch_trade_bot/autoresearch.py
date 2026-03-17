@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import importlib.util
 import inspect
 import json
@@ -33,6 +34,9 @@ RESULTS_TSV_COLUMNS = (
     "decision",
     "stage",
     "mutation_label",
+    "provider_name",
+    "model_name",
+    "prompt_id",
     "run_id",
     "campaign_name",
     "strategy_name",
@@ -40,6 +44,7 @@ RESULTS_TSV_COLUMNS = (
     "git_commit",
     "parent_commit",
     "train_sha1",
+    "candidate_sha1",
     "baseline_score",
     "delta_score",
     "research_score",
@@ -51,6 +56,8 @@ RESULTS_TSV_COLUMNS = (
     "average_turnover",
     "ready_for_paper",
     "runtime_seconds",
+    "failure_reason",
+    "proposal_artifact_path",
     "artifact_path",
 )
 
@@ -164,6 +171,12 @@ class AutoresearchRunReport:
     window_reports: list[WindowEvaluationReport]
     runtime_seconds: float
     artifact_path: str
+    provider_name: str = "manual"
+    model_name: str = ""
+    prompt_id: str = ""
+    candidate_sha1: str = ""
+    failure_reason: str = ""
+    proposal_artifact_path: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -179,8 +192,12 @@ class AutoresearchRunReport:
             "train_sha1": self.train_sha1,
             "stage": self.stage,
             "mutation_label": self.mutation_label,
+            "provider_name": self.provider_name,
+            "model_name": self.model_name,
+            "prompt_id": self.prompt_id,
             "baseline_score": self.baseline_score,
             "delta_score": self.delta_score,
+            "candidate_sha1": self.candidate_sha1,
             "research_score": self.research_score,
             "acceptance_rate": self.acceptance_rate,
             "average_metrics": dict(self.average_metrics),
@@ -191,6 +208,8 @@ class AutoresearchRunReport:
             "total_windows": self.total_windows,
             "window_reports": [report.to_dict() for report in self.window_reports],
             "runtime_seconds": self.runtime_seconds,
+            "failure_reason": self.failure_reason,
+            "proposal_artifact_path": self.proposal_artifact_path,
             "artifact_path": self.artifact_path,
         }
 
@@ -213,9 +232,26 @@ class DeterministicMutationProposal:
     commit_message: str
 
 
+@dataclass(frozen=True)
+class MutationProposal:
+    label: str
+    candidate_text: str
+    commit_message: str
+    provider_name: str = "manual"
+    model_name: str = ""
+    prompt_id: str = ""
+    notes: str = ""
+    proposal_artifact_path: str = ""
+    candidate_sha1: str = ""
+
+
 def slugify(value: str) -> str:
     slug = re.sub(r"[^a-zA-Z0-9]+", "-", value.strip()).strip("-").lower()
     return slug or "campaign"
+
+
+def _sha1_text(value: str) -> str:
+    return hashlib.sha1(value.encode("utf-8")).hexdigest()
 
 
 def campaign_path_for_name(
@@ -382,8 +418,13 @@ def evaluate_train_file(
     artifact_root: str | Path = ".autoresearch/runs",
     stage: str = "full",
     mutation_label: str = "manual",
+    provider_name: str = "manual",
+    model_name: str = "",
+    prompt_id: str = "",
     baseline_score: float | None = None,
     parent_commit: str = "",
+    candidate_sha1: str = "",
+    proposal_artifact_path: str = "",
     window_limit: int | None = None,
     recorded_at: datetime | None = None,
 ) -> AutoresearchRunReport:
@@ -454,12 +495,16 @@ def evaluate_train_file(
         train_sha1=train_sha1,
         stage=stage,
         mutation_label=mutation_label,
+        provider_name=provider_name,
+        model_name=model_name,
+        prompt_id=prompt_id,
         baseline_score=baseline_score,
         delta_score=(
             aggregated["research_score"] - baseline_score
             if baseline_score is not None
             else None
         ),
+        candidate_sha1=candidate_sha1,
         research_score=aggregated["research_score"],
         acceptance_rate=aggregated["acceptance_rate"],
         average_metrics=aggregated["average_metrics"],
@@ -470,6 +515,7 @@ def evaluate_train_file(
         total_windows=aggregated["total_windows"],
         window_reports=window_reports,
         runtime_seconds=round(time.perf_counter() - started_at, 6),
+        proposal_artifact_path=proposal_artifact_path,
         artifact_path=str(artifact_path),
     )
     artifact_path.write_text(
@@ -493,6 +539,9 @@ def append_results_row(
         "decision": decision,
         "stage": report.stage,
         "mutation_label": report.mutation_label,
+        "provider_name": report.provider_name,
+        "model_name": report.model_name,
+        "prompt_id": report.prompt_id,
         "run_id": report.run_id,
         "campaign_name": report.campaign_name,
         "strategy_name": report.strategy_name,
@@ -500,6 +549,7 @@ def append_results_row(
         "git_commit": report.git_commit,
         "parent_commit": report.parent_commit,
         "train_sha1": report.train_sha1,
+        "candidate_sha1": report.candidate_sha1,
         "baseline_score": (
             f"{report.baseline_score:.6f}" if report.baseline_score is not None else ""
         ),
@@ -515,6 +565,8 @@ def append_results_row(
         "average_turnover": f"{report.average_metrics['average_turnover']:.6f}",
         "ready_for_paper": str(report.ready_for_paper).lower(),
         "runtime_seconds": f"{report.runtime_seconds:.6f}",
+        "failure_reason": report.failure_reason,
+        "proposal_artifact_path": report.proposal_artifact_path,
         "artifact_path": report.artifact_path,
     }
     should_write_header = not path.exists()
@@ -547,6 +599,8 @@ class GitAutoresearchRunner:
         self.artifact_relpath = artifact_relpath
         self.worktrees_root = Path(worktrees_root)
         self.screen_window_count = screen_window_count
+        self._baseline_cache: dict[tuple[str, str, str, int | None], AutoresearchRunReport] = {}
+        self._seen_candidate_sha1s: set[str] | None = None
 
     @property
     def worktree_root(self) -> Path:
@@ -640,27 +694,110 @@ class GitAutoresearchRunner:
         commit_message: str,
         mutation_label: str,
     ) -> GitAutoresearchDecision:
-        self.ensure_worktree()
-        baseline_screen = self.evaluator(
+        proposal = MutationProposal(
+            label=mutation_label,
+            candidate_text=candidate_text,
+            commit_message=commit_message,
+        )
+        return self.apply_mutation_proposal_staged(
             campaign_path=campaign_path,
-            train_path=self.train_path,
-            artifact_root=self.artifact_root,
+            proposal=proposal,
+        )
+
+    def apply_mutation_proposal_staged(
+        self,
+        *,
+        campaign_path: str | Path,
+        proposal: MutationProposal,
+        validator: Callable[[str], tuple[bool, str]] | None = None,
+    ) -> GitAutoresearchDecision:
+        self.ensure_worktree()
+        baseline_screen = self._evaluate_baseline_cached(
+            campaign_path=campaign_path,
             stage="screen",
-            mutation_label="baseline",
             window_limit=self.screen_window_count,
         )
-        baseline_full = self.evaluate_current(campaign_path=campaign_path)
+        baseline_full = self._evaluate_baseline_cached(
+            campaign_path=campaign_path,
+            stage="full",
+            window_limit=None,
+        )
+        candidate_sha1 = proposal.candidate_sha1 or _sha1_text(proposal.candidate_text)
+        if candidate_sha1 in self._load_seen_candidate_sha1s():
+            duplicate_report = self._build_failure_report(
+                campaign_path=campaign_path,
+                stage="validation",
+                mutation_label=proposal.label,
+                provider_name=proposal.provider_name,
+                model_name=proposal.model_name,
+                prompt_id=proposal.prompt_id,
+                baseline_score=baseline_full.research_score,
+                parent_commit=baseline_full.git_commit,
+                candidate_sha1=candidate_sha1,
+                failure_reason="duplicate_candidate",
+                proposal_artifact_path=proposal.proposal_artifact_path,
+            )
+            append_results_row(
+                results_path=self.results_path,
+                report=duplicate_report,
+                decision="skip_duplicate",
+            )
+            return GitAutoresearchDecision(
+                decision="skip_duplicate",
+                stage=duplicate_report.stage,
+                mutation_label=proposal.label,
+                baseline_score=baseline_full.research_score,
+                candidate_score=duplicate_report.research_score,
+                kept_commit=None,
+                report=duplicate_report,
+            )
+
         original_text = self.train_path.read_text(encoding="utf-8")
-        self.train_path.write_text(candidate_text, encoding="utf-8")
+        if validator is not None:
+            is_valid, failure_reason = validator(proposal.candidate_text)
+            if not is_valid:
+                invalid_report = self._build_failure_report(
+                    campaign_path=campaign_path,
+                    stage="validation",
+                    mutation_label=proposal.label,
+                    provider_name=proposal.provider_name,
+                    model_name=proposal.model_name,
+                    prompt_id=proposal.prompt_id,
+                    baseline_score=baseline_full.research_score,
+                    parent_commit=baseline_full.git_commit,
+                    candidate_sha1=candidate_sha1,
+                    failure_reason=failure_reason,
+                    proposal_artifact_path=proposal.proposal_artifact_path,
+                )
+                append_results_row(
+                    results_path=self.results_path,
+                    report=invalid_report,
+                    decision="discard_error",
+                )
+                return GitAutoresearchDecision(
+                    decision="discard_error",
+                    stage=invalid_report.stage,
+                    mutation_label=proposal.label,
+                    baseline_score=baseline_full.research_score,
+                    candidate_score=invalid_report.research_score,
+                    kept_commit=None,
+                    report=invalid_report,
+                )
+        self.train_path.write_text(proposal.candidate_text, encoding="utf-8")
         try:
             screen_report = self.evaluator(
                 campaign_path=campaign_path,
                 train_path=self.train_path,
                 artifact_root=self.artifact_root,
                 stage="screen",
-                mutation_label=mutation_label,
+                mutation_label=proposal.label,
+                provider_name=proposal.provider_name,
+                model_name=proposal.model_name,
+                prompt_id=proposal.prompt_id,
                 baseline_score=baseline_screen.research_score,
                 parent_commit=baseline_full.git_commit,
+                candidate_sha1=candidate_sha1,
+                proposal_artifact_path=proposal.proposal_artifact_path,
                 window_limit=self.screen_window_count,
             )
             if screen_report.research_score <= baseline_screen.research_score:
@@ -673,7 +810,7 @@ class GitAutoresearchRunner:
                 return GitAutoresearchDecision(
                     decision="discard_screen",
                     stage="screen",
-                    mutation_label=mutation_label,
+                    mutation_label=proposal.label,
                     baseline_score=baseline_screen.research_score,
                     candidate_score=screen_report.research_score,
                     kept_commit=None,
@@ -685,16 +822,22 @@ class GitAutoresearchRunner:
                 train_path=self.train_path,
                 artifact_root=self.artifact_root,
                 stage="full",
-                mutation_label=mutation_label,
+                mutation_label=proposal.label,
+                provider_name=proposal.provider_name,
+                model_name=proposal.model_name,
+                prompt_id=proposal.prompt_id,
                 baseline_score=baseline_full.research_score,
                 parent_commit=baseline_full.git_commit,
+                candidate_sha1=candidate_sha1,
+                proposal_artifact_path=proposal.proposal_artifact_path,
             )
             if full_report.research_score > baseline_full.research_score:
                 self._git_in_worktree(["add", self.train_relpath])
-                self._git_in_worktree(["commit", "-m", commit_message])
+                self._git_in_worktree(["commit", "-m", proposal.commit_message])
                 kept_commit = self._git_in_worktree(["rev-parse", "HEAD"]).strip()
                 full_report = replace(full_report, git_commit=kept_commit)
                 decision = "keep"
+                self._remember_candidate_sha1(candidate_sha1)
             else:
                 self.train_path.write_text(original_text, encoding="utf-8")
                 kept_commit = None
@@ -712,15 +855,41 @@ class GitAutoresearchRunner:
             return GitAutoresearchDecision(
                 decision=decision,
                 stage="full",
-                mutation_label=mutation_label,
+                mutation_label=proposal.label,
                 baseline_score=baseline_full.research_score,
                 candidate_score=full_report.research_score,
                 kept_commit=kept_commit,
                 report=full_report,
             )
-        except Exception:
+        except Exception as exc:
             self.train_path.write_text(original_text, encoding="utf-8")
-            raise
+            failed_report = self._build_failure_report(
+                campaign_path=campaign_path,
+                stage="validation",
+                mutation_label=proposal.label,
+                provider_name=proposal.provider_name,
+                model_name=proposal.model_name,
+                prompt_id=proposal.prompt_id,
+                baseline_score=baseline_full.research_score,
+                parent_commit=baseline_full.git_commit,
+                candidate_sha1=candidate_sha1,
+                failure_reason=f"candidate_error:{type(exc).__name__}",
+                proposal_artifact_path=proposal.proposal_artifact_path,
+            )
+            append_results_row(
+                results_path=self.results_path,
+                report=failed_report,
+                decision="discard_error",
+            )
+            return GitAutoresearchDecision(
+                decision="discard_error",
+                stage=failed_report.stage,
+                mutation_label=proposal.label,
+                baseline_score=baseline_full.research_score,
+                candidate_score=failed_report.research_score,
+                kept_commit=None,
+                report=failed_report,
+            )
 
     def remove_worktree(self) -> None:
         if self.worktree_root.exists():
@@ -731,6 +900,112 @@ class GitAutoresearchRunner:
 
     def _git_in_worktree(self, args: Sequence[str]) -> str:
         return _git(args, cwd=self.worktree_root)
+
+    def _evaluate_baseline_cached(
+        self,
+        *,
+        campaign_path: str | Path,
+        stage: str,
+        window_limit: int | None,
+    ) -> AutoresearchRunReport:
+        head_commit = _safe_git(["rev-parse", "HEAD"], cwd=self.worktree_root)
+        cache_key = (str(Path(campaign_path)), head_commit, stage, window_limit)
+        cached = self._baseline_cache.get(cache_key)
+        if cached is not None:
+            return cached
+        report = self.evaluator(
+            campaign_path=campaign_path,
+            train_path=self.train_path,
+            artifact_root=self.artifact_root,
+            stage=stage,
+            mutation_label="baseline",
+            provider_name="baseline",
+            model_name="",
+            prompt_id="",
+            candidate_sha1=_sha1_text(self.train_path.read_text(encoding="utf-8")),
+            proposal_artifact_path="",
+            window_limit=window_limit,
+        )
+        self._baseline_cache[cache_key] = report
+        return report
+
+    def _build_failure_report(
+        self,
+        *,
+        campaign_path: str | Path,
+        stage: str,
+        mutation_label: str,
+        provider_name: str,
+        model_name: str,
+        prompt_id: str,
+        baseline_score: float,
+        parent_commit: str,
+        candidate_sha1: str,
+        failure_reason: str,
+        proposal_artifact_path: str,
+    ) -> AutoresearchRunReport:
+        campaign = load_campaign(campaign_path)
+        run_id = uuid.uuid4().hex[:12]
+        artifact_path = self.artifact_root / f"{run_id}.json"
+        artifact_path.parent.mkdir(parents=True, exist_ok=True)
+        report = AutoresearchRunReport(
+            run_id=run_id,
+            recorded_at=datetime.now(timezone.utc).isoformat(),
+            campaign_id=campaign.campaign_id,
+            campaign_name=campaign.name,
+            strategy_name="invalid-candidate",
+            git_branch=_safe_git(["branch", "--show-current"], cwd=self.worktree_root),
+            git_commit=_safe_git(["rev-parse", "HEAD"], cwd=self.worktree_root),
+            parent_commit=parent_commit,
+            train_file=str(self.train_path),
+            train_sha1="",
+            stage=stage,
+            mutation_label=mutation_label,
+            provider_name=provider_name,
+            model_name=model_name,
+            prompt_id=prompt_id,
+            baseline_score=baseline_score,
+            delta_score=None,
+            candidate_sha1=candidate_sha1,
+            research_score=float("-inf"),
+            acceptance_rate=0.0,
+            average_metrics={
+                "total_return": 0.0,
+                "sharpe": 0.0,
+                "max_drawdown": 1.0,
+                "average_turnover": 0.0,
+                "bars_processed": 0,
+            },
+            worst_max_drawdown=1.0,
+            ready_for_paper=False,
+            gate_failures=[failure_reason],
+            windows_passed=0,
+            total_windows=len(campaign.windows),
+            window_reports=[],
+            runtime_seconds=0.0,
+            failure_reason=failure_reason,
+            proposal_artifact_path=proposal_artifact_path,
+            artifact_path=str(artifact_path),
+        )
+        artifact_path.write_text(json.dumps(report.to_dict(), indent=2), encoding="utf-8")
+        return report
+
+    def _load_seen_candidate_sha1s(self) -> set[str]:
+        if self._seen_candidate_sha1s is not None:
+            return self._seen_candidate_sha1s
+        seen: set[str] = set()
+        if self.results_path.exists():
+            with self.results_path.open("r", encoding="utf-8", newline="") as handle:
+                reader = csv.DictReader(handle, delimiter="\t")
+                for row in reader:
+                    candidate_sha1 = (row.get("candidate_sha1") or "").strip()
+                    if candidate_sha1:
+                        seen.add(candidate_sha1)
+        self._seen_candidate_sha1s = seen
+        return seen
+
+    def _remember_candidate_sha1(self, candidate_sha1: str) -> None:
+        self._load_seen_candidate_sha1s().add(candidate_sha1)
 
 
 class DeterministicTrainMutator:

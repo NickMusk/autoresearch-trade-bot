@@ -17,6 +17,7 @@ The repository now also contains a Karpathy-style offline autoresearch core:
 - `results.tsv` as the untracked experiment ledger
 - dedicated git worktree `keep/discard` semantics through the autoresearch runner
 - staged `screen -> full campaign` evaluation before a mutation can be kept
+- pluggable mutation providers, including deterministic and LLM-backed candidates
 
 The system is designed so that an agent can iterate on `features`, `signal logic`, and `parameters` without being allowed to mutate the execution or risk engine.
 
@@ -99,6 +100,24 @@ PYTHONPATH=src python3 -m autoresearch_trade_bot.cli run-deterministic-autoresea
   --worktrees-root .autoresearch/worktrees \
   --max-mutations 8
 ```
+
+Run an LLM mutation batch against the active campaign:
+
+```bash
+OPENAI_API_KEY=... \
+PYTHONPATH=src python3 -m autoresearch_trade_bot.cli run-llm-autoresearch \
+  --branch-name codex/autoresearch-crypto \
+  --worktrees-root .autoresearch/worktrees \
+  --model-name gpt-5-mini \
+  --max-mutations 1
+```
+
+The LLM path keeps the same staged harness:
+
+- candidate validation before backtests
+- `screen -> full` evaluation
+- `skip_duplicate`, `discard_error`, `discard_screen`, `discard_full`, or `keep`
+- prompt/response provenance artifacts under `.autoresearch/runs/proposals/`
 
 ## Render
 

@@ -8,6 +8,7 @@ from .autoresearch import (
     FrozenResearchWindow,
     GitAutoresearchDecision,
     GitAutoresearchRunner,
+    MutationProposal,
     append_results_row,
     campaign_path_for_name,
     evaluate_train_file,
@@ -41,6 +42,17 @@ from .experiments import (
     run_variant_search,
 )
 from .models import Bar, ExperimentResult, SimulationMetrics, SimulationResult
+from .mutations import (
+    DeterministicMutationProvider,
+    LLMCompletion,
+    LLMMutationProvider,
+    MutationContext,
+    MutationProvider,
+    OpenAIResponsesClient,
+    build_llm_mutation_prompt,
+    run_llm_mutation_campaign,
+    validate_train_candidate_text,
+)
 from .research import ResearchEvaluator
 from .risk import RiskManager
 from .simulator import BacktestEngine
@@ -68,6 +80,7 @@ __all__ = [
     "DataValidationError",
     "DashboardSnapshot",
     "DeterministicMutationProposal",
+    "DeterministicMutationProvider",
     "DeterministicTrainMutator",
     "DatasetManifest",
     "DatasetSpec",
@@ -78,8 +91,14 @@ __all__ = [
     "GitAutoresearchDecision",
     "GitAutoresearchRunner",
     "HistoricalDatasetMaterializer",
+    "LLMCompletion",
+    "LLMMutationProvider",
     "LeaderboardEntry",
     "ManifestHistoricalDataSource",
+    "MutationProposal",
+    "MutationContext",
+    "MutationProvider",
+    "OpenAIResponsesClient",
     "PromotionGate",
     "PyArrowParquetDatasetStore",
     "ResearchStatusSnapshot",
@@ -101,6 +120,7 @@ __all__ = [
     "default_experiment_config",
     "discover_latest_manifest",
     "append_results_row",
+    "build_llm_mutation_prompt",
     "campaign_path_for_name",
     "evaluate_train_file",
     "prepare_campaign",
@@ -108,5 +128,7 @@ __all__ = [
     "resolve_campaign_path",
     "run_baseline_from_manifest_path",
     "run_deterministic_mutation_campaign",
+    "run_llm_mutation_campaign",
     "run_variant_search",
+    "validate_train_candidate_text",
 ]
