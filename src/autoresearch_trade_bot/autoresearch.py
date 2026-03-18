@@ -258,6 +258,10 @@ def slugify(value: str) -> str:
     return slug or "campaign"
 
 
+def _report_can_be_promoted(report: AutoresearchRunReport) -> bool:
+    return "no_trades_executed" not in report.gate_failures
+
+
 def _sha1_text(value: str) -> str:
     return hashlib.sha1(value.encode("utf-8")).hexdigest()
 
@@ -673,7 +677,10 @@ class GitAutoresearchRunner:
                 parent_commit=baseline_report.git_commit,
                 baseline_score=baseline_report.research_score,
             )
-            if candidate_report.research_score > baseline_report.research_score:
+            if (
+                candidate_report.research_score > baseline_report.research_score
+                and _report_can_be_promoted(candidate_report)
+            ):
                 self._git_in_worktree(["add", self.train_relpath])
                 self._git_in_worktree(["commit", "-m", commit_message])
                 kept_commit = self._git_in_worktree(["rev-parse", "HEAD"]).strip()
@@ -850,7 +857,10 @@ class GitAutoresearchRunner:
                 candidate_sha1=candidate_sha1,
                 proposal_artifact_path=proposal.proposal_artifact_path,
             )
-            if full_report.research_score > baseline_full.research_score:
+            if (
+                full_report.research_score > baseline_full.research_score
+                and _report_can_be_promoted(full_report)
+            ):
                 self._git_in_worktree(["add", self.train_relpath])
                 self._git_in_worktree(["commit", "-m", proposal.commit_message])
                 kept_commit = self._git_in_worktree(["rev-parse", "HEAD"]).strip()

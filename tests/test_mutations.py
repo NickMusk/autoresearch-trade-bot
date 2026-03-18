@@ -754,6 +754,139 @@ class MutationTests(unittest.TestCase):
             self.assertIn("rc=128", decision.report.failure_reason)
             self.assertIn("Author identity unknown", decision.report.failure_reason)
 
+    def test_runner_does_not_keep_no_trade_candidate_even_when_score_improves(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            repo_root = Path(tempdir) / "repo"
+            repo_root.mkdir()
+            self._git(repo_root, "init")
+            self._git(repo_root, "config", "user.email", "bot@example.com")
+            self._git(repo_root, "config", "user.name", "Bot")
+            baseline_text = render_train_file(
+                {
+                    "lookback_bars": 24,
+                    "top_k": 1,
+                    "gross_target": 0.5,
+                    "ranking_mode": "risk_adjusted",
+                    "use_regime_filter": False,
+                    "regime_lookback_bars": 36,
+                    "regime_threshold": 0.015,
+                    "min_signal_strength": 0.0,
+                }
+            )
+            (repo_root / "train.py").write_text(baseline_text, encoding="utf-8")
+            self._git(repo_root, "add", "train.py")
+            self._git(repo_root, "commit", "-m", "Initial train file")
+            baseline_head = self._git(repo_root, "rev-parse", "HEAD")
+
+            campaign_path = repo_root / "campaign.json"
+            campaign_path.write_text(
+                json.dumps(
+                    {
+                        "campaign_id": "unit",
+                        "name": "unit-campaign",
+                        "exchange": "bybit",
+                        "market": "linear",
+                        "timeframe": "5m",
+                        "symbols": ["BTCUSDT", "ETHUSDT"],
+                        "storage_root": str(repo_root / "data"),
+                        "target_gate": {
+                            "min_total_return": 0.0,
+                            "min_sharpe": 1.0,
+                            "max_drawdown": 0.2,
+                            "min_acceptance_rate": 0.6,
+                        },
+                        "windows": [],
+                    },
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+
+            def fake_evaluator(**kwargs):
+                artifact_dir = Path(kwargs["artifact_root"])
+                artifact_dir.mkdir(parents=True, exist_ok=True)
+                artifact_path = artifact_dir / f"{kwargs.get('stage', 'full')}-{kwargs.get('mutation_label', 'x')}.json"
+                artifact_path.write_text("{}", encoding="utf-8")
+                train_text = Path(kwargs["train_path"]).read_text(encoding="utf-8")
+                is_candidate = "'lookback_bars': 12" in train_text
+                is_screen = kwargs.get("stage") == "screen"
+                score = 0.25 if is_candidate else -1.0
+                gate_failures = ["no_trades_executed", "acceptance_rate_below_gate"] if is_candidate and not is_screen else ["acceptance_rate_below_gate"]
+                return AutoresearchRunReport(
+                    run_id=str(kwargs.get("mutation_label", "x")),
+                    recorded_at=datetime.now(timezone.utc).isoformat(),
+                    campaign_id="unit",
+                    campaign_name="unit-campaign",
+                    strategy_name="fake",
+                    git_branch="",
+                    git_commit="",
+                    parent_commit=str(kwargs.get("parent_commit", "")),
+                    train_file=str(kwargs["train_path"]),
+                    train_sha1="sha",
+                    stage=str(kwargs.get("stage", "full")),
+                    mutation_label=str(kwargs.get("mutation_label", "manual")),
+                    baseline_score=kwargs.get("baseline_score"),
+                    delta_score=None,
+                    research_score=score,
+                    acceptance_rate=0.0,
+                    average_metrics={
+                        "total_return": score,
+                        "sharpe": score,
+                        "max_drawdown": 0.1,
+                        "average_turnover": 0.0 if is_candidate else 0.1,
+                        "bars_processed": 10,
+                        "nonzero_turnover_steps": 0 if is_candidate else 4,
+                    },
+                    worst_max_drawdown=0.1,
+                    ready_for_paper=False,
+                    gate_failures=gate_failures,
+                    windows_passed=0,
+                    total_windows=1,
+                    window_reports=[],
+                    runtime_seconds=0.01,
+                    artifact_path=str(artifact_path),
+                )
+
+            from autoresearch_trade_bot.autoresearch import GitAutoresearchRunner
+
+            runner = GitAutoresearchRunner(
+                repo_root=repo_root,
+                branch_name="codex/llm-no-trade-guard",
+                evaluator=fake_evaluator,
+                worktrees_root=repo_root / ".autoresearch" / "worktrees",
+            )
+
+            no_trade_candidate = render_train_file(
+                {
+                    "lookback_bars": 12,
+                    "top_k": 1,
+                    "gross_target": 0.5,
+                    "ranking_mode": "risk_adjusted",
+                    "use_regime_filter": False,
+                    "regime_lookback_bars": 36,
+                    "regime_threshold": 0.015,
+                    "min_signal_strength": 0.0,
+                }
+            )
+            decision = runner.apply_mutation_proposal_staged(
+                campaign_path=campaign_path,
+                proposal=MutationProposal(
+                    label="no-trade-better-score",
+                    candidate_text=no_trade_candidate,
+                    commit_message="should not keep no-trade candidate",
+                    provider_name="llm",
+                    model_name="fake-gpt",
+                    prompt_id="resp_no_trade",
+                ),
+                validator=validate_train_candidate_text,
+            )
+
+            self.assertEqual(decision.decision, "discard_full")
+            self.assertIn("no_trades_executed", decision.report.gate_failures)
+            self.assertIsNone(decision.kept_commit)
+            self.assertEqual(self._git(runner.worktree_root, "rev-parse", "HEAD"), baseline_head)
+            self.assertEqual(runner.train_path.read_text(encoding="utf-8"), baseline_text)
+
     @staticmethod
     def _git(repo_root: Path, *args: str) -> str:
         completed = subprocess.run(
