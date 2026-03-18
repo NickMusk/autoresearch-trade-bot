@@ -28,8 +28,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260318t103500z",
-  "latest_cycle_completed_at": "2026-03-18T18:40:29.256968+00:00",
-  "last_processed_bar": "2026-03-18T18:40:00+00:00",
+  "latest_cycle_completed_at": "2026-03-18T18:52:29.257381+00:00",
+  "last_processed_bar": "2026-03-18T18:50:00+00:00",
   "recent_acceptance_rate": 0.2,
   "consecutive_failures": 0,
   "multi_window_summary": {
@@ -38,9 +38,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-e6f8b4c2",
+      "mutation_label": "llm-1ffe0ae1",
       "baseline_score": 6.103623777745156,
-      "candidate_score": 5.8366197527906,
+      "candidate_score": 2.111395893663789,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -157,9 +157,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-e6f8b4c2",
+    "mutation_label": "llm-1ffe0ae1",
     "baseline_score": 6.103623777745156,
-    "candidate_score": 5.8366197527906,
+    "candidate_score": 2.111395893663789,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -167,21 +167,21 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v1-selective-v2",
-    "research_score": 5.8366197527906,
+    "strategy_name": "cs-demeaned-momentum-inertia-v1-selective-v3",
+    "research_score": 2.111395893663789,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.0004953717233402433,
-      "sharpe": 5.8364811334316835,
-      "max_drawdown": 0.0005287981999171354,
-      "average_turnover": 0.00022304645811598465,
+      "total_return": 0.00017972248467534868,
+      "sharpe": 2.1130788205511433,
+      "max_drawdown": 0.0005793808353876662,
+      "average_turnover": 0.00026401596918043045,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 163
+      "nonzero_turnover_steps": 214
     },
     "train_config": {
       "gross_target": 0.06,
       "lookback_bars": 30,
-      "min_signal_strength": 0.04,
+      "min_signal_strength": 0.045,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 60,
       "regime_threshold": 0.02,
@@ -196,9 +196,8 @@
       "drawdown_reduce": 0.08,
       "drawdown_cut": 0.16,
       "max_vol_for_full": 0.02,
-      "initial_leg_fraction": 0.6,
-      "crowding_penalty": 0.7,
-      "per_symbol_cap_factor": 0.14
+      "initial_leg_fraction": 0.55,
+      "concentration_penalty": 0.4
     },
     "gate_failures": [],
     "provider_name": "llm",
