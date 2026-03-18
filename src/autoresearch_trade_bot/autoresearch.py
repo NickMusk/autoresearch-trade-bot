@@ -1018,7 +1018,7 @@ class DeterministicTrainMutator:
         module = _load_train_module(Path(train_path))
         if not hasattr(module, "TRAIN_CONFIG"):
             raise AttributeError("train.py must define TRAIN_CONFIG for deterministic mutations")
-        config = dict(getattr(module, "TRAIN_CONFIG"))
+        config = normalize_train_config(dict(getattr(module, "TRAIN_CONFIG")))
         proposals: list[DeterministicMutationProposal] = []
         for lookback in (12, 24, 36):
             if lookback != int(config["lookback_bars"]):
@@ -1074,11 +1074,69 @@ class DeterministicTrainMutator:
                         commit_message=f"Mutate train.py: min_signal_strength={signal_floor:.2f}",
                     )
                 )
+        for spread in (0.0, 0.05, 0.10):
+            if spread != float(config["min_cross_sectional_spread"]):
+                proposals.append(
+                    DeterministicMutationProposal(
+                        label=f"spread-{spread:.2f}",
+                        config_updates={"min_cross_sectional_spread": spread},
+                        commit_message=f"Mutate train.py: min_cross_sectional_spread={spread:.2f}",
+                    )
+                )
+        for floor in (0.0, 0.005, 0.01):
+            if floor != float(config["volatility_floor"]):
+                proposals.append(
+                    DeterministicMutationProposal(
+                        label=f"vol-floor-{floor:.3f}",
+                        config_updates={"volatility_floor": floor},
+                        commit_message=f"Mutate train.py: volatility_floor={floor:.3f}",
+                    )
+                )
+        for weight in (0.0, 0.5, 1.0):
+            if weight != float(config["reversal_bias_weight"]):
+                proposals.append(
+                    DeterministicMutationProposal(
+                        label=f"reversal-bias-{weight:.1f}",
+                        config_updates={"reversal_bias_weight": weight},
+                        commit_message=f"Mutate train.py: reversal_bias_weight={weight:.1f}",
+                    )
+                )
+        for funding_weight in (0.0, 10.0, 25.0):
+            if funding_weight != float(config["funding_penalty_weight"]):
+                proposals.append(
+                    DeterministicMutationProposal(
+                        label=f"funding-penalty-{funding_weight:.1f}",
+                        config_updates={"funding_penalty_weight": funding_weight},
+                        commit_message=f"Mutate train.py: funding_penalty_weight={funding_weight:.1f}",
+                    )
+                )
         return proposals
 
 
+DEFAULT_TRAIN_CONFIG = {
+    "gross_target": 0.5,
+    "lookback_bars": 24,
+    "min_signal_strength": 0.0,
+    "ranking_mode": "risk_adjusted",
+    "regime_lookback_bars": 36,
+    "regime_threshold": 0.015,
+    "top_k": 1,
+    "use_regime_filter": False,
+    "min_cross_sectional_spread": 0.0,
+    "volatility_floor": 0.0,
+    "reversal_bias_weight": 0.0,
+    "funding_penalty_weight": 0.0,
+}
+
+
+def normalize_train_config(train_config: Mapping[str, Any]) -> dict[str, Any]:
+    normalized = dict(DEFAULT_TRAIN_CONFIG)
+    normalized.update(dict(train_config))
+    return normalized
+
+
 def render_train_file(train_config: Mapping[str, Any]) -> str:
-    payload = pprint.pformat(dict(train_config), sort_dicts=True, width=88)
+    payload = pprint.pformat(normalize_train_config(train_config), sort_dicts=True, width=88)
     return "\n".join(
         [
             "from __future__ import annotations",
@@ -1105,6 +1163,10 @@ def render_train_file(train_config: Mapping[str, Any]) -> str:
             "    regime_lookback_bars: int",
             "    regime_threshold: float",
             "    min_signal_strength: float",
+            "    min_cross_sectional_spread: float",
+            "    volatility_floor: float",
+            "    reversal_bias_weight: float",
+            "    funding_penalty_weight: float",
             "",
             "    def target_weights(self, history_by_symbol: Mapping[str, Sequence[Bar]]) -> Dict[str, float]:",
             "        if not history_by_symbol:",
@@ -1122,6 +1184,9 @@ def render_train_file(train_config: Mapping[str, Any]) -> str:
             "        if len(ready_scores) < self.top_k * 2:",
             "            return {}",
             "        ranked = sorted(ready_scores, key=lambda item: item[1], reverse=True)",
+            "        cross_sectional_spread = ranked[0][1] - ranked[-1][1]",
+            "        if cross_sectional_spread < self.min_cross_sectional_spread:",
+            "            return {}",
             "        longs = ranked[: self.top_k]",
             "        shorts = ranked[-self.top_k:]",
             "        side_gross = self.gross_target / 2.0",
@@ -1146,10 +1211,15 @@ def render_train_file(train_config: Mapping[str, Any]) -> str:
             "            previous = recent[index - 1].close",
             "            current = recent[index].close",
             "            one_bar_returns.append((current / previous) - 1.0)",
-            "        volatility = statistics.pstdev(one_bar_returns)",
+            "        volatility = max(statistics.pstdev(one_bar_returns), self.volatility_floor)",
             "        if math.isclose(volatility, 0.0):",
-            "            return raw_return",
-            "        return raw_return / volatility",
+            "            base_signal = raw_return",
+            "        else:",
+            "            base_signal = raw_return if self.ranking_mode == 'raw_return' else raw_return / volatility",
+            "        last_bar_return = one_bar_returns[-1] if one_bar_returns else 0.0",
+            "        funding_penalty = self.funding_penalty_weight * recent[-1].funding_rate",
+            "        reversal_penalty = self.reversal_bias_weight * last_bar_return",
+            "        return base_signal - funding_penalty - reversal_penalty",
             "",
             "    def _passes_regime_filter(self, history_by_symbol: Mapping[str, Sequence[Bar]]) -> bool:",
             "        anchor_symbol = 'BTCUSDT' if 'BTCUSDT' in history_by_symbol else next(iter(history_by_symbol))",
@@ -1171,6 +1241,10 @@ def render_train_file(train_config: Mapping[str, Any]) -> str:
             "        regime_lookback_bars=int(TRAIN_CONFIG['regime_lookback_bars']),",
             "        regime_threshold=float(TRAIN_CONFIG['regime_threshold']),",
             "        min_signal_strength=float(TRAIN_CONFIG['min_signal_strength']),",
+            "        min_cross_sectional_spread=float(TRAIN_CONFIG['min_cross_sectional_spread']),",
+            "        volatility_floor=float(TRAIN_CONFIG['volatility_floor']),",
+            "        reversal_bias_weight=float(TRAIN_CONFIG['reversal_bias_weight']),",
+            "        funding_penalty_weight=float(TRAIN_CONFIG['funding_penalty_weight']),",
             "    )",
             "",
         ]

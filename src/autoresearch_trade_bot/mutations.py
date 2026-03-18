@@ -11,6 +11,7 @@ import time
 import urllib.error
 import urllib.request
 import uuid
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Protocol, Sequence
@@ -21,6 +22,7 @@ from .autoresearch import (
     GitAutoresearchDecision,
     GitAutoresearchRunner,
     MutationProposal,
+    normalize_train_config,
     load_campaign,
     render_train_file,
 )
@@ -50,6 +52,7 @@ class MutationContext:
     program_text: str
     current_train_text: str
     recent_results: tuple[dict[str, str], ...]
+    experiment_memory_summary: str = ""
 
 
 @dataclass(frozen=True)
@@ -283,6 +286,7 @@ def build_mutation_context(
     recent_results_limit: int = 5,
 ) -> MutationContext:
     campaign = load_campaign(campaign_path)
+    recent_results = tuple(load_recent_results(results_path, limit=max(recent_results_limit, 12)))
     return MutationContext(
         campaign_id=campaign.campaign_id,
         campaign_name=campaign.name,
@@ -293,7 +297,98 @@ def build_mutation_context(
         artifact_root=artifact_root,
         program_text=(Path(repo_root) / "program.md").read_text(encoding="utf-8"),
         current_train_text=train_path.read_text(encoding="utf-8"),
-        recent_results=tuple(load_recent_results(results_path, limit=recent_results_limit)),
+        recent_results=recent_results,
+        experiment_memory_summary=build_experiment_memory_summary(
+            recent_results,
+            current_train_text=train_path.read_text(encoding="utf-8"),
+        ),
+    )
+
+
+def build_experiment_memory_summary(
+    recent_results: Sequence[Mapping[str, str]],
+    *,
+    current_train_text: str,
+) -> str:
+    normalized_config = normalize_train_config(extract_train_config(current_train_text))
+    if not recent_results:
+        return (
+            "Decision mix: no prior LLM evaluations yet.\n"
+            f"Current baseline config: {json.dumps(normalized_config, sort_keys=True)}\n"
+            "Promising directions:\n"
+            "- Add selectivity with min_cross_sectional_spread or min_signal_strength.\n"
+            "- Use volatility_floor to stabilize risk-adjusted ranking.\n"
+            "- Use reversal_bias_weight or funding_penalty_weight to avoid crowded or overextended entries."
+        )
+
+    decisions = Counter(str(row.get("decision", "")) for row in recent_results)
+    stages = Counter(str(row.get("stage", "")) for row in recent_results)
+    failures = Counter(str(row.get("failure_reason", "")) for row in recent_results if row.get("failure_reason"))
+
+    deltas: list[tuple[str, float, str, str]] = []
+    for row in recent_results:
+        raw_delta = (row.get("delta_score") or "").strip()
+        if not raw_delta:
+            continue
+        try:
+            delta_value = float(raw_delta)
+        except ValueError:
+            continue
+        deltas.append(
+            (
+                str(row.get("mutation_label", "")),
+                delta_value,
+                str(row.get("decision", "")),
+                str(row.get("stage", "")),
+            )
+        )
+
+    best_delta_lines = [
+        f"- {label}: delta_score={delta:.4f} decision={decision} stage={stage}"
+        for label, delta, decision, stage in sorted(deltas, key=lambda item: item[1], reverse=True)[:3]
+    ] or ["- no positive or recorded deltas yet"]
+
+    common_failure_lines = [
+        f"- {reason}: {count}"
+        for reason, count in failures.most_common(3)
+    ] or ["- no validation/runtime failures recorded"]
+
+    search_directions = []
+    discard_screen_count = decisions.get("discard_screen", 0)
+    if discard_screen_count >= max(2, len(recent_results) // 2):
+        search_directions.append(
+            "- Most candidates fail at screen. Prefer materially more selective changes, not tiny parameter churn."
+        )
+        search_directions.append(
+            "- Try raising min_signal_strength or min_cross_sectional_spread, or lowering gross_target when signal quality is weak."
+        )
+    search_directions.append(
+        "- Consider volatility_floor > 0 when ranking_mode='risk_adjusted' to reduce unstable scores from tiny realized volatility."
+    )
+    search_directions.append(
+        "- Consider reversal_bias_weight > 0 to avoid chasing one-bar overextension."
+    )
+    search_directions.append(
+        "- Consider funding_penalty_weight > 0 to avoid crowded perp positioning."
+    )
+    if not normalized_config.get("use_regime_filter", False):
+        search_directions.append(
+            "- Explore use_regime_filter=True only if paired with a meaningful threshold change, not as a cosmetic toggle."
+        )
+
+    return "\n".join(
+        [
+            "Decision mix: "
+            + ", ".join(f"{decision}={count}" for decision, count in sorted(decisions.items())),
+            "Stage mix: " + ", ".join(f"{stage}={count}" for stage, count in sorted(stages.items())),
+            f"Current baseline config: {json.dumps(normalized_config, sort_keys=True)}",
+            "Best recent deltas:",
+            *best_delta_lines,
+            "Common failures:",
+            *common_failure_lines,
+            "Promising directions:",
+            *search_directions,
+        ]
     )
 
 
@@ -302,11 +397,12 @@ def build_llm_mutation_prompt(
     context: MutationContext,
     max_mutations: int,
 ) -> tuple[str, str]:
-    results_summary = "\n".join(
+    recent_result_lines = "\n".join(
         [
-            f"- mutation={row.get('mutation_label','')} score={row.get('research_score','')} "
-            f"decision={row.get('decision','')} failure={row.get('failure_reason','')}"
-            for row in context.recent_results
+            f"- mutation={row.get('mutation_label','')} stage={row.get('stage','')} "
+            f"decision={row.get('decision','')} score={row.get('research_score','')} "
+            f"delta={row.get('delta_score','')} failure={row.get('failure_reason','')}"
+            for row in context.recent_results[-6:]
         ]
     ) or "- no prior results"
     system_prompt = "\n".join(
@@ -317,17 +413,23 @@ def build_llm_mutation_prompt(
             "Keep the editable surface within TRAIN_CONFIG, STRATEGY_NAME, class logic, and build_strategy.",
             "Do not import forbidden modules or perform I/O, subprocess, networking, or dynamic imports.",
             "Optimize research_score while respecting the hard gates described below.",
+            "Prefer one substantial research hypothesis over cosmetic rewrites.",
+            "Do not only rename identifiers or make no-op refactors.",
         ]
     )
     user_prompt = "\n\n".join(
         [
-            f"Program:\n{context.program_text}",
-            "Recent results:\n" + results_summary,
-            "Current train.py:\n" + context.current_train_text,
+            f"Program rules:\n{context.program_text}",
+            f"Research memory:\n{context.experiment_memory_summary}",
+            "Recent raw results:\n" + recent_result_lines,
+            "Current train.py to mutate:\n" + context.current_train_text,
             (
                 "Mutation request:\n"
-                f"Produce {max_mutations} candidate if possible, but if you can only return one, return the single best "
-                "full train.py candidate. The output must be raw Python only."
+                "Return a single best full train.py candidate as raw Python only.\n"
+                f"- The harness will evaluate up to {max_mutations} mutation attempt(s) this cycle, but this response should contain one candidate only.\n"
+                "- Make a meaningful change to strategy behavior.\n"
+                "- Prefer changes that improve selectivity, reduce weak-signal trades, or reduce crowding/overextension risk.\n"
+                "- Keep compute cheap and stay within the one-file editable boundary."
             ),
         ]
     )

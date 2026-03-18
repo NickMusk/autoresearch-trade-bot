@@ -16,6 +16,8 @@ from autoresearch_trade_bot.mutations import (
     LLMCompletion,
     LLMMutationProvider,
     MutationContext,
+    build_experiment_memory_summary,
+    build_llm_mutation_prompt,
     validate_train_candidate_text,
 )
 
@@ -47,6 +49,8 @@ class MutationTests(unittest.TestCase):
                 "min_signal_strength": 0.0,
             }
         )
+        self.assertIn("'funding_penalty_weight': 0.0", valid_candidate)
+        self.assertIn("'min_cross_sectional_spread': 0.0", valid_candidate)
         self.assertEqual(validate_train_candidate_text(valid_candidate), (True, ""))
 
         invalid_candidate = "import os\nTRAIN_CONFIG = {}\nSTRATEGY_NAME = 'x'\ndef build_strategy():\n    return None\n"
@@ -102,7 +106,73 @@ class MutationTests(unittest.TestCase):
             self.assertTrue(proposal.proposal_artifact_path)
             artifact_payload = json.loads(Path(proposal.proposal_artifact_path).read_text(encoding="utf-8"))
             self.assertEqual(artifact_payload["prompt_id"], "resp_fake")
-            self.assertIn("Current train.py", artifact_payload["user_prompt"])
+            self.assertIn("Current train.py to mutate", artifact_payload["user_prompt"])
+            self.assertIn("Research memory", artifact_payload["user_prompt"])
+
+    def test_experiment_memory_summary_and_prompt_include_failed_patterns_and_directions(self) -> None:
+        current_train = render_train_file(
+            {
+                "lookback_bars": 24,
+                "top_k": 1,
+                "gross_target": 0.5,
+                "ranking_mode": "risk_adjusted",
+                "use_regime_filter": False,
+                "regime_lookback_bars": 36,
+                "regime_threshold": 0.015,
+                "min_signal_strength": 0.0,
+            }
+        )
+        recent_results = (
+            {
+                "mutation_label": "llm-a",
+                "decision": "discard_screen",
+                "stage": "screen",
+                "research_score": "-8.5",
+                "delta_score": "-3.2",
+                "failure_reason": "",
+            },
+            {
+                "mutation_label": "llm-b",
+                "decision": "discard_screen",
+                "stage": "screen",
+                "research_score": "-7.5",
+                "delta_score": "-2.2",
+                "failure_reason": "",
+            },
+            {
+                "mutation_label": "llm-c",
+                "decision": "discard_error",
+                "stage": "validation",
+                "research_score": "-inf",
+                "delta_score": "",
+                "failure_reason": "duplicate_candidate",
+            },
+        )
+        summary = build_experiment_memory_summary(recent_results, current_train_text=current_train)
+        self.assertIn("Decision mix:", summary)
+        self.assertIn("discard_screen=2", summary)
+        self.assertIn("duplicate_candidate: 1", summary)
+        self.assertIn("min_cross_sectional_spread", summary)
+        self.assertIn("funding_penalty_weight", summary)
+
+        context = MutationContext(
+            campaign_id="unit",
+            campaign_name="unit-campaign",
+            branch_name="codex/test",
+            parent_commit="abc123",
+            train_path=Path("/tmp/train.py"),
+            results_path=Path("/tmp/results.tsv"),
+            artifact_root=Path("/tmp/artifacts"),
+            program_text="Mutate train.py only.",
+            current_train_text=current_train,
+            recent_results=recent_results,
+            experiment_memory_summary=summary,
+        )
+        system_prompt, user_prompt = build_llm_mutation_prompt(context=context, max_mutations=1)
+        self.assertIn("Prefer one substantial research hypothesis", system_prompt)
+        self.assertIn("Research memory:", user_prompt)
+        self.assertIn("Promising directions:", user_prompt)
+        self.assertIn("Recent raw results:", user_prompt)
 
     def test_runner_discards_invalid_candidate_and_skips_duplicates(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
