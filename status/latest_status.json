@@ -3,9 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate underperformed the baseline on the screen window.",
-    "Latest kept candidate still fails gate: sharpe_below_gate.",
-    "Latest kept candidate still fails gate: acceptance_rate_below_gate."
+    "No kept LLM candidate is ready for rollout yet."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -15,12 +13,12 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": 0.0,
-    "sharpe": 0.0,
-    "max_drawdown": 0.0,
+    "total_return": 0.0009,
+    "sharpe": 5.5472,
+    "max_drawdown": 0.0009,
     "average_turnover": 0.0,
     "bars_processed": 2015,
-    "score": 0.0
+    "score": 5.5481
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -30,27 +28,24 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260317t103000z",
-  "latest_cycle_completed_at": "2026-03-18T06:23:57.131787+00:00",
-  "last_processed_bar": "2026-03-18T06:20:00+00:00",
-  "recent_acceptance_rate": 0.0,
+  "latest_cycle_completed_at": "2026-03-18T06:35:57.132158+00:00",
+  "last_processed_bar": "2026-03-18T06:35:00+00:00",
+  "recent_acceptance_rate": 0.1,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-bybit-linear-5m-20260317t103000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_screen",
-      "stage": "screen",
-      "mutation_label": "llm-e38a9692",
+      "decision": "keep",
+      "stage": "full",
+      "mutation_label": "llm-794ab104",
       "baseline_score": 5.20975879294986,
-      "candidate_score": 0.0,
-      "kept_commit": null,
+      "candidate_score": 5.548102129314158,
+      "kept_commit": "c039a6b384c30e7604de1f7f413103de18c2a6f7",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": [
-        "sharpe_below_gate",
-        "acceptance_rate_below_gate"
-      ]
+      "gate_failures": []
     },
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
