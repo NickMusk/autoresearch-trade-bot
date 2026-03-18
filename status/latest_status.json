@@ -4,6 +4,8 @@
   "research_rollout_ready": false,
   "research_blockers": [
     "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest LLM candidate produced no trades on the evaluation window.",
+    "Latest kept candidate still fails gate: no_trades_executed.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate."
   ],
@@ -30,8 +32,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260318t103500z",
-  "latest_cycle_completed_at": "2026-03-18T15:25:07.475819+00:00",
-  "last_processed_bar": "2026-03-18T15:25:00+00:00",
+  "latest_cycle_completed_at": "2026-03-18T15:37:07.476266+00:00",
+  "last_processed_bar": "2026-03-18T15:35:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
   "multi_window_summary": {
@@ -40,7 +42,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-a902f2c9",
+      "mutation_label": "llm-282006b3",
       "baseline_score": 0.0,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -48,6 +50,7 @@
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
+        "no_trades_executed",
         "sharpe_below_gate",
         "acceptance_rate_below_gate"
       ]
@@ -58,42 +61,6 @@
     "provider_name": "llm"
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-400ff7eb",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-2968f7d1",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-d11210bb",
       "params": {
@@ -147,12 +114,48 @@
         "average_turnover": 0.0
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-bb246463",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-70643c14",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-a902f2c9",
+    "mutation_label": "llm-282006b3",
     "baseline_score": 0.0,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -160,12 +163,13 @@
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
+      "no_trades_executed",
       "sharpe_below_gate",
       "acceptance_rate_below_gate"
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "configurable-momentum-v2-inertia-riskadj-v5-defensive-with-drawdown-control-xcsprd-volfloor-revbias",
+    "strategy_name": "configurable-momentum-v2-inertia-riskadj-v5-defensive-xspread-volfloor",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -173,9 +177,11 @@
       "sharpe": 0.0,
       "max_drawdown": 0.0,
       "average_turnover": 0.0,
-      "bars_processed": 2015
+      "bars_processed": 2015,
+      "nonzero_turnover_steps": 0
     },
     "gate_failures": [
+      "no_trades_executed",
       "sharpe_below_gate",
       "acceptance_rate_below_gate"
     ],
