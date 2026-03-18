@@ -30,8 +30,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260318t103500z",
-  "latest_cycle_completed_at": "2026-03-18T12:11:57.149758+00:00",
-  "last_processed_bar": "2026-03-18T12:10:00+00:00",
+  "latest_cycle_completed_at": "2026-03-18T12:25:07.467786+00:00",
+  "last_processed_bar": "2026-03-18T12:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
   "multi_window_summary": {
@@ -40,7 +40,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-ef34f3be",
+      "mutation_label": "llm-95076d31",
       "baseline_score": 0.0,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -52,8 +52,136 @@
         "acceptance_rate_below_gate"
       ]
     },
+    "baseline_strategy_name": "configurable-momentum-v2-inertia-riskadj-v5-defensive-with-drawdown-control",
+    "baseline_score": 0.0,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
   },
-  "leaderboard": []
+  "leaderboard": [
+    {
+      "strategy_name": "llm-bba91652",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-89cff3cc",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-e6a7f76e",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-0adb4901",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-dca7cf21",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    }
+  ],
+  "latest_decision": {
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-95076d31",
+    "baseline_score": 0.0,
+    "candidate_score": 0.0,
+    "kept_commit": null,
+    "failure_reason": "",
+    "provider_name": "llm",
+    "model_name": "gpt-5-mini-2025-08-07",
+    "gate_failures": [
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ]
+  },
+  "latest_candidate_summary": {
+    "strategy_name": "configurable-momentum-v2-inertia-riskadj-v5-defensive-with-drawdown-control-and-spread-filter",
+    "research_score": 0.0,
+    "ready_for_paper": false,
+    "average_metrics": {
+      "total_return": 0.0,
+      "sharpe": 0.0,
+      "max_drawdown": 0.0,
+      "average_turnover": 0.0,
+      "bars_processed": 2015
+    },
+    "gate_failures": [
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ],
+    "provider_name": "llm",
+    "model_name": "gpt-5-mini-2025-08-07",
+    "failure_reason": ""
+  },
+  "current_best_strategy_name": "configurable-momentum-v2-inertia-riskadj-v5-defensive-with-drawdown-control"
 }
