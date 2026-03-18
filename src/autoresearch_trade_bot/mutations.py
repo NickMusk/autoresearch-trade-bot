@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import csv
+import hashlib
 import json
 import os
 import re
@@ -204,37 +205,59 @@ class LLMMutationProvider:
         max_mutations: int,
     ) -> list[MutationProposal]:
         system_prompt, user_prompt = build_llm_mutation_prompt(context=context, max_mutations=max_mutations)
-        completion = self.client.generate(system_prompt=system_prompt, user_prompt=user_prompt)
-        candidate_text = extract_python_candidate(completion.content)
-        proposal = MutationProposal(
-            label=f"{self.mutation_label_prefix}-{uuid.uuid4().hex[:8]}",
-            candidate_text=candidate_text,
-            commit_message=f"Mutate train.py via {completion.model_name}",
-            provider_name="llm",
-            model_name=completion.model_name,
-            prompt_id=completion.prompt_id,
-            notes="llm-mutation",
-        )
-        artifact_path = write_proposal_artifact(
-            artifact_root=context.artifact_root,
-            proposal=proposal,
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            response_text=completion.content,
-            raw_response=completion.raw_response,
-        )
-        return [
-            MutationProposal(
-                label=proposal.label,
-                candidate_text=proposal.candidate_text,
-                commit_message=proposal.commit_message,
-                provider_name=proposal.provider_name,
-                model_name=proposal.model_name,
-                prompt_id=proposal.prompt_id,
-                notes=proposal.notes,
-                proposal_artifact_path=str(artifact_path),
+        proposals: list[MutationProposal] = []
+        seen_candidate_sha1s: set[str] = set()
+        for attempt_index in range(max_mutations):
+            attempt_user_prompt = "\n\n".join(
+                [
+                    user_prompt,
+                    (
+                        "Batch attempt:\n"
+                        f"- attempt_index={attempt_index + 1}\n"
+                        f"- total_attempts={max_mutations}\n"
+                        "- Return a candidate meaningfully different from prior attempts in this same cycle."
+                    ),
+                ]
             )
-        ]
+            completion = self.client.generate(system_prompt=system_prompt, user_prompt=attempt_user_prompt)
+            candidate_text = extract_python_candidate(completion.content)
+            candidate_sha1 = hashlib.sha1(candidate_text.encode("utf-8")).hexdigest()
+            if candidate_sha1 in seen_candidate_sha1s:
+                continue
+            seen_candidate_sha1s.add(candidate_sha1)
+            label = f"{self.mutation_label_prefix}-{uuid.uuid4().hex[:8]}"
+            proposal = MutationProposal(
+                label=label,
+                candidate_text=candidate_text,
+                commit_message=f"Mutate train.py via {completion.model_name}",
+                provider_name="llm",
+                model_name=completion.model_name,
+                prompt_id=completion.prompt_id,
+                notes=f"llm-mutation-attempt-{attempt_index + 1}",
+                candidate_sha1=candidate_sha1,
+            )
+            artifact_path = write_proposal_artifact(
+                artifact_root=context.artifact_root,
+                proposal=proposal,
+                system_prompt=system_prompt,
+                user_prompt=attempt_user_prompt,
+                response_text=completion.content,
+                raw_response=completion.raw_response,
+            )
+            proposals.append(
+                MutationProposal(
+                    label=f"{self.mutation_label_prefix}-{uuid.uuid4().hex[:8]}",
+                    candidate_text=candidate_text,
+                    commit_message=proposal.commit_message,
+                    provider_name=proposal.provider_name,
+                    model_name=proposal.model_name,
+                    prompt_id=proposal.prompt_id,
+                    notes=proposal.notes,
+                    proposal_artifact_path=str(artifact_path),
+                    candidate_sha1=candidate_sha1,
+                )
+            )
+        return proposals
 
 
 def validate_train_candidate_text(candidate_text: str) -> tuple[bool, str]:

@@ -23,15 +23,18 @@ from autoresearch_trade_bot.mutations import (
 
 
 class FakeLLMClient:
-    def __init__(self, content: str) -> None:
-        self.content = content
+    def __init__(self, content: str | list[str]) -> None:
+        self.content = [content] if isinstance(content, str) else list(content)
+        self.calls: list[tuple[str, str]] = []
 
     def generate(self, *, system_prompt: str, user_prompt: str) -> LLMCompletion:
+        self.calls.append((system_prompt, user_prompt))
+        content = self.content[min(len(self.calls) - 1, len(self.content) - 1)]
         return LLMCompletion(
-            content=self.content,
+            content=content,
             model_name="fake-gpt",
-            prompt_id="resp_fake",
-            raw_response={"id": "resp_fake", "model": "fake-gpt"},
+            prompt_id=f"resp_fake_{len(self.calls)}",
+            raw_response={"id": f"resp_fake_{len(self.calls)}", "model": "fake-gpt"},
         )
 
 
@@ -105,9 +108,73 @@ class MutationTests(unittest.TestCase):
             self.assertEqual(proposal.model_name, "fake-gpt")
             self.assertTrue(proposal.proposal_artifact_path)
             artifact_payload = json.loads(Path(proposal.proposal_artifact_path).read_text(encoding="utf-8"))
-            self.assertEqual(artifact_payload["prompt_id"], "resp_fake")
+            self.assertEqual(artifact_payload["prompt_id"], "resp_fake_1")
             self.assertIn("Current train.py to mutate", artifact_payload["user_prompt"])
             self.assertIn("Research memory", artifact_payload["user_prompt"])
+
+    def test_llm_mutation_provider_generates_two_distinct_proposals_in_one_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            first_candidate = render_train_file(
+                {
+                    "lookback_bars": 12,
+                    "top_k": 1,
+                    "gross_target": 0.5,
+                    "ranking_mode": "risk_adjusted",
+                    "use_regime_filter": False,
+                    "regime_lookback_bars": 36,
+                    "regime_threshold": 0.015,
+                    "min_signal_strength": 0.0,
+                    "min_cross_sectional_spread": 0.05,
+                }
+            )
+            second_candidate = render_train_file(
+                {
+                    "lookback_bars": 24,
+                    "top_k": 1,
+                    "gross_target": 0.5,
+                    "ranking_mode": "risk_adjusted",
+                    "use_regime_filter": False,
+                    "regime_lookback_bars": 36,
+                    "regime_threshold": 0.015,
+                    "min_signal_strength": 0.01,
+                    "funding_penalty_weight": 10.0,
+                }
+            )
+            context = MutationContext(
+                campaign_id="unit",
+                campaign_name="unit-campaign",
+                branch_name="codex/test",
+                parent_commit="abc123",
+                train_path=temp_path / "train.py",
+                results_path=temp_path / "results.tsv",
+                artifact_root=temp_path / ".autoresearch" / "runs",
+                program_text="Mutate train.py only.",
+                current_train_text=render_train_file(
+                    {
+                        "lookback_bars": 24,
+                        "top_k": 1,
+                        "gross_target": 0.5,
+                        "ranking_mode": "risk_adjusted",
+                        "use_regime_filter": False,
+                        "regime_lookback_bars": 36,
+                        "regime_threshold": 0.015,
+                        "min_signal_strength": 0.0,
+                    }
+                ),
+                recent_results=(),
+                experiment_memory_summary="Decision mix: no prior LLM evaluations yet.",
+            )
+            client = FakeLLMClient([first_candidate, second_candidate])
+            provider = LLMMutationProvider(client=client)
+
+            proposals = provider.generate(context=context, max_mutations=2)
+
+            self.assertEqual(len(proposals), 2)
+            self.assertNotEqual(proposals[0].candidate_sha1, proposals[1].candidate_sha1)
+            self.assertEqual(len(client.calls), 2)
+            self.assertIn("attempt_index=1", client.calls[0][1])
+            self.assertIn("attempt_index=2", client.calls[1][1])
 
     def test_experiment_memory_summary_and_prompt_include_failed_patterns_and_directions(self) -> None:
         current_train = render_train_file(
