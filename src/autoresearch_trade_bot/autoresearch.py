@@ -476,6 +476,7 @@ def evaluate_train_file(
                     "max_drawdown": result.metrics.max_drawdown,
                     "average_turnover": result.metrics.average_turnover,
                     "bars_processed": result.metrics.bars_processed,
+                    "nonzero_turnover_steps": result.metrics.nonzero_turnover_steps,
                 },
                 rejection_reasons=list(result.rejection_reasons),
             )
@@ -1315,6 +1316,12 @@ def _aggregate_reports(window_reports: Sequence[WindowEvaluationReport]) -> dict
                     / total_windows
                 )
             ),
+            "nonzero_turnover_steps": int(
+                round(
+                    sum(int(report.metrics.get("nonzero_turnover_steps", 0)) for report in window_reports)
+                    / total_windows
+                )
+            ),
         },
         "worst_max_drawdown": max(
             float(report.metrics["max_drawdown"]) for report in window_reports
@@ -1330,6 +1337,8 @@ def _gate_failures(
 ) -> list[str]:
     failures = []
     metrics = aggregated["average_metrics"]
+    if int(metrics.get("nonzero_turnover_steps", 0)) == 0:
+        failures.append("no_trades_executed")
     if metrics["total_return"] < gate.min_total_return:
         failures.append("total_return_below_gate")
     if metrics["sharpe"] < gate.min_sharpe:

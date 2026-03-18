@@ -28,6 +28,8 @@ class ResearchEvaluator:
 
         rejection_reasons = []
         gate = self.config.promotion_gate
+        if metrics.nonzero_turnover_steps == 0:
+            rejection_reasons.append("no_trades_executed")
         if metrics.total_return < gate.min_total_return:
             rejection_reasons.append("total_return_below_gate")
         if metrics.sharpe < gate.min_sharpe:

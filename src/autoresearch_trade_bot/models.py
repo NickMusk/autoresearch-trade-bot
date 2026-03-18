@@ -32,6 +32,7 @@ class SimulationMetrics:
     max_drawdown: float
     average_turnover: float
     bars_processed: int
+    nonzero_turnover_steps: int = 0
 
 
 @dataclass(frozen=True)

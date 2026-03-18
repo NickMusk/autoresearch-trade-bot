@@ -95,12 +95,14 @@ class BacktestEngine:
             max_drawdown = max(max_drawdown, drawdown)
 
         average_turnover = statistics.fmean(turnovers) if turnovers else 0.0
+        nonzero_turnover_steps = sum(1 for turnover in turnovers if not math.isclose(turnover, 0.0))
         return SimulationMetrics(
             total_return=total_return,
             sharpe=sharpe,
             max_drawdown=max_drawdown,
             average_turnover=average_turnover,
             bars_processed=len(step_returns),
+            nonzero_turnover_steps=nonzero_turnover_steps,
         )
 
     def _validate_inputs(self, bars_by_symbol: Mapping[str, Sequence[Bar]]) -> None:

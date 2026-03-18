@@ -338,6 +338,8 @@ class LLMAutoresearchWorker:
             blockers.append(f"Latest LLM candidate failed validation or execution: {report['failure_reason']}.")
         elif latest_decision["decision"] == "skip_duplicate":
             blockers.append("Latest LLM candidate was skipped because it duplicated an existing train.py state.")
+        if "no_trades_executed" in latest_decision["gate_failures"]:
+            blockers.append("Latest LLM candidate produced no trades on the evaluation window.")
         if latest_decision["gate_failures"]:
             blockers.extend(
                 f"Latest kept candidate still fails gate: {failure}."

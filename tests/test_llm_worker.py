@@ -20,6 +20,7 @@ def make_fake_decision(
     failure_reason: str = "",
     candidate_metrics: dict | None = None,
     baseline_metrics: dict | None = None,
+    candidate_gate_failures: list[str] | None = None,
 ):
     resolved_candidate_metrics = candidate_metrics or {
         "total_return": -0.1,
@@ -51,7 +52,11 @@ def make_fake_decision(
         ready_for_paper=ready_for_paper,
         average_metrics=resolved_candidate_metrics,
         research_score=score,
-        gate_failures=[] if ready_for_paper else ["acceptance_rate_below_gate"],
+        gate_failures=(
+            []
+            if ready_for_paper
+            else list(candidate_gate_failures or ["acceptance_rate_below_gate"])
+        ),
         failure_reason=failure_reason,
         strategy_name="configurable-momentum",
     )
@@ -199,6 +204,69 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertEqual(snapshot.baseline_metrics["sharpe"], 1.75)
             self.assertEqual(snapshot.baseline_metrics["score"], 4.5)
             self.assertEqual(snapshot.latest_candidate_summary["research_score"], -2.0)
+
+    def test_success_snapshot_marks_no_trade_candidate_explicitly(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+
+            def fake_prepare_campaign(**kwargs):
+                campaign_path = Path(kwargs["campaigns_root"]) / "campaign.json"
+                campaign_path.parent.mkdir(parents=True, exist_ok=True)
+                campaign_path.write_text("{}", encoding="utf-8")
+                Path(kwargs["active_pointer_path"]).write_text(
+                    str(campaign_path.resolve()),
+                    encoding="utf-8",
+                )
+                return campaign_path
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                llm_runner=lambda **_kwargs: [
+                    make_fake_decision(
+                        score=0.0,
+                        candidate_metrics={
+                            "total_return": 0.0,
+                            "sharpe": 0.0,
+                            "max_drawdown": 0.0,
+                            "average_turnover": 0.0,
+                            "bars_processed": 2015,
+                            "nonzero_turnover_steps": 0,
+                        },
+                        candidate_gate_failures=["no_trades_executed", "sharpe_below_gate"],
+                    )
+                ],
+                campaign_preparer=fake_prepare_campaign,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+
+            worker.run_cycle()
+
+            snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
+            self.assertIsNotNone(snapshot)
+            assert snapshot is not None
+            self.assertIn(
+                "Latest LLM candidate produced no trades on the evaluation window.",
+                snapshot.research_blockers,
+            )
 
     def test_run_cycle_loads_leaderboard_from_worktree_results_when_configured_results_path_is_stale(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
