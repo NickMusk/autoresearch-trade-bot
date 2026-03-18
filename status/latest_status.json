@@ -3,7 +3,9 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "No kept LLM candidate is ready for rollout yet."
+    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -13,12 +15,12 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": 0.0006,
-    "sharpe": 5.5807,
-    "max_drawdown": 0.0006,
+    "total_return": 0.0,
+    "sharpe": 0.0,
+    "max_drawdown": 0.0,
     "average_turnover": 0.0,
     "bars_processed": 2015,
-    "score": 5.5815
+    "score": 0.0
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -28,24 +30,27 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260317t103000z",
-  "latest_cycle_completed_at": "2026-03-18T07:47:57.137159+00:00",
-  "last_processed_bar": "2026-03-18T07:45:00+00:00",
+  "latest_cycle_completed_at": "2026-03-18T07:59:57.137639+00:00",
+  "last_processed_bar": "2026-03-18T07:55:00+00:00",
   "recent_acceptance_rate": 0.2,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-bybit-linear-5m-20260317t103000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "keep",
-      "stage": "full",
-      "mutation_label": "llm-86b84e6f",
-      "baseline_score": 5.548102129314158,
-      "candidate_score": 5.581470055961674,
-      "kept_commit": "d5ae0fff6c2b153603150949d891773d263f0a28",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-1e872160",
+      "baseline_score": 5.581470055961674,
+      "candidate_score": 0.0,
+      "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": []
+      "gate_failures": [
+        "sharpe_below_gate",
+        "acceptance_rate_below_gate"
+      ]
     },
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
