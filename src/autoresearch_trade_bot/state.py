@@ -184,6 +184,7 @@ class ResearchStatusSnapshot:
     latest_decision: dict[str, Any] | None = None
     latest_candidate_summary: dict[str, Any] = field(default_factory=dict)
     current_best_strategy_name: str | None = None
+    latest_kept_summary: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -209,6 +210,7 @@ class ResearchStatusSnapshot:
             ),
             "latest_candidate_summary": dict(self.latest_candidate_summary),
             "current_best_strategy_name": self.current_best_strategy_name,
+            "latest_kept_summary": dict(self.latest_kept_summary),
         }
 
     @classmethod
@@ -242,6 +244,7 @@ class ResearchStatusSnapshot:
                 if payload.get("current_best_strategy_name") is not None
                 else None
             ),
+            latest_kept_summary=dict(payload.get("latest_kept_summary", {})),
         )
 
 

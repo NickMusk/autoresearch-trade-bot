@@ -10,7 +10,13 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable, Sequence
 
-from .autoresearch import ensure_git_identity, prepare_campaign, resolve_campaign_path, slugify
+from .autoresearch import (
+    diff_train_configs,
+    ensure_git_identity,
+    prepare_campaign,
+    resolve_campaign_path,
+    slugify,
+)
 from .config import DataConfig, LLMWorkerConfig, ResearchTargetGate
 from .datasets import timeframe_to_timedelta
 from .mutations import load_recent_results, run_llm_mutation_campaign
@@ -303,6 +309,7 @@ class LLMAutoresearchWorker:
                 "research_score": baseline_report.research_score,
                 "ready_for_paper": baseline_report.ready_for_paper,
                 "average_metrics": baseline_report.average_metrics,
+                "train_config": baseline_report.train_config,
                 "gate_failures": baseline_report.gate_failures,
                 "provider_name": baseline_report.provider_name,
                 "model_name": baseline_report.model_name,
@@ -313,6 +320,7 @@ class LLMAutoresearchWorker:
                 "research_score": report.research_score,
                 "ready_for_paper": report.ready_for_paper,
                 "average_metrics": report.average_metrics,
+                "train_config": report.train_config,
                 "gate_failures": report.gate_failures,
                 "provider_name": report.provider_name,
                 "model_name": report.model_name,
@@ -328,8 +336,23 @@ class LLMAutoresearchWorker:
         report = cycle_result.latest_report
         baseline_report = cycle_result.baseline_report
         baseline_metrics = baseline_report["average_metrics"]
-        blockers = []
         latest_decision = cycle_result.decisions[-1]
+        latest_kept_summary = {}
+        if latest_decision["decision"] == "keep":
+            config_diff = diff_train_configs(
+                dict(baseline_report.get("train_config", {})),
+                dict(report.get("train_config", {})),
+            )
+            latest_kept_summary = {
+                "strategy_name": report["strategy_name"],
+                "baseline_strategy_name": baseline_report["strategy_name"],
+                "score_delta": round(
+                    float(report["research_score"]) - float(baseline_report["research_score"]),
+                    6,
+                ),
+                "config_diff": config_diff,
+            }
+        blockers = []
         if latest_decision["decision"] == "discard_screen":
             blockers.append("Latest LLM candidate underperformed the baseline on the screen window.")
         elif latest_decision["decision"] == "discard_full":
@@ -395,12 +418,14 @@ class LLMAutoresearchWorker:
                 "research_score": report["research_score"],
                 "ready_for_paper": report["ready_for_paper"],
                 "average_metrics": dict(report["average_metrics"]),
+                "train_config": dict(report.get("train_config", {})),
                 "gate_failures": list(report["gate_failures"]),
                 "provider_name": report["provider_name"],
                 "model_name": report["model_name"],
                 "failure_reason": report["failure_reason"],
             },
             current_best_strategy_name=str(baseline_report["strategy_name"]),
+            latest_kept_summary=latest_kept_summary,
             leaderboard=[
                 {
                     "strategy_name": str(item["strategy_name"]),
@@ -475,6 +500,11 @@ class LLMAutoresearchWorker:
         current_best_strategy_name = (
             previous_snapshot.current_best_strategy_name if previous_snapshot is not None else None
         )
+        latest_kept_summary = (
+            dict(previous_snapshot.latest_kept_summary)
+            if previous_snapshot is not None
+            else {}
+        )
         return ResearchStatusSnapshot(
             mission="Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
             phase="LLM autoresearch worker degraded",
@@ -503,6 +533,7 @@ class LLMAutoresearchWorker:
             latest_decision=latest_decision,
             latest_candidate_summary=latest_candidate_summary,
             current_best_strategy_name=current_best_strategy_name,
+            latest_kept_summary=latest_kept_summary,
         )
 
     def _persist_snapshot(

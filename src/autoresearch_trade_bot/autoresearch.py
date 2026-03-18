@@ -262,6 +262,26 @@ def _report_can_be_promoted(report: AutoresearchRunReport) -> bool:
     return "no_trades_executed" not in report.gate_failures
 
 
+def diff_train_configs(
+    baseline_config: Mapping[str, Any],
+    candidate_config: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    changes: list[dict[str, Any]] = []
+    all_keys = sorted(set(baseline_config) | set(candidate_config))
+    for key in all_keys:
+        baseline_value = baseline_config.get(key)
+        candidate_value = candidate_config.get(key)
+        if baseline_value != candidate_value:
+            changes.append(
+                {
+                    "key": key,
+                    "before": baseline_value,
+                    "after": candidate_value,
+                }
+            )
+    return changes
+
+
 def _sha1_text(value: str) -> str:
     return hashlib.sha1(value.encode("utf-8")).hexdigest()
 

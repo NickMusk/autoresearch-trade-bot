@@ -98,6 +98,7 @@ def render_dashboard(snapshot: dict) -> str:
     current_best_strategy_name = snapshot.get("current_best_strategy_name") or "n/a"
     latest_decision = snapshot.get("latest_decision") or {}
     latest_candidate_summary = snapshot.get("latest_candidate_summary") or {}
+    latest_kept_summary = snapshot.get("latest_kept_summary") or {}
     latest_candidate_items = "".join(
         (
             f"<li><code>{html.escape(str(key))}</code>: {html.escape(str(value))}</li>"
@@ -106,6 +107,13 @@ def render_dashboard(snapshot: dict) -> str:
         )
         for key, value in latest_candidate_summary.items()
         if value not in ({}, [], "", None)
+    )
+    latest_kept_change_items = "".join(
+        (
+            f"<li><code>{html.escape(str(item.get('key')))}</code>: "
+            f"{html.escape(str(item.get('before')))} -&gt; {html.escape(str(item.get('after')))}</li>"
+        )
+        for item in latest_kept_summary.get("config_diff", [])
     )
 
     return f"""<!doctype html>
@@ -288,6 +296,15 @@ def render_dashboard(snapshot: dict) -> str:
       <article class="panel">
         <h2>Latest Candidate</h2>
         <ul>{latest_candidate_items or "<li>No latest candidate summary yet.</li>"}</ul>
+      </article>
+      <article class="panel">
+        <h2>Latest Kept Change</h2>
+        <ul>
+          <li><code>strategy_name</code>: {html.escape(str(latest_kept_summary.get("strategy_name") or "n/a"))}</li>
+          <li><code>baseline_strategy_name</code>: {html.escape(str(latest_kept_summary.get("baseline_strategy_name") or "n/a"))}</li>
+          <li><code>score_delta</code>: {html.escape(str(latest_kept_summary.get("score_delta") or "n/a"))}</li>
+        </ul>
+        <ul>{latest_kept_change_items or "<li>No kept config diff published yet.</li>"}</ul>
       </article>
       <article class="panel">
         <h2>Endpoints</h2>

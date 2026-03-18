@@ -21,6 +21,8 @@ def make_fake_decision(
     candidate_metrics: dict | None = None,
     baseline_metrics: dict | None = None,
     candidate_gate_failures: list[str] | None = None,
+    baseline_train_config: dict | None = None,
+    candidate_train_config: dict | None = None,
 ):
     resolved_candidate_metrics = candidate_metrics or {
         "total_return": -0.1,
@@ -45,6 +47,12 @@ def make_fake_decision(
         gate_failures=["sharpe_below_gate"],
         failure_reason="",
         strategy_name="baseline-train-head",
+        train_config=baseline_train_config or {
+            "lookback_bars": 24,
+            "top_k": 1,
+            "gross_target": 0.5,
+            "ranking_mode": "risk_adjusted",
+        },
     )
     report = SimpleNamespace(
         provider_name="llm",
@@ -59,6 +67,12 @@ def make_fake_decision(
         ),
         failure_reason=failure_reason,
         strategy_name="configurable-momentum",
+        train_config=candidate_train_config or {
+            "lookback_bars": 12,
+            "top_k": 1,
+            "gross_target": 0.5,
+            "ranking_mode": "risk_adjusted",
+        },
     )
     return SimpleNamespace(
         decision=decision,
@@ -268,6 +282,83 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 snapshot.research_blockers,
             )
 
+    def test_success_snapshot_includes_latest_kept_config_diff(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+
+            def fake_prepare_campaign(**kwargs):
+                campaign_path = Path(kwargs["campaigns_root"]) / "campaign.json"
+                campaign_path.parent.mkdir(parents=True, exist_ok=True)
+                campaign_path.write_text("{}", encoding="utf-8")
+                Path(kwargs["active_pointer_path"]).write_text(
+                    str(campaign_path.resolve()),
+                    encoding="utf-8",
+                )
+                return campaign_path
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                llm_runner=lambda **_kwargs: [
+                    make_fake_decision(
+                        decision="keep",
+                        score=5.25,
+                        ready_for_paper=False,
+                        baseline_train_config={
+                            "lookback_bars": 24,
+                            "top_k": 1,
+                            "gross_target": 0.5,
+                            "ranking_mode": "risk_adjusted",
+                        },
+                        candidate_train_config={
+                            "lookback_bars": 24,
+                            "top_k": 1,
+                            "gross_target": 0.25,
+                            "ranking_mode": "risk_adjusted",
+                        },
+                    )
+                ],
+                campaign_preparer=fake_prepare_campaign,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+
+            worker.run_cycle()
+
+            snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
+            self.assertIsNotNone(snapshot)
+            assert snapshot is not None
+            self.assertEqual(snapshot.latest_kept_summary["strategy_name"], "configurable-momentum")
+            self.assertEqual(snapshot.latest_kept_summary["baseline_strategy_name"], "baseline-train-head")
+            self.assertEqual(snapshot.latest_kept_summary["score_delta"], 0.75)
+            self.assertEqual(
+                snapshot.latest_kept_summary["config_diff"],
+                [
+                    {
+                        "key": "gross_target",
+                        "before": 0.5,
+                        "after": 0.25,
+                    }
+                ],
+            )
+
     def test_run_cycle_loads_leaderboard_from_worktree_results_when_configured_results_path_is_stale(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             temp_path = Path(tempdir)
@@ -319,6 +410,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                         "parent_commit",
                         "train_sha1",
                         "candidate_sha1",
+                        "train_config_json",
                         "baseline_score",
                         "delta_score",
                         "research_score",
@@ -329,6 +421,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                         "worst_max_drawdown",
                         "average_turnover",
                         "ready_for_paper",
+                        "gate_failures_json",
                         "runtime_seconds",
                         "failure_reason",
                         "proposal_artifact_path",
@@ -354,6 +447,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                         "parent123",
                         "train123",
                         "candidate123",
+                        "{}",
                         "4.500000",
                         "0.750000",
                         "5.250000",
@@ -364,6 +458,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                         "0.090000",
                         "0.030000",
                         "false",
+                        "[]",
                         "1.500000",
                         "",
                         "",
