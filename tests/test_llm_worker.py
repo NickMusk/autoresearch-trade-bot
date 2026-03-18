@@ -237,6 +237,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 results_path=str(temp_path / "results.tsv"),
                 cycle_interval_seconds=1,
                 failure_cooldown_seconds=45,
+                timeout_failure_cooldown_seconds=12,
                 max_cycles=1,
                 data_config=DataConfig(
                     exchange="bybit",
@@ -263,7 +264,77 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             assert snapshot is not None
             self.assertEqual(snapshot.loop_state, "degraded")
             self.assertIn("OpenAI request timed out", snapshot.research_blockers[0])
-            self.assertEqual(sleep_calls, [45.0])
+            self.assertEqual(sleep_calls, [12.0])
+
+    def test_failure_snapshot_carries_forward_last_healthy_state(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            sleep_calls: list[float] = []
+
+            def fake_prepare_campaign(**kwargs):
+                campaign_path = Path(kwargs["campaigns_root"]) / "campaign.json"
+                campaign_path.parent.mkdir(parents=True, exist_ok=True)
+                campaign_path.write_text("{}", encoding="utf-8")
+                Path(kwargs["active_pointer_path"]).write_text(
+                    str(campaign_path.resolve()),
+                    encoding="utf-8",
+                )
+                return campaign_path
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                cycle_interval_seconds=1,
+                timeout_failure_cooldown_seconds=15,
+                max_cycles=1,
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            store = FilesystemResearchStateStore(config.state_root)
+            healthy_worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=store,
+                llm_runner=lambda **_kwargs: [make_fake_decision(score=1.25)],
+                campaign_preparer=fake_prepare_campaign,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            healthy_worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+            healthy_worker.run_cycle()
+
+            failing_worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=store,
+                llm_runner=lambda **_kwargs: (_ for _ in ()).throw(RuntimeError("openai_timeout")),
+                campaign_preparer=fake_prepare_campaign,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 12, tzinfo=timezone.utc),
+                sleep_fn=lambda seconds: sleep_calls.append(seconds),
+            )
+            failing_worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+            failing_worker.run_forever()
+
+            snapshot = store.load_snapshot()
+            self.assertIsNotNone(snapshot)
+            assert snapshot is not None
+            self.assertEqual(snapshot.loop_state, "degraded")
+            self.assertIn("OpenAI request timed out", snapshot.research_blockers[0])
+            self.assertEqual(snapshot.latest_dataset_id, "campaign")
+            self.assertEqual(snapshot.baseline_metrics["score"], 1.25)
+            self.assertEqual(
+                snapshot.multi_window_summary["latest_decision"]["mutation_label"],
+                "llm-test",
+            )
+            self.assertEqual(sleep_calls, [15.0])
 
     def test_persist_snapshot_suppresses_publish_timeout_for_degraded_status(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
@@ -300,6 +371,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             snapshot = worker._build_failure_snapshot(  # type: ignore[attr-defined]
                 checkpoint=worker.state_store.load_llm_checkpoint(),
                 failure_message="GitHub status publish timed out",
+                previous_snapshot=None,
             )
             worker._persist_snapshot(  # type: ignore[attr-defined]
                 snapshot,

@@ -68,6 +68,7 @@ class LLMAutoresearchWorker:
                 self.run_cycle(now=now)
             except Exception as exc:  # noqa: BLE001
                 failure_message = self._normalize_failure_message(exc)
+                previous_snapshot = self.state_store.load_snapshot()
                 failed_checkpoint = LLMWorkerCheckpoint(
                     last_cycle_completed_at=checkpoint.last_cycle_completed_at,
                     last_campaign_refreshed_at=checkpoint.last_campaign_refreshed_at,
@@ -77,13 +78,14 @@ class LLMAutoresearchWorker:
                 snapshot = self._build_failure_snapshot(
                     checkpoint=failed_checkpoint,
                     failure_message=failure_message,
+                    previous_snapshot=previous_snapshot,
                 )
                 self._persist_snapshot(
                     snapshot,
                     message="Publish degraded LLM autoresearch status",
                     suppress_publish_errors=True,
                 )
-                self.sleep_fn(float(self.config.failure_cooldown_seconds))
+                self.sleep_fn(self._failure_cooldown_seconds(failure_message))
             finally:
                 cycle_attempts += 1
 
@@ -105,6 +107,9 @@ class LLMAutoresearchWorker:
             max_mutations=self.config.max_mutations_per_cycle,
             worktrees_root=self.config.worktrees_root,
             recent_results_limit=self.config.recent_results_limit,
+            openai_timeout_seconds=self.config.openai_timeout_seconds,
+            openai_max_retries=self.config.openai_max_retries,
+            openai_retry_backoff_seconds=self.config.openai_retry_backoff_seconds,
         )
         latest_decision = decisions[-1]
         cycle_result = self._record_cycle(
@@ -382,43 +387,74 @@ class LLMAutoresearchWorker:
         *,
         checkpoint: LLMWorkerCheckpoint,
         failure_message: str,
+        previous_snapshot: ResearchStatusSnapshot | None,
     ) -> ResearchStatusSnapshot:
-        return ResearchStatusSnapshot(
-            mission="Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-            phase="LLM autoresearch worker degraded",
-            research_rollout_ready=False,
-            research_blockers=[failure_message],
-            baseline_strategy="Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
-            promotion_gate={
-                "min_total_return": self.config.target_gate.min_total_return,
-                "min_sharpe": self.config.target_gate.min_sharpe,
-                "max_drawdown": self.config.target_gate.max_drawdown,
-                "min_acceptance_rate": self.config.target_gate.min_acceptance_rate,
-            },
-            baseline_metrics={
+        baseline_strategy = (
+            previous_snapshot.baseline_strategy
+            if previous_snapshot is not None
+            else "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns."
+        )
+        baseline_metrics = (
+            dict(previous_snapshot.baseline_metrics)
+            if previous_snapshot is not None
+            else {
                 "total_return": 0.0,
                 "sharpe": 0.0,
                 "max_drawdown": 0.0,
                 "average_turnover": 0.0,
                 "bars_processed": 0,
                 "score": 0.0,
+            }
+        )
+        latest_dataset_id = (
+            previous_snapshot.latest_dataset_id if previous_snapshot is not None else ""
+        )
+        latest_cycle_completed_at = (
+            previous_snapshot.latest_cycle_completed_at
+            if previous_snapshot is not None
+            else (
+                checkpoint.last_cycle_completed_at.isoformat()
+                if checkpoint.last_cycle_completed_at is not None
+                else None
+            )
+        )
+        last_processed_bar = (
+            previous_snapshot.last_processed_bar if previous_snapshot is not None else None
+        )
+        recent_acceptance_rate = (
+            previous_snapshot.recent_acceptance_rate if previous_snapshot is not None else 0.0
+        )
+        multi_window_summary = (
+            dict(previous_snapshot.multi_window_summary)
+            if previous_snapshot is not None
+            else {}
+        )
+        leaderboard = list(previous_snapshot.leaderboard) if previous_snapshot is not None else []
+        return ResearchStatusSnapshot(
+            mission="Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
+            phase="LLM autoresearch worker degraded",
+            research_rollout_ready=False,
+            research_blockers=[failure_message],
+            baseline_strategy=baseline_strategy,
+            promotion_gate={
+                "min_total_return": self.config.target_gate.min_total_return,
+                "min_sharpe": self.config.target_gate.min_sharpe,
+                "max_drawdown": self.config.target_gate.max_drawdown,
+                "min_acceptance_rate": self.config.target_gate.min_acceptance_rate,
             },
+            baseline_metrics=baseline_metrics,
             accepted_for_paper=False,
             next_milestones=[
                 "Recover the worker from the latest API, repo, or campaign failure.",
             ],
             loop_state="degraded",
-            latest_dataset_id="",
-            latest_cycle_completed_at=(
-                checkpoint.last_cycle_completed_at.isoformat()
-                if checkpoint.last_cycle_completed_at is not None
-                else None
-            ),
-            last_processed_bar=None,
-            recent_acceptance_rate=0.0,
+            latest_dataset_id=latest_dataset_id,
+            latest_cycle_completed_at=latest_cycle_completed_at,
+            last_processed_bar=last_processed_bar,
+            recent_acceptance_rate=recent_acceptance_rate,
             consecutive_failures=checkpoint.consecutive_failures,
-            multi_window_summary={},
-            leaderboard=[],
+            multi_window_summary=multi_window_summary,
+            leaderboard=leaderboard,
         )
 
     def _persist_snapshot(
@@ -498,6 +534,11 @@ class LLMAutoresearchWorker:
             return type(exc).__name__
         return raw
 
+    def _failure_cooldown_seconds(self, failure_message: str) -> float:
+        if failure_message in {"OpenAI request timed out", "GitHub status publish timed out"}:
+            return float(self.config.timeout_failure_cooldown_seconds)
+        return float(self.config.failure_cooldown_seconds)
+
     @staticmethod
     def _ensure_utc(value: datetime) -> datetime:
         if value.tzinfo is None:
@@ -540,6 +581,18 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
         ),
         failure_cooldown_seconds=int(
             os.environ.get("AUTORESEARCH_LLM_FAILURE_COOLDOWN_SECONDS", "900")
+        ),
+        timeout_failure_cooldown_seconds=int(
+            os.environ.get("AUTORESEARCH_LLM_TIMEOUT_FAILURE_COOLDOWN_SECONDS", "180")
+        ),
+        openai_timeout_seconds=float(
+            os.environ.get("AUTORESEARCH_LLM_OPENAI_TIMEOUT_SECONDS", "120")
+        ),
+        openai_max_retries=int(
+            os.environ.get("AUTORESEARCH_LLM_OPENAI_MAX_RETRIES", "3")
+        ),
+        openai_retry_backoff_seconds=float(
+            os.environ.get("AUTORESEARCH_LLM_OPENAI_RETRY_BACKOFF_SECONDS", "2.0")
         ),
         max_mutations_per_cycle=int(
             os.environ.get("AUTORESEARCH_LLM_MAX_MUTATIONS_PER_CYCLE", "1")

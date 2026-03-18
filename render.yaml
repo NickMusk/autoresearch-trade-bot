@@ -45,6 +45,14 @@ services:
         value: "86400"
       - key: AUTORESEARCH_LLM_FAILURE_COOLDOWN_SECONDS
         value: "900"
+      - key: AUTORESEARCH_LLM_TIMEOUT_FAILURE_COOLDOWN_SECONDS
+        value: "180"
+      - key: AUTORESEARCH_LLM_OPENAI_TIMEOUT_SECONDS
+        value: "120"
+      - key: AUTORESEARCH_LLM_OPENAI_MAX_RETRIES
+        value: "3"
+      - key: AUTORESEARCH_LLM_OPENAI_RETRY_BACKOFF_SECONDS
+        value: "2.0"
       - key: AUTORESEARCH_LLM_MAX_MUTATIONS_PER_CYCLE
         value: "1"
       - key: AUTORESEARCH_LLM_RECENT_RESULTS_LIMIT

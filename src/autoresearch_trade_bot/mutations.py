@@ -7,6 +7,7 @@ import os
 import re
 import socket
 import subprocess
+import time
 import urllib.error
 import urllib.request
 import uuid
@@ -110,11 +111,15 @@ class OpenAIResponsesClient:
         api_key: str | None = None,
         model_name: str = "gpt-5-mini",
         timeout_seconds: float = 60.0,
+        max_retries: int = 2,
+        retry_backoff_seconds: float = 0.0,
         base_url: str = "https://api.openai.com/v1/responses",
     ) -> None:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY", "")
         self.model_name = model_name
         self.timeout_seconds = timeout_seconds
+        self.max_retries = max(1, max_retries)
+        self.retry_backoff_seconds = max(0.0, retry_backoff_seconds)
         self.base_url = base_url
         if not self.api_key:
             raise ValueError("OPENAI_API_KEY is required for LLM mutation runs")
@@ -152,7 +157,7 @@ class OpenAIResponsesClient:
         )
 
     def _execute_with_retry(self, request: urllib.request.Request) -> dict[str, Any]:
-        attempts = 2
+        attempts = self.max_retries
         for attempt in range(1, attempts + 1):
             try:
                 with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
@@ -163,14 +168,17 @@ class OpenAIResponsesClient:
             except TimeoutError as exc:
                 if attempt == attempts:
                     raise RuntimeError("openai_timeout") from exc
+                time.sleep(self.retry_backoff_seconds)
             except socket.timeout as exc:
                 if attempt == attempts:
                     raise RuntimeError("openai_timeout") from exc
+                time.sleep(self.retry_backoff_seconds)
             except urllib.error.URLError as exc:
                 reason = exc.reason
                 if isinstance(reason, (TimeoutError, socket.timeout)):
                     if attempt == attempts:
                         raise RuntimeError("openai_timeout") from exc
+                    time.sleep(self.retry_backoff_seconds)
                     continue
                 raise RuntimeError(f"openai_transport_error:{reason}") from exc
         raise RuntimeError("openai_timeout")
@@ -409,6 +417,9 @@ def run_llm_mutation_campaign(
     max_mutations: int = 1,
     worktrees_root: str | Path = DEFAULT_WORKTREE_ROOT,
     recent_results_limit: int = 5,
+    openai_timeout_seconds: float = 60.0,
+    openai_max_retries: int = 2,
+    openai_retry_backoff_seconds: float = 0.0,
     provider: MutationProvider | None = None,
     client: LLMClient | None = None,
 ) -> list[GitAutoresearchDecision]:
@@ -428,7 +439,13 @@ def run_llm_mutation_campaign(
         recent_results_limit=recent_results_limit,
     )
     resolved_provider = provider or LLMMutationProvider(
-        client=client or OpenAIResponsesClient(model_name=model_name)
+        client=client
+        or OpenAIResponsesClient(
+            model_name=model_name,
+            timeout_seconds=openai_timeout_seconds,
+            max_retries=openai_max_retries,
+            retry_backoff_seconds=openai_retry_backoff_seconds,
+        )
     )
     decisions = []
     for proposal in resolved_provider.generate(context=context, max_mutations=max_mutations):

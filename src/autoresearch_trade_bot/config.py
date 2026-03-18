@@ -86,6 +86,10 @@ class LLMWorkerConfig:
     cycle_interval_seconds: int = 3600
     campaign_refresh_interval_seconds: int = 86400
     failure_cooldown_seconds: int = 900
+    timeout_failure_cooldown_seconds: int = 180
+    openai_timeout_seconds: float = 120.0
+    openai_max_retries: int = 3
+    openai_retry_backoff_seconds: float = 2.0
     max_mutations_per_cycle: int = 1
     recent_results_limit: int = 5
     history_window_days: int = 7
