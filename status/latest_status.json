@@ -4,7 +4,6 @@
   "research_rollout_ready": false,
   "research_blockers": [
     "Latest LLM candidate underperformed the baseline on the screen window.",
-    "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate."
   ],
@@ -16,12 +15,12 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": -0.0,
-    "sharpe": -1.129,
-    "max_drawdown": 0.0003,
+    "total_return": 0.0,
+    "sharpe": 0.0,
+    "max_drawdown": 0.0,
     "average_turnover": 0.0,
     "bars_processed": 2015,
-    "score": -1.1305
+    "score": 0.0
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -31,8 +30,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260317t103000z",
-  "latest_cycle_completed_at": "2026-03-18T06:11:57.131407+00:00",
-  "last_processed_bar": "2026-03-18T06:10:00+00:00",
+  "latest_cycle_completed_at": "2026-03-18T06:23:57.131787+00:00",
+  "last_processed_bar": "2026-03-18T06:20:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
   "multi_window_summary": {
@@ -41,15 +40,14 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-174d0255",
+      "mutation_label": "llm-e38a9692",
       "baseline_score": 5.20975879294986,
-      "candidate_score": -1.130459937051257,
+      "candidate_score": 0.0,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
-        "total_return_below_gate",
         "sharpe_below_gate",
         "acceptance_rate_below_gate"
       ]
