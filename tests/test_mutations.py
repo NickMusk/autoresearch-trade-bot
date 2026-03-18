@@ -16,9 +16,12 @@ from autoresearch_trade_bot.mutations import (
     LLMCompletion,
     LLMMutationProvider,
     MutationContext,
+    build_attempt_prompt,
+    build_experiment_memory_artifact,
     build_experiment_memory_summary,
     build_llm_mutation_prompt,
     validate_train_candidate_text,
+    validate_train_candidate_semantics,
 )
 
 
@@ -98,6 +101,7 @@ class MutationTests(unittest.TestCase):
                     }
                 ),
                 recent_results=(),
+                symbol_count=5,
             )
             provider = LLMMutationProvider(client=FakeLLMClient(candidate_text))
             proposals = provider.generate(context=context, max_mutations=1)
@@ -163,6 +167,7 @@ class MutationTests(unittest.TestCase):
                     }
                 ),
                 recent_results=(),
+                symbol_count=5,
                 experiment_memory_summary="Decision mix: no prior LLM evaluations yet.",
             )
             client = FakeLLMClient([first_candidate, second_candidate])
@@ -174,7 +179,9 @@ class MutationTests(unittest.TestCase):
             self.assertNotEqual(proposals[0].candidate_sha1, proposals[1].candidate_sha1)
             self.assertEqual(len(client.calls), 2)
             self.assertIn("attempt_index=1", client.calls[0][1])
+            self.assertIn("role_name=exploit_baseline", client.calls[0][1])
             self.assertIn("attempt_index=2", client.calls[1][1])
+            self.assertIn("role_name=selectivity_without_no_trade", client.calls[1][1])
 
     def test_experiment_memory_summary_and_prompt_include_failed_patterns_and_directions(self) -> None:
         current_train = render_train_file(
@@ -214,13 +221,30 @@ class MutationTests(unittest.TestCase):
                 "delta_score": "",
                 "failure_reason": "duplicate_candidate",
             },
+            {
+                "mutation_label": "llm-d",
+                "decision": "discard_screen",
+                "stage": "screen",
+                "research_score": "0.0",
+                "delta_score": "-0.8",
+                "failure_reason": "",
+                "gate_failures_json": "[\"no_trades_executed\",\"sharpe_below_gate\"]",
+                "train_config_json": "{\"lookback_bars\":24,\"top_k\":1,\"gross_target\":0.5,\"ranking_mode\":\"risk_adjusted\",\"use_regime_filter\":true,\"regime_lookback_bars\":36,\"regime_threshold\":0.07,\"min_signal_strength\":0.08,\"min_cross_sectional_spread\":0.12,\"volatility_floor\":0.0,\"reversal_bias_weight\":0.0,\"funding_penalty_weight\":0.0}",
+            },
         )
+        artifact = build_experiment_memory_artifact(recent_results, current_train_text=current_train)
+        self.assertIn("dead_zones", artifact)
+        self.assertIn("near_wins", artifact)
+        self.assertTrue(any(item["trait"] == "regime_filter=on" for item in artifact["dead_zones"]))
+        self.assertTrue(any(item["gate_failure"] == "no_trades_executed" for item in artifact["common_gate_failures"]))
+
         summary = build_experiment_memory_summary(recent_results, current_train_text=current_train)
         self.assertIn("Decision mix:", summary)
-        self.assertIn("discard_screen=2", summary)
+        self.assertIn("discard_screen=3", summary)
         self.assertIn("duplicate_candidate: 1", summary)
-        self.assertIn("min_cross_sectional_spread", summary)
-        self.assertIn("funding_penalty_weight", summary)
+        self.assertIn("Dead zones:", summary)
+        self.assertIn("no_trades_executed", summary)
+        self.assertIn("Near wins:", summary)
 
         context = MutationContext(
             campaign_id="unit",
@@ -233,13 +257,76 @@ class MutationTests(unittest.TestCase):
             program_text="Mutate train.py only.",
             current_train_text=current_train,
             recent_results=recent_results,
+            symbol_count=5,
             experiment_memory_summary=summary,
+            experiment_memory_artifact=artifact,
         )
         system_prompt, user_prompt = build_llm_mutation_prompt(context=context, max_mutations=1)
         self.assertIn("Prefer one substantial research hypothesis", system_prompt)
         self.assertIn("Research memory:", user_prompt)
         self.assertIn("Promising directions:", user_prompt)
         self.assertIn("Recent raw results:", user_prompt)
+
+    def test_attempt_prompt_assigns_role_specific_guidance(self) -> None:
+        role_name, prompt = build_attempt_prompt(
+            base_user_prompt="base prompt",
+            attempt_index=2,
+            max_mutations=3,
+        )
+        self.assertEqual(role_name, "alternative_signal_family")
+        self.assertIn("role_name=alternative_signal_family", prompt)
+        self.assertIn("role_objective=", prompt)
+
+    def test_validate_train_candidate_semantics_rejects_no_op_and_high_no_trade_risk(self) -> None:
+        current_train = render_train_file(
+            {
+                "lookback_bars": 24,
+                "top_k": 1,
+                "gross_target": 0.5,
+                "ranking_mode": "risk_adjusted",
+                "use_regime_filter": False,
+                "regime_lookback_bars": 36,
+                "regime_threshold": 0.015,
+                "min_signal_strength": 0.0,
+                "min_cross_sectional_spread": 0.0,
+                "volatility_floor": 0.0,
+                "reversal_bias_weight": 0.0,
+                "funding_penalty_weight": 0.0,
+            }
+        )
+        self.assertEqual(
+            validate_train_candidate_semantics(
+                current_train,
+                current_train_text=current_train,
+                symbol_count=5,
+            ),
+            (False, "no_op_train_config"),
+        )
+
+        risky_candidate = render_train_file(
+            {
+                "lookback_bars": 24,
+                "top_k": 1,
+                "gross_target": 0.5,
+                "ranking_mode": "risk_adjusted",
+                "use_regime_filter": True,
+                "regime_lookback_bars": 36,
+                "regime_threshold": 0.07,
+                "min_signal_strength": 0.11,
+                "min_cross_sectional_spread": 0.12,
+                "volatility_floor": 0.0,
+                "reversal_bias_weight": 0.0,
+                "funding_penalty_weight": 0.0,
+            }
+        )
+        self.assertEqual(
+            validate_train_candidate_semantics(
+                risky_candidate,
+                current_train_text=current_train,
+                symbol_count=5,
+            ),
+            (False, "likely_no_trade_filter_stack"),
+        )
 
     def test_runner_discards_invalid_candidate_and_skips_duplicates(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

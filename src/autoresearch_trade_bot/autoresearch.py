@@ -12,7 +12,7 @@ import subprocess
 import sys
 import time
 import uuid
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
@@ -46,6 +46,7 @@ RESULTS_TSV_COLUMNS = (
     "parent_commit",
     "train_sha1",
     "candidate_sha1",
+    "train_config_json",
     "baseline_score",
     "delta_score",
     "research_score",
@@ -56,6 +57,7 @@ RESULTS_TSV_COLUMNS = (
     "worst_max_drawdown",
     "average_turnover",
     "ready_for_paper",
+    "gate_failures_json",
     "runtime_seconds",
     "failure_reason",
     "proposal_artifact_path",
@@ -178,6 +180,7 @@ class AutoresearchRunReport:
     model_name: str = ""
     prompt_id: str = ""
     candidate_sha1: str = ""
+    train_config: dict[str, Any] = field(default_factory=dict)
     failure_reason: str = ""
     proposal_artifact_path: str = ""
 
@@ -201,6 +204,7 @@ class AutoresearchRunReport:
             "baseline_score": self.baseline_score,
             "delta_score": self.delta_score,
             "candidate_sha1": self.candidate_sha1,
+            "train_config": dict(self.train_config),
             "research_score": self.research_score,
             "acceptance_rate": self.acceptance_rate,
             "average_metrics": dict(self.average_metrics),
@@ -439,6 +443,7 @@ def evaluate_train_file(
     module = _load_train_module(train_file)
     strategy_builder = _load_strategy_builder(module)
     strategy_name = str(getattr(module, "STRATEGY_NAME", train_file.stem))
+    train_config = normalize_train_config(getattr(module, "TRAIN_CONFIG", {}))
     train_sha1 = _git(["hash-object", str(train_file_resolved)], cwd=train_file_resolved.parent)
     git_branch = _safe_git(["branch", "--show-current"], cwd=train_file_resolved.parent)
     git_commit = _safe_git(["rev-parse", "HEAD"], cwd=train_file_resolved.parent)
@@ -511,6 +516,7 @@ def evaluate_train_file(
             else None
         ),
         candidate_sha1=candidate_sha1,
+        train_config=train_config,
         research_score=aggregated["research_score"],
         acceptance_rate=aggregated["acceptance_rate"],
         average_metrics=aggregated["average_metrics"],
@@ -556,6 +562,7 @@ def append_results_row(
         "parent_commit": report.parent_commit,
         "train_sha1": report.train_sha1,
         "candidate_sha1": report.candidate_sha1,
+        "train_config_json": json.dumps(report.train_config, sort_keys=True),
         "baseline_score": (
             f"{report.baseline_score:.6f}" if report.baseline_score is not None else ""
         ),
@@ -570,6 +577,7 @@ def append_results_row(
         "worst_max_drawdown": f"{report.worst_max_drawdown:.6f}",
         "average_turnover": f"{report.average_metrics['average_turnover']:.6f}",
         "ready_for_paper": str(report.ready_for_paper).lower(),
+        "gate_failures_json": json.dumps(report.gate_failures, sort_keys=True),
         "runtime_seconds": f"{report.runtime_seconds:.6f}",
         "failure_reason": report.failure_reason,
         "proposal_artifact_path": report.proposal_artifact_path,
@@ -980,6 +988,7 @@ class GitAutoresearchRunner:
             baseline_score=baseline_score,
             delta_score=None,
             candidate_sha1=candidate_sha1,
+            train_config={},
             research_score=float("-inf"),
             acceptance_rate=0.0,
             average_metrics={
@@ -988,6 +997,7 @@ class GitAutoresearchRunner:
                 "max_drawdown": 1.0,
                 "average_turnover": 0.0,
                 "bars_processed": 0,
+                "nonzero_turnover_steps": 0,
             },
             worst_max_drawdown=1.0,
             ready_for_paper=False,

@@ -39,6 +39,32 @@ ALLOWED_IMPORTS = {
 }
 FORBIDDEN_CALLS = {"open", "exec", "eval", "compile", "__import__", "input"}
 MAX_CANDIDATE_BYTES = 24_000
+ATTEMPT_ROLE_SPECS = (
+    {
+        "name": "exploit_baseline",
+        "objective": "Stay close to the current best baseline and improve score with one or two meaningful knob changes.",
+        "constraints": (
+            "Avoid stacking new filters. Prefer modest shifts to signal quality, turnover control, "
+            "or crowding control that still preserve trading activity."
+        ),
+    },
+    {
+        "name": "selectivity_without_no_trade",
+        "objective": "Improve selectivity without collapsing into a no-trade strategy.",
+        "constraints": (
+            "If you tighten thresholds, do it mildly. Do not combine high signal floors, high spread floors, "
+            "and strict regime filters in the same candidate."
+        ),
+    },
+    {
+        "name": "alternative_signal_family",
+        "objective": "Explore a meaningfully different signal expression using reversal, funding, or volatility controls.",
+        "constraints": (
+            "Do not just tweak lookback. Shift the signal family while keeping the strategy cheap to evaluate "
+            "and still able to trade."
+        ),
+    },
+)
 
 
 @dataclass(frozen=True)
@@ -53,7 +79,9 @@ class MutationContext:
     program_text: str
     current_train_text: str
     recent_results: tuple[dict[str, str], ...]
+    symbol_count: int
     experiment_memory_summary: str = ""
+    experiment_memory_artifact: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -208,16 +236,10 @@ class LLMMutationProvider:
         proposals: list[MutationProposal] = []
         seen_candidate_sha1s: set[str] = set()
         for attempt_index in range(max_mutations):
-            attempt_user_prompt = "\n\n".join(
-                [
-                    user_prompt,
-                    (
-                        "Batch attempt:\n"
-                        f"- attempt_index={attempt_index + 1}\n"
-                        f"- total_attempts={max_mutations}\n"
-                        "- Return a candidate meaningfully different from prior attempts in this same cycle."
-                    ),
-                ]
+            role_name, attempt_user_prompt = build_attempt_prompt(
+                base_user_prompt=user_prompt,
+                attempt_index=attempt_index,
+                max_mutations=max_mutations,
             )
             completion = self.client.generate(system_prompt=system_prompt, user_prompt=attempt_user_prompt)
             candidate_text = extract_python_candidate(completion.content)
@@ -233,7 +255,7 @@ class LLMMutationProvider:
                 provider_name="llm",
                 model_name=completion.model_name,
                 prompt_id=completion.prompt_id,
-                notes=f"llm-mutation-attempt-{attempt_index + 1}",
+                notes=f"llm-mutation-attempt-{attempt_index + 1}:{role_name}",
                 candidate_sha1=candidate_sha1,
             )
             artifact_path = write_proposal_artifact(
@@ -298,6 +320,39 @@ def validate_train_candidate_text(candidate_text: str) -> tuple[bool, str]:
     return True, ""
 
 
+def validate_train_candidate_semantics(
+    candidate_text: str,
+    *,
+    current_train_text: str,
+    symbol_count: int,
+) -> tuple[bool, str]:
+    candidate_config = normalize_train_config(extract_train_config(candidate_text))
+    current_config = normalize_train_config(extract_train_config(current_train_text))
+
+    if candidate_config == current_config:
+        return False, "no_op_train_config"
+    if int(candidate_config["top_k"]) < 1:
+        return False, "invalid_top_k"
+    if int(candidate_config["top_k"]) * 2 > symbol_count:
+        return False, "top_k_exceeds_cross_sectional_capacity"
+    if float(candidate_config["gross_target"]) <= 0.0 or float(candidate_config["gross_target"]) > 1.5:
+        return False, "invalid_gross_target"
+    if str(candidate_config["ranking_mode"]) not in {"raw_return", "risk_adjusted"}:
+        return False, "invalid_ranking_mode"
+    if (
+        float(candidate_config["min_signal_strength"]) > 0.10
+        and float(candidate_config["min_cross_sectional_spread"]) > 0.10
+    ):
+        return False, "likely_no_trade_filter_stack"
+    if float(candidate_config["min_signal_strength"]) > 0.12:
+        return False, "likely_no_trade_signal_threshold"
+    if float(candidate_config["min_cross_sectional_spread"]) > 0.15:
+        return False, "likely_no_trade_spread_threshold"
+    if bool(candidate_config["use_regime_filter"]) and float(candidate_config["regime_threshold"]) > 0.06:
+        return False, "likely_no_trade_regime_threshold"
+    return True, ""
+
+
 def build_mutation_context(
     *,
     repo_root: str | Path,
@@ -309,7 +364,21 @@ def build_mutation_context(
     recent_results_limit: int = 5,
 ) -> MutationContext:
     campaign = load_campaign(campaign_path)
+    current_train_text = train_path.read_text(encoding="utf-8")
     recent_results = tuple(load_recent_results(results_path, limit=max(recent_results_limit, 12)))
+    memory_payload = build_experiment_memory_artifact(
+        recent_results,
+        current_train_text=current_train_text,
+    )
+    memory_summary = build_experiment_memory_summary(
+        recent_results,
+        current_train_text=current_train_text,
+    )
+    write_experiment_memory_artifact(
+        artifact_root=artifact_root,
+        memory_payload=memory_payload,
+        summary_text=memory_summary,
+    )
     return MutationContext(
         campaign_id=campaign.campaign_id,
         campaign_name=campaign.name,
@@ -319,13 +388,107 @@ def build_mutation_context(
         results_path=results_path,
         artifact_root=artifact_root,
         program_text=(Path(repo_root) / "program.md").read_text(encoding="utf-8"),
-        current_train_text=train_path.read_text(encoding="utf-8"),
+        current_train_text=current_train_text,
         recent_results=recent_results,
-        experiment_memory_summary=build_experiment_memory_summary(
-            recent_results,
-            current_train_text=train_path.read_text(encoding="utf-8"),
-        ),
+        symbol_count=len(campaign.symbols),
+        experiment_memory_summary=memory_summary,
+        experiment_memory_artifact=memory_payload,
     )
+
+
+def build_experiment_memory_artifact(
+    recent_results: Sequence[Mapping[str, str]],
+    *,
+    current_train_text: str,
+) -> dict[str, Any]:
+    normalized_config = normalize_train_config(extract_train_config(current_train_text))
+    if not recent_results:
+        return {
+            "current_baseline_config": normalized_config,
+            "decision_mix": {},
+            "stage_mix": {},
+            "common_failures": [],
+            "common_gate_failures": [],
+            "near_wins": [],
+            "dead_zones": [],
+            "promising_directions": [
+                "Add selectivity carefully with min_cross_sectional_spread or min_signal_strength.",
+                "Use volatility_floor to stabilize risk-adjusted ranking.",
+                "Use reversal_bias_weight or funding_penalty_weight to avoid crowded or overextended entries.",
+            ],
+        }
+
+    decisions = Counter(str(row.get("decision", "")) for row in recent_results)
+    stages = Counter(str(row.get("stage", "")) for row in recent_results)
+    failures = Counter(str(row.get("failure_reason", "")) for row in recent_results if row.get("failure_reason"))
+    gate_failures = Counter()
+    no_trade_traits = Counter()
+    duplicate_traits = Counter()
+    near_wins: list[dict[str, Any]] = []
+
+    for row in recent_results:
+        config = _load_train_config_from_result_row(row)
+        traits = _config_traits(config)
+        for failure in _parse_gate_failures(row):
+            gate_failures[failure] += 1
+            if failure == "no_trades_executed":
+                no_trade_traits.update(traits)
+        if str(row.get("failure_reason", "")) == "duplicate_candidate":
+            duplicate_traits.update(traits)
+        raw_delta = (row.get("delta_score") or "").strip()
+        if raw_delta:
+            try:
+                delta = float(raw_delta)
+            except ValueError:
+                delta = None
+            if (
+                delta is not None
+                and delta > -1.5
+                and str(row.get("decision", "")) in {"discard_screen", "discard_full", "screen_pass"}
+            ):
+                near_wins.append(
+                    {
+                        "mutation_label": str(row.get("mutation_label", "")),
+                        "delta_score": delta,
+                        "decision": str(row.get("decision", "")),
+                        "stage": str(row.get("stage", "")),
+                        "config_focus": _format_config_focus(config),
+                    }
+                )
+
+    dead_zones = [
+        {"trait": trait, "count": count}
+        for trait, count in no_trade_traits.most_common(4)
+    ]
+    if duplicate_traits:
+        dead_zones.extend(
+            {"trait": f"duplicate::{trait}", "count": count}
+            for trait, count in duplicate_traits.most_common(2)
+        )
+
+    promising_directions = _promising_directions_from_memory(
+        normalized_config=normalized_config,
+        dead_zones=dead_zones,
+        near_wins=near_wins,
+        decisions=decisions,
+    )
+
+    return {
+        "current_baseline_config": normalized_config,
+        "decision_mix": dict(sorted(decisions.items())),
+        "stage_mix": dict(sorted(stages.items())),
+        "common_failures": [
+            {"failure_reason": reason, "count": count}
+            for reason, count in failures.most_common(4)
+        ],
+        "common_gate_failures": [
+            {"gate_failure": reason, "count": count}
+            for reason, count in gate_failures.most_common(5)
+        ],
+        "near_wins": sorted(near_wins, key=lambda item: item["delta_score"], reverse=True)[:4],
+        "dead_zones": dead_zones,
+        "promising_directions": promising_directions,
+    }
 
 
 def build_experiment_memory_summary(
@@ -333,84 +496,56 @@ def build_experiment_memory_summary(
     *,
     current_train_text: str,
 ) -> str:
-    normalized_config = normalize_train_config(extract_train_config(current_train_text))
-    if not recent_results:
-        return (
-            "Decision mix: no prior LLM evaluations yet.\n"
-            f"Current baseline config: {json.dumps(normalized_config, sort_keys=True)}\n"
-            "Promising directions:\n"
-            "- Add selectivity with min_cross_sectional_spread or min_signal_strength.\n"
-            "- Use volatility_floor to stabilize risk-adjusted ranking.\n"
-            "- Use reversal_bias_weight or funding_penalty_weight to avoid crowded or overextended entries."
-        )
-
-    decisions = Counter(str(row.get("decision", "")) for row in recent_results)
-    stages = Counter(str(row.get("stage", "")) for row in recent_results)
-    failures = Counter(str(row.get("failure_reason", "")) for row in recent_results if row.get("failure_reason"))
-
-    deltas: list[tuple[str, float, str, str]] = []
-    for row in recent_results:
-        raw_delta = (row.get("delta_score") or "").strip()
-        if not raw_delta:
-            continue
-        try:
-            delta_value = float(raw_delta)
-        except ValueError:
-            continue
-        deltas.append(
-            (
-                str(row.get("mutation_label", "")),
-                delta_value,
-                str(row.get("decision", "")),
-                str(row.get("stage", "")),
-            )
-        )
-
-    best_delta_lines = [
-        f"- {label}: delta_score={delta:.4f} decision={decision} stage={stage}"
-        for label, delta, decision, stage in sorted(deltas, key=lambda item: item[1], reverse=True)[:3]
-    ] or ["- no positive or recorded deltas yet"]
-
-    common_failure_lines = [
-        f"- {reason}: {count}"
-        for reason, count in failures.most_common(3)
-    ] or ["- no validation/runtime failures recorded"]
-
-    search_directions = []
-    discard_screen_count = decisions.get("discard_screen", 0)
-    if discard_screen_count >= max(2, len(recent_results) // 2):
-        search_directions.append(
-            "- Most candidates fail at screen. Prefer materially more selective changes, not tiny parameter churn."
-        )
-        search_directions.append(
-            "- Try raising min_signal_strength or min_cross_sectional_spread, or lowering gross_target when signal quality is weak."
-        )
-    search_directions.append(
-        "- Consider volatility_floor > 0 when ranking_mode='risk_adjusted' to reduce unstable scores from tiny realized volatility."
+    memory = build_experiment_memory_artifact(
+        recent_results,
+        current_train_text=current_train_text,
     )
-    search_directions.append(
-        "- Consider reversal_bias_weight > 0 to avoid chasing one-bar overextension."
-    )
-    search_directions.append(
-        "- Consider funding_penalty_weight > 0 to avoid crowded perp positioning."
-    )
-    if not normalized_config.get("use_regime_filter", False):
-        search_directions.append(
-            "- Explore use_regime_filter=True only if paired with a meaningful threshold change, not as a cosmetic toggle."
-        )
-
+    decision_mix = memory["decision_mix"]
+    stage_mix = memory["stage_mix"]
+    common_failures = memory["common_failures"]
+    common_gate_failures = memory["common_gate_failures"]
+    near_wins = memory["near_wins"]
+    dead_zones = memory["dead_zones"]
     return "\n".join(
         [
             "Decision mix: "
-            + ", ".join(f"{decision}={count}" for decision, count in sorted(decisions.items())),
-            "Stage mix: " + ", ".join(f"{stage}={count}" for stage, count in sorted(stages.items())),
-            f"Current baseline config: {json.dumps(normalized_config, sort_keys=True)}",
-            "Best recent deltas:",
-            *best_delta_lines,
+            + (
+                ", ".join(f"{decision}={count}" for decision, count in decision_mix.items())
+                if decision_mix
+                else "no prior LLM evaluations yet"
+            ),
+            "Stage mix: "
+            + (
+                ", ".join(f"{stage}={count}" for stage, count in stage_mix.items())
+                if stage_mix
+                else "no prior stages"
+            ),
+            f"Current baseline config: {json.dumps(memory['current_baseline_config'], sort_keys=True)}",
+            "Near wins:",
+            *(
+                [
+                    f"- {item['mutation_label']}: delta_score={item['delta_score']:.4f} decision={item['decision']} stage={item['stage']} focus={item['config_focus']}"
+                    for item in near_wins
+                ]
+                or ["- no near wins recorded yet"]
+            ),
             "Common failures:",
-            *common_failure_lines,
+            *(
+                [f"- {item['failure_reason']}: {item['count']}" for item in common_failures]
+                or ["- no validation/runtime failures recorded"]
+            ),
+            "Common gate failures:",
+            *(
+                [f"- {item['gate_failure']}: {item['count']}" for item in common_gate_failures]
+                or ["- no gate failures recorded"]
+            ),
+            "Dead zones:",
+            *(
+                [f"- {item['trait']}: {item['count']}" for item in dead_zones]
+                or ["- no repeated dead zones detected yet"]
+            ),
             "Promising directions:",
-            *search_directions,
+            *(f"- {direction}" for direction in memory["promising_directions"]),
         ]
     )
 
@@ -457,6 +592,32 @@ def build_llm_mutation_prompt(
         ]
     )
     return system_prompt, user_prompt
+
+
+def build_attempt_prompt(
+    *,
+    base_user_prompt: str,
+    attempt_index: int,
+    max_mutations: int,
+) -> tuple[str, str]:
+    role = ATTEMPT_ROLE_SPECS[attempt_index % len(ATTEMPT_ROLE_SPECS)]
+    return (
+        role["name"],
+        "\n\n".join(
+            [
+                base_user_prompt,
+                (
+                    "Batch attempt:\n"
+                    f"- attempt_index={attempt_index + 1}\n"
+                    f"- total_attempts={max_mutations}\n"
+                    f"- role_name={role['name']}\n"
+                    f"- role_objective={role['objective']}\n"
+                    f"- role_constraints={role['constraints']}\n"
+                    "- Return a candidate meaningfully different from prior attempts in this same cycle."
+                ),
+            ]
+        ),
+    )
 
 
 def extract_python_candidate(response_text: str) -> str:
@@ -526,6 +687,156 @@ def load_recent_results(results_path: str | Path, *, limit: int) -> list[dict[st
     return rows[-limit:]
 
 
+def write_experiment_memory_artifact(
+    *,
+    artifact_root: Path,
+    memory_payload: Mapping[str, Any],
+    summary_text: str,
+) -> Path:
+    memory_root = artifact_root / "memory"
+    memory_root.mkdir(parents=True, exist_ok=True)
+    artifact_path = memory_root / "latest_memory_summary.json"
+    artifact_path.write_text(
+        json.dumps(
+            {
+                "summary_text": summary_text,
+                "memory": memory_payload,
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    return artifact_path
+
+
+def _parse_json_field(raw_value: str | None) -> Any:
+    value = (raw_value or "").strip()
+    if not value:
+        return None
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        return None
+
+
+def _load_train_config_from_result_row(row: Mapping[str, str]) -> dict[str, Any]:
+    payload = _parse_json_field(row.get("train_config_json"))
+    if isinstance(payload, Mapping):
+        return normalize_train_config(payload)
+
+    artifact_path = (row.get("proposal_artifact_path") or "").strip()
+    if artifact_path:
+        try:
+            artifact_payload = json.loads(Path(artifact_path).read_text(encoding="utf-8"))
+            candidate_text = artifact_payload.get("candidate_text")
+            if isinstance(candidate_text, str) and candidate_text.strip():
+                return normalize_train_config(extract_train_config(candidate_text))
+        except Exception:
+            return {}
+    return {}
+
+
+def _parse_gate_failures(row: Mapping[str, str]) -> list[str]:
+    payload = _parse_json_field(row.get("gate_failures_json"))
+    if isinstance(payload, list):
+        return [str(item) for item in payload]
+    return []
+
+
+def _config_traits(config: Mapping[str, Any]) -> list[str]:
+    if not config:
+        return []
+    traits = [
+        f"ranking_mode={config.get('ranking_mode', '')}",
+        f"top_k={config.get('top_k', '')}",
+    ]
+    if bool(config.get("use_regime_filter", False)):
+        traits.append("regime_filter=on")
+    if float(config.get("min_signal_strength", 0.0)) > 0.0:
+        traits.append(
+            "signal_floor="
+            + ("high" if float(config.get("min_signal_strength", 0.0)) > 0.05 else "low")
+        )
+    if float(config.get("min_cross_sectional_spread", 0.0)) > 0.0:
+        traits.append(
+            "spread_floor="
+            + ("high" if float(config.get("min_cross_sectional_spread", 0.0)) > 0.05 else "low")
+        )
+    if float(config.get("volatility_floor", 0.0)) > 0.0:
+        traits.append("volatility_floor=on")
+    if float(config.get("reversal_bias_weight", 0.0)) > 0.0:
+        traits.append("reversal_bias=on")
+    if float(config.get("funding_penalty_weight", 0.0)) > 0.0:
+        traits.append("funding_penalty=on")
+    return traits
+
+
+def _format_config_focus(config: Mapping[str, Any]) -> str:
+    if not config:
+        return "config unavailable"
+    fields = [
+        f"lookback={config.get('lookback_bars')}",
+        f"top_k={config.get('top_k')}",
+        f"gross={config.get('gross_target')}",
+        f"ranking={config.get('ranking_mode')}",
+    ]
+    if float(config.get("min_signal_strength", 0.0)) > 0.0:
+        fields.append(f"signal_floor={config.get('min_signal_strength')}")
+    if float(config.get("min_cross_sectional_spread", 0.0)) > 0.0:
+        fields.append(f"spread_floor={config.get('min_cross_sectional_spread')}")
+    if bool(config.get("use_regime_filter", False)):
+        fields.append(f"regime_threshold={config.get('regime_threshold')}")
+    if float(config.get("reversal_bias_weight", 0.0)) > 0.0:
+        fields.append(f"reversal_bias={config.get('reversal_bias_weight')}")
+    if float(config.get("funding_penalty_weight", 0.0)) > 0.0:
+        fields.append(f"funding_penalty={config.get('funding_penalty_weight')}")
+    return ", ".join(fields)
+
+
+def _promising_directions_from_memory(
+    *,
+    normalized_config: Mapping[str, Any],
+    dead_zones: Sequence[Mapping[str, Any]],
+    near_wins: Sequence[Mapping[str, Any]],
+    decisions: Counter,
+) -> list[str]:
+    directions: list[str] = []
+    dead_zone_traits = {str(item["trait"]) for item in dead_zones}
+    if decisions.get("discard_screen", 0) >= 2:
+        directions.append(
+            "Most candidates still fail at screen. Prefer substantial but bounded changes, not tiny churn."
+        )
+    if "signal_floor=high" in dead_zone_traits:
+        directions.append(
+            "Avoid high min_signal_strength. If you add a signal floor, keep it modest."
+        )
+    if "spread_floor=high" in dead_zone_traits:
+        directions.append(
+            "Avoid aggressive min_cross_sectional_spread. Tighten selectivity more gently."
+        )
+    if "regime_filter=on" in dead_zone_traits:
+        directions.append(
+            "Recent regime-filter variants look fragile. Only enable use_regime_filter with mild thresholds."
+        )
+    if any("funding_penalty" in str(item.get("config_focus", "")) for item in near_wins):
+        directions.append(
+            "Near-wins suggest funding-aware candidates may help. Explore modest funding_penalty_weight."
+        )
+    if any("reversal_bias" in str(item.get("config_focus", "")) for item in near_wins):
+        directions.append(
+            "Near-wins suggest reversal-aware candidates may help. Explore moderate reversal_bias_weight."
+        )
+    if not directions:
+        directions.append(
+            "Explore one meaningful change at a time: either mild selectivity, mild funding control, or mild reversal control."
+        )
+    if not normalized_config.get("use_regime_filter", False):
+        directions.append(
+            "Only turn on use_regime_filter if paired with a clear reason and conservative threshold."
+        )
+    return directions[:5]
+
+
 def extract_train_config(train_text: str) -> dict[str, Any]:
     match = re.search(r"TRAIN_CONFIG = (.*?)\nSTRATEGY_NAME", train_text, flags=re.DOTALL)
     if match is None:
@@ -572,13 +883,22 @@ def run_llm_mutation_campaign(
             retry_backoff_seconds=openai_retry_backoff_seconds,
         )
     )
+    def combined_validator(candidate_text: str) -> tuple[bool, str]:
+        is_valid, failure_reason = validate_train_candidate_text(candidate_text)
+        if not is_valid:
+            return is_valid, failure_reason
+        return validate_train_candidate_semantics(
+            candidate_text,
+            current_train_text=context.current_train_text,
+            symbol_count=context.symbol_count,
+        )
     decisions = []
     for proposal in resolved_provider.generate(context=context, max_mutations=max_mutations):
         decisions.append(
             runner.apply_mutation_proposal_staged(
                 campaign_path=campaign_path,
                 proposal=proposal,
-                validator=validate_train_candidate_text,
+                validator=combined_validator,
             )
         )
     return decisions
