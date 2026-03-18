@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable, Sequence
 
-from .autoresearch import ensure_git_identity, prepare_campaign, resolve_campaign_path
+from .autoresearch import ensure_git_identity, prepare_campaign, resolve_campaign_path, slugify
 from .config import DataConfig, LLMWorkerConfig, ResearchTargetGate
 from .datasets import timeframe_to_timedelta
 from .mutations import load_recent_results, run_llm_mutation_campaign
@@ -18,6 +18,7 @@ from .state import (
     CycleSummary,
     FilesystemResearchStateStore,
     GitHubStatusPublisher,
+    LeaderboardEntry,
     LLMWorkerCheckpoint,
     ResearchStatusSnapshot,
 )
@@ -34,6 +35,7 @@ class LLMCycleResult:
     decisions: list[dict[str, object]]
     recent_acceptance_rate: float
     rollout_ready: bool
+    baseline_report: dict[str, object]
     latest_report: dict[str, object]
 
 
@@ -238,7 +240,7 @@ class LLMAutoresearchWorker:
         refreshed_campaign: bool,
         latest_decision,
     ) -> LLMCycleResult:
-        recent_results = load_recent_results(self.config.results_path, limit=50)
+        recent_results = self._load_recent_results(limit=50)
         history = self.state_store.load_history()
         summary = CycleSummary(
             cycle_id=uuid.uuid4().hex[:12],
@@ -263,13 +265,16 @@ class LLMAutoresearchWorker:
         recent_acceptance_rate = self._acceptance_rate(recent_history)
 
         report = latest_decision.report
+        baseline_report = latest_decision.baseline_report
         rollout_ready = (
             latest_decision.decision == "keep"
             and report.ready_for_paper
             and recent_acceptance_rate >= self.config.target_gate.min_acceptance_rate
         )
         leaderboard = self._build_leaderboard(recent_results)
-        self.state_store.save_leaderboard(leaderboard)
+        self.state_store.save_leaderboard(
+            [LeaderboardEntry.from_dict(item) for item in leaderboard]
+        )
         return LLMCycleResult(
             cycle_id=summary.cycle_id,
             campaign_id=Path(campaign_path).stem,
@@ -293,6 +298,16 @@ class LLMAutoresearchWorker:
             ],
             recent_acceptance_rate=recent_acceptance_rate,
             rollout_ready=rollout_ready,
+            baseline_report={
+                "strategy_name": baseline_report.strategy_name,
+                "research_score": baseline_report.research_score,
+                "ready_for_paper": baseline_report.ready_for_paper,
+                "average_metrics": baseline_report.average_metrics,
+                "gate_failures": baseline_report.gate_failures,
+                "provider_name": baseline_report.provider_name,
+                "model_name": baseline_report.model_name,
+                "failure_reason": baseline_report.failure_reason,
+            },
             latest_report={
                 "strategy_name": report.strategy_name,
                 "research_score": report.research_score,
@@ -311,7 +326,8 @@ class LLMAutoresearchWorker:
         checkpoint: LLMWorkerCheckpoint,
     ) -> ResearchStatusSnapshot:
         report = cycle_result.latest_report
-        metrics = report["average_metrics"]
+        baseline_report = cycle_result.baseline_report
+        baseline_metrics = baseline_report["average_metrics"]
         blockers = []
         latest_decision = cycle_result.decisions[-1]
         if latest_decision["decision"] == "discard_screen":
@@ -343,12 +359,12 @@ class LLMAutoresearchWorker:
                 "min_acceptance_rate": self.config.target_gate.min_acceptance_rate,
             },
             baseline_metrics={
-                "total_return": round(float(metrics.get("total_return", 0.0)), 4),
-                "sharpe": round(float(metrics.get("sharpe", 0.0)), 4),
-                "max_drawdown": round(float(metrics.get("max_drawdown", 0.0)), 4),
-                "average_turnover": round(float(metrics.get("average_turnover", 0.0)), 4),
-                "bars_processed": int(metrics.get("bars_processed", 0)),
-                "score": round(float(report["research_score"]), 4),
+                "total_return": round(float(baseline_metrics.get("total_return", 0.0)), 4),
+                "sharpe": round(float(baseline_metrics.get("sharpe", 0.0)), 4),
+                "max_drawdown": round(float(baseline_metrics.get("max_drawdown", 0.0)), 4),
+                "average_turnover": round(float(baseline_metrics.get("average_turnover", 0.0)), 4),
+                "bars_processed": int(baseline_metrics.get("bars_processed", 0)),
+                "score": round(float(baseline_report["research_score"]), 4),
             },
             accepted_for_paper=cycle_result.rollout_ready,
             next_milestones=[
@@ -366,9 +382,23 @@ class LLMAutoresearchWorker:
                 "campaign_path": cycle_result.campaign_path,
                 "campaign_refreshed_this_cycle": cycle_result.refreshed_campaign,
                 "latest_decision": latest_decision,
+                "baseline_strategy_name": baseline_report["strategy_name"],
+                "baseline_score": baseline_report["research_score"],
                 "model_name": report["model_name"],
                 "provider_name": report["provider_name"],
             },
+            latest_decision=dict(latest_decision),
+            latest_candidate_summary={
+                "strategy_name": report["strategy_name"],
+                "research_score": report["research_score"],
+                "ready_for_paper": report["ready_for_paper"],
+                "average_metrics": dict(report["average_metrics"]),
+                "gate_failures": list(report["gate_failures"]),
+                "provider_name": report["provider_name"],
+                "model_name": report["model_name"],
+                "failure_reason": report["failure_reason"],
+            },
+            current_best_strategy_name=str(baseline_report["strategy_name"]),
             leaderboard=[
                 {
                     "strategy_name": str(item["strategy_name"]),
@@ -378,7 +408,7 @@ class LLMAutoresearchWorker:
                     "metrics": dict(item["metrics"]),
                     "rejection_reasons": list(item["rejection_reasons"]),
                 }
-                for item in self._build_leaderboard(load_recent_results(self.config.results_path, limit=20))
+                for item in self._build_leaderboard(self._load_recent_results(limit=20))
             ],
         )
 
@@ -430,6 +460,19 @@ class LLMAutoresearchWorker:
             else {}
         )
         leaderboard = list(previous_snapshot.leaderboard) if previous_snapshot is not None else []
+        latest_decision = (
+            dict(previous_snapshot.latest_decision)
+            if previous_snapshot is not None and previous_snapshot.latest_decision is not None
+            else None
+        )
+        latest_candidate_summary = (
+            dict(previous_snapshot.latest_candidate_summary)
+            if previous_snapshot is not None
+            else {}
+        )
+        current_best_strategy_name = (
+            previous_snapshot.current_best_strategy_name if previous_snapshot is not None else None
+        )
         return ResearchStatusSnapshot(
             mission="Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
             phase="LLM autoresearch worker degraded",
@@ -455,6 +498,9 @@ class LLMAutoresearchWorker:
             consecutive_failures=checkpoint.consecutive_failures,
             multi_window_summary=multi_window_summary,
             leaderboard=leaderboard,
+            latest_decision=latest_decision,
+            latest_candidate_summary=latest_candidate_summary,
+            current_best_strategy_name=current_best_strategy_name,
         )
 
     def _persist_snapshot(
@@ -481,6 +527,18 @@ class LLMAutoresearchWorker:
             except Exception:
                 if not suppress_publish_errors:
                     raise
+
+    def _resolved_results_path(self) -> Path:
+        worktree_results = (
+            Path(self.config.worktrees_root) / slugify(self.config.branch_name) / "results.tsv"
+        )
+        configured_results = Path(self.config.results_path)
+        if worktree_results.exists():
+            return worktree_results
+        return configured_results
+
+    def _load_recent_results(self, *, limit: int) -> list[dict[str, str]]:
+        return load_recent_results(self._resolved_results_path(), limit=limit)
 
     @staticmethod
     def _build_leaderboard(rows: Sequence[dict[str, str]]) -> list[dict[str, object]]:

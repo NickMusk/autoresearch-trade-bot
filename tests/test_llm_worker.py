@@ -18,18 +18,38 @@ def make_fake_decision(
     score: float = -10.0,
     ready_for_paper: bool = False,
     failure_reason: str = "",
+    candidate_metrics: dict | None = None,
+    baseline_metrics: dict | None = None,
 ):
+    resolved_candidate_metrics = candidate_metrics or {
+        "total_return": -0.1,
+        "sharpe": -1.0,
+        "max_drawdown": 0.2,
+        "average_turnover": 0.1,
+        "bars_processed": 100,
+    }
+    resolved_baseline_metrics = baseline_metrics or {
+        "total_return": 0.05,
+        "sharpe": 1.25,
+        "max_drawdown": 0.08,
+        "average_turnover": 0.04,
+        "bars_processed": 100,
+    }
+    baseline_report = SimpleNamespace(
+        provider_name="baseline",
+        model_name="",
+        ready_for_paper=False,
+        average_metrics=resolved_baseline_metrics,
+        research_score=4.5,
+        gate_failures=["sharpe_below_gate"],
+        failure_reason="",
+        strategy_name="baseline-train-head",
+    )
     report = SimpleNamespace(
         provider_name="llm",
         model_name="fake-gpt",
         ready_for_paper=ready_for_paper,
-        average_metrics={
-            "total_return": -0.1,
-            "sharpe": -1.0,
-            "max_drawdown": 0.2,
-            "average_turnover": 0.1,
-            "bars_processed": 100,
-        },
+        average_metrics=resolved_candidate_metrics,
         research_score=score,
         gate_failures=[] if ready_for_paper else ["acceptance_rate_below_gate"],
         failure_reason=failure_reason,
@@ -42,6 +62,7 @@ def make_fake_decision(
         baseline_score=-5.0,
         candidate_score=score,
         kept_commit="abc123" if decision == "keep" else None,
+        baseline_report=baseline_report,
         report=report,
     )
 
@@ -106,8 +127,202 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertEqual(snapshot.loop_state, "searching")
             self.assertEqual(snapshot.latest_dataset_id, campaign_calls[0])
             self.assertEqual(snapshot.multi_window_summary["latest_decision"]["decision"], "discard_screen")
+            self.assertEqual(snapshot.latest_decision["decision"], "discard_screen")
+            self.assertEqual(snapshot.current_best_strategy_name, "baseline-train-head")
             history = FilesystemResearchStateStore(config.state_root).load_history()
             self.assertEqual(len(history), 1)
+
+    def test_success_snapshot_uses_baseline_report_metrics_not_latest_candidate_metrics(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+
+            def fake_prepare_campaign(**kwargs):
+                campaign_path = Path(kwargs["campaigns_root"]) / "campaign.json"
+                campaign_path.parent.mkdir(parents=True, exist_ok=True)
+                campaign_path.write_text("{}", encoding="utf-8")
+                Path(kwargs["active_pointer_path"]).write_text(
+                    str(campaign_path.resolve()),
+                    encoding="utf-8",
+                )
+                return campaign_path
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                llm_runner=lambda **_kwargs: [
+                    make_fake_decision(
+                        score=-2.0,
+                        candidate_metrics={
+                            "total_return": 0.0,
+                            "sharpe": 0.0,
+                            "max_drawdown": 0.0,
+                            "average_turnover": 0.0,
+                            "bars_processed": 2015,
+                        },
+                        baseline_metrics={
+                            "total_return": 0.07,
+                            "sharpe": 1.75,
+                            "max_drawdown": 0.09,
+                            "average_turnover": 0.03,
+                            "bars_processed": 2015,
+                        },
+                    )
+                ],
+                campaign_preparer=fake_prepare_campaign,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+
+            worker.run_cycle()
+
+            snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
+            self.assertIsNotNone(snapshot)
+            assert snapshot is not None
+            self.assertEqual(snapshot.baseline_metrics["total_return"], 0.07)
+            self.assertEqual(snapshot.baseline_metrics["sharpe"], 1.75)
+            self.assertEqual(snapshot.baseline_metrics["score"], 4.5)
+            self.assertEqual(snapshot.latest_candidate_summary["research_score"], -2.0)
+
+    def test_run_cycle_loads_leaderboard_from_worktree_results_when_configured_results_path_is_stale(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+
+            def fake_prepare_campaign(**kwargs):
+                campaign_path = Path(kwargs["campaigns_root"]) / "campaign.json"
+                campaign_path.parent.mkdir(parents=True, exist_ok=True)
+                campaign_path.write_text("{}", encoding="utf-8")
+                Path(kwargs["active_pointer_path"]).write_text(
+                    str(campaign_path.resolve()),
+                    encoding="utf-8",
+                )
+                return campaign_path
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "separate-results.tsv"),
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            worktree_results = temp_path / "worktrees" / "codex-autoresearch-crypto" / "results.tsv"
+            worktree_results.parent.mkdir(parents=True, exist_ok=True)
+            worktree_results.write_text(
+                "\t".join(
+                    [
+                        "recorded_at",
+                        "campaign_id",
+                        "decision",
+                        "stage",
+                        "mutation_label",
+                        "provider_name",
+                        "model_name",
+                        "prompt_id",
+                        "run_id",
+                        "campaign_name",
+                        "strategy_name",
+                        "git_branch",
+                        "git_commit",
+                        "parent_commit",
+                        "train_sha1",
+                        "candidate_sha1",
+                        "baseline_score",
+                        "delta_score",
+                        "research_score",
+                        "acceptance_rate",
+                        "average_total_return",
+                        "average_sharpe",
+                        "average_max_drawdown",
+                        "worst_max_drawdown",
+                        "average_turnover",
+                        "ready_for_paper",
+                        "runtime_seconds",
+                        "failure_reason",
+                        "proposal_artifact_path",
+                        "artifact_path",
+                    ]
+                )
+                + "\n"
+                + "\t".join(
+                    [
+                        "2026-03-17T12:00:00+00:00",
+                        "campaign",
+                        "keep",
+                        "full",
+                        "llm-kept",
+                        "llm",
+                        "fake-gpt",
+                        "",
+                        "run-1",
+                        "campaign",
+                        "configurable-momentum",
+                        "codex/autoresearch-crypto",
+                        "abc123",
+                        "parent123",
+                        "train123",
+                        "candidate123",
+                        "4.500000",
+                        "0.750000",
+                        "5.250000",
+                        "1.000000",
+                        "0.080000",
+                        "1.500000",
+                        "0.090000",
+                        "0.090000",
+                        "0.030000",
+                        "false",
+                        "1.500000",
+                        "",
+                        "",
+                        "",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                llm_runner=lambda **_kwargs: [make_fake_decision()],
+                campaign_preparer=fake_prepare_campaign,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+
+            worker.run_cycle()
+
+            snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
+            self.assertIsNotNone(snapshot)
+            assert snapshot is not None
+            self.assertTrue(snapshot.leaderboard)
+            self.assertEqual(snapshot.leaderboard[0]["strategy_name"], "llm-kept")
 
     def test_run_cycle_reuses_active_campaign_until_refresh_due(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
@@ -329,7 +544,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertEqual(snapshot.loop_state, "degraded")
             self.assertIn("OpenAI request timed out", snapshot.research_blockers[0])
             self.assertEqual(snapshot.latest_dataset_id, "campaign")
-            self.assertEqual(snapshot.baseline_metrics["score"], 1.25)
+            self.assertEqual(snapshot.baseline_metrics["score"], 4.5)
             self.assertEqual(
                 snapshot.multi_window_summary["latest_decision"]["mutation_label"],
                 "llm-test",

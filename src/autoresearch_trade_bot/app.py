@@ -95,6 +95,18 @@ def render_dashboard(snapshot: dict) -> str:
     processed_bar_label = snapshot.get("last_processed_bar") or "n/a"
     loop_state_label = snapshot.get("loop_state", "idle")
     acceptance_rate_label = snapshot.get("recent_acceptance_rate", 0.0)
+    current_best_strategy_name = snapshot.get("current_best_strategy_name") or "n/a"
+    latest_decision = snapshot.get("latest_decision") or {}
+    latest_candidate_summary = snapshot.get("latest_candidate_summary") or {}
+    latest_candidate_items = "".join(
+        (
+            f"<li><code>{html.escape(str(key))}</code>: {html.escape(str(value))}</li>"
+            if key != "average_metrics"
+            else ""
+        )
+        for key, value in latest_candidate_summary.items()
+        if value not in ({}, [], "", None)
+    )
 
     return f"""<!doctype html>
 <html lang="en">
@@ -224,6 +236,9 @@ def render_dashboard(snapshot: dict) -> str:
       <article class="panel">
         <h2>Baseline Strategy</h2>
         <p>{html.escape(snapshot["baseline_strategy"])}</p>
+        <ul>
+          <li><code>current_best_strategy_name</code>: {html.escape(str(current_best_strategy_name))}</li>
+        </ul>
       </article>
       <article class="panel">
         <h2>Promotion Gate</h2>
@@ -261,11 +276,18 @@ def render_dashboard(snapshot: dict) -> str:
           <li><code>last_processed_bar</code>: {html.escape(str(processed_bar_label))}</li>
           <li><code>recent_acceptance_rate</code>: {html.escape(str(acceptance_rate_label))}</li>
           <li><code>consecutive_failures</code>: {html.escape(str(snapshot.get("consecutive_failures", 0)))}</li>
+          <li><code>latest_decision</code>: {html.escape(str(latest_decision.get("decision", "n/a")))}</li>
+          <li><code>latest_candidate_score</code>: {html.escape(str(latest_decision.get("candidate_score", "n/a")))}</li>
+          <li><code>baseline_score</code>: {html.escape(str(latest_decision.get("baseline_score", "n/a")))}</li>
         </ul>
       </article>
       <article class="panel">
         <h2>Leaderboard</h2>
         <ul>{leaderboard_items or "<li>No persisted leaderboard yet.</li>"}</ul>
+      </article>
+      <article class="panel">
+        <h2>Latest Candidate</h2>
+        <ul>{latest_candidate_items or "<li>No latest candidate summary yet.</li>"}</ul>
       </article>
       <article class="panel">
         <h2>Endpoints</h2>

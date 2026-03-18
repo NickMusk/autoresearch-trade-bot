@@ -225,6 +225,7 @@ class GitAutoresearchDecision:
     baseline_score: float
     candidate_score: float
     kept_commit: str | None
+    baseline_report: AutoresearchRunReport
     report: AutoresearchRunReport
 
 
@@ -685,6 +686,7 @@ class GitAutoresearchRunner:
                 baseline_score=baseline_report.research_score,
                 candidate_score=candidate_report.research_score,
                 kept_commit=kept_commit,
+                baseline_report=baseline_report,
                 report=candidate_report,
             )
         except Exception:
@@ -754,6 +756,7 @@ class GitAutoresearchRunner:
                 baseline_score=baseline_full.research_score,
                 candidate_score=duplicate_report.research_score,
                 kept_commit=None,
+                baseline_report=baseline_full,
                 report=duplicate_report,
             )
 
@@ -786,6 +789,7 @@ class GitAutoresearchRunner:
                     baseline_score=baseline_full.research_score,
                     candidate_score=invalid_report.research_score,
                     kept_commit=None,
+                    baseline_report=baseline_full,
                     report=invalid_report,
                 )
         self.train_path.write_text(proposal.candidate_text, encoding="utf-8")
@@ -819,6 +823,7 @@ class GitAutoresearchRunner:
                     baseline_score=baseline_screen.research_score,
                     candidate_score=screen_report.research_score,
                     kept_commit=None,
+                    baseline_report=baseline_full,
                     report=screen_report,
                 )
 
@@ -864,6 +869,7 @@ class GitAutoresearchRunner:
                 baseline_score=baseline_full.research_score,
                 candidate_score=full_report.research_score,
                 kept_commit=kept_commit,
+                baseline_report=baseline_full,
                 report=full_report,
             )
         except Exception as exc:
@@ -893,6 +899,7 @@ class GitAutoresearchRunner:
                 baseline_score=baseline_full.research_score,
                 candidate_score=failed_report.research_score,
                 kept_commit=None,
+                baseline_report=baseline_full,
                 report=failed_report,
             )
 

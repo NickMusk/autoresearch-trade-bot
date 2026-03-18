@@ -181,6 +181,9 @@ class ResearchStatusSnapshot:
     consecutive_failures: int
     multi_window_summary: dict[str, Any] = field(default_factory=dict)
     leaderboard: list[dict[str, Any]] = field(default_factory=list)
+    latest_decision: dict[str, Any] | None = None
+    latest_candidate_summary: dict[str, Any] = field(default_factory=dict)
+    current_best_strategy_name: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -201,6 +204,11 @@ class ResearchStatusSnapshot:
             "consecutive_failures": self.consecutive_failures,
             "multi_window_summary": dict(self.multi_window_summary),
             "leaderboard": list(self.leaderboard),
+            "latest_decision": (
+                dict(self.latest_decision) if self.latest_decision is not None else None
+            ),
+            "latest_candidate_summary": dict(self.latest_candidate_summary),
+            "current_best_strategy_name": self.current_best_strategy_name,
         }
 
     @classmethod
@@ -223,6 +231,17 @@ class ResearchStatusSnapshot:
             consecutive_failures=int(payload.get("consecutive_failures", 0)),
             multi_window_summary=dict(payload.get("multi_window_summary", {})),
             leaderboard=[dict(item) for item in payload.get("leaderboard", [])],
+            latest_decision=(
+                dict(payload["latest_decision"])
+                if payload.get("latest_decision") is not None
+                else None
+            ),
+            latest_candidate_summary=dict(payload.get("latest_candidate_summary", {})),
+            current_best_strategy_name=(
+                str(payload["current_best_strategy_name"])
+                if payload.get("current_best_strategy_name") is not None
+                else None
+            ),
         )
 
 
