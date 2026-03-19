@@ -3,7 +3,6 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate underperformed the baseline on the screen window.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate."
@@ -31,20 +30,20 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T09:47:53.006655+00:00",
+  "latest_cycle_completed_at": "2026-03-19T09:48:39.357260+00:00",
   "last_processed_bar": "2026-03-19T09:45:00+00:00",
-  "recent_acceptance_rate": 0.0,
+  "recent_acceptance_rate": 0.1,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_screen",
-      "stage": "screen",
-      "mutation_label": "llm-0047229f",
+      "decision": "keep",
+      "stage": "full",
+      "mutation_label": "llm-d5e22696",
       "baseline_score": -10.21037563208329,
-      "candidate_score": -59.176636042064345,
-      "kept_commit": null,
+      "candidate_score": -10.209421408617178,
+      "kept_commit": "c61b75f2a92cca0b082a64cdb2e335528a0acf3f",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -60,42 +59,6 @@
     "provider_name": "llm"
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-523873b8",
-      "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-523873b8",
-      "params": {
-        "decision": "discard_full",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-eaebc1df",
       "params": {
@@ -149,15 +112,51 @@
         "average_turnover": 0.0
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-8b507b0b",
+      "params": {
+        "decision": "discard_full",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-5e1012fe",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
-    "decision": "discard_screen",
-    "stage": "screen",
-    "mutation_label": "llm-0047229f",
+    "decision": "keep",
+    "stage": "full",
+    "mutation_label": "llm-d5e22696",
     "baseline_score": -10.21037563208329,
-    "candidate_score": -59.176636042064345,
-    "kept_commit": null,
+    "candidate_score": -10.209421408617178,
+    "kept_commit": "c61b75f2a92cca0b082a64cdb2e335528a0acf3f",
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
@@ -169,24 +168,24 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "vol-breakout-donchian-v2",
-    "research_score": -59.176636042064345,
+    "research_score": -10.209421408617178,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.08812589212293931,
-      "sharpe": -58.296346896373706,
-      "max_drawdown": 0.08981566568586052,
-      "average_turnover": 0.0803970223325062,
+      "total_return": -0.0003800307424606242,
+      "sharpe": -10.205604109602527,
+      "max_drawdown": 0.0003800307424606242,
+      "average_turnover": 0.0003970223325062035,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 569
+      "nonzero_turnover_steps": 2
     },
     "train_config": {
-      "gross_target": 0.5,
+      "gross_target": 0.4,
       "channel_bars": 20,
       "atr_lookback_bars": 14,
       "atr_multiplier": 1.15,
       "breakout_buffer": 0.03,
       "top_k": 1,
-      "min_breakout_score": 0.0,
+      "min_breakout_score": 0.05,
       "use_trend_filter": true,
       "trend_lookback_bars": 48
     },
@@ -200,5 +199,46 @@
     "failure_reason": ""
   },
   "current_best_strategy_name": "vol-breakout-donchian",
-  "latest_kept_summary": {}
+  "latest_kept_summary": {
+    "strategy_name": "vol-breakout-donchian-v2",
+    "baseline_strategy_name": "vol-breakout-donchian",
+    "score_delta": 0.000954,
+    "config_diff": [
+      {
+        "key": "atr_multiplier",
+        "before": 1.0,
+        "after": 1.15
+      },
+      {
+        "key": "breakout_buffer",
+        "before": 0.0,
+        "after": 0.03
+      },
+      {
+        "key": "channel_bars",
+        "before": 24,
+        "after": 20
+      },
+      {
+        "key": "gross_target",
+        "before": 0.5,
+        "after": 0.4
+      },
+      {
+        "key": "min_breakout_score",
+        "before": 0.0,
+        "after": 0.05
+      },
+      {
+        "key": "trend_lookback_bars",
+        "before": 72,
+        "after": 48
+      },
+      {
+        "key": "use_trend_filter",
+        "before": false,
+        "after": true
+      }
+    ]
+  }
 }
