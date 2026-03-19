@@ -28,8 +28,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T23:24:34.878968+00:00",
-  "last_processed_bar": "2026-03-19T23:20:00+00:00",
+  "latest_cycle_completed_at": "2026-03-19T23:26:05.961060+00:00",
+  "last_processed_bar": "2026-03-19T23:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.7,
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-25c8e871",
+      "mutation_label": "llm-319af4f8",
       "baseline_score": 18.15769449048482,
-      "candidate_score": 16.708073324408982,
+      "candidate_score": 10.21974250377468,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -149,9 +149,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-25c8e871",
+    "mutation_label": "llm-319af4f8",
     "baseline_score": 18.15769449048482,
-    "candidate_score": 16.708073324408982,
+    "candidate_score": 10.21974250377468,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -159,20 +159,20 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v10",
-    "research_score": 16.708073324408982,
+    "strategy_name": "ema-trend-disp-v11",
+    "research_score": 10.21974250377468,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.0002904444587989996,
-      "sharpe": 16.706926478818,
-      "max_drawdown": 5.437326298740608e-05,
-      "average_turnover": 8.78836510675319e-05,
+      "total_return": 0.00017449298562111082,
+      "sharpe": 10.219235186038844,
+      "max_drawdown": 6.824711063924127e-05,
+      "average_turnover": 9.215874971261218e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 844
+      "nonzero_turnover_steps": 680
     },
     "train_config": {
       "gross_target": 0.45,
-      "fast_ema_bars": 6,
+      "fast_ema_bars": 4,
       "slow_ema_bars": 56,
       "trend_ema_bars": 180,
       "top_k": 2,
@@ -186,11 +186,10 @@
       "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
-      "crowding_exponent": 1.9,
+      "crowding_exponent": 2.0,
       "rel_threshold_mult": 1.2,
       "new_symbol_penalty": 0.7,
-      "disp_low_frac_block": 0.5,
-      "trend_boost": 2.8
+      "disp_low_frac_block": 0.5
     },
     "gate_failures": [],
     "provider_name": "llm",
