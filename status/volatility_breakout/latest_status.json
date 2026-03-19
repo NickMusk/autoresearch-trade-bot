@@ -16,11 +16,11 @@
   },
   "baseline_metrics": {
     "total_return": -0.0,
-    "sharpe": -0.394,
+    "sharpe": -0.3139,
     "max_drawdown": 0.0,
     "average_turnover": 0.0,
     "bars_processed": 2015,
-    "score": -0.394
+    "score": -0.314
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -30,9 +30,9 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T14:34:56.424968+00:00",
-  "last_processed_bar": "2026-03-19T14:30:00+00:00",
-  "recent_acceptance_rate": 0.3,
+  "latest_cycle_completed_at": "2026-03-19T14:36:19.124411+00:00",
+  "last_processed_bar": "2026-03-19T14:35:00+00:00",
+  "recent_acceptance_rate": 0.4,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,10 +40,10 @@
     "latest_decision": {
       "decision": "keep",
       "stage": "full",
-      "mutation_label": "llm-ad22390f",
-      "baseline_score": -0.3940338879961339,
-      "candidate_score": -0.3139796807566503,
-      "kept_commit": "c5ab46a4d47f0ac24aa1e0c03890c9a13d3da03c",
+      "mutation_label": "llm-85c7cd00",
+      "baseline_score": -0.3139796807566503,
+      "candidate_score": -0.28593034323646566,
+      "kept_commit": "91766c36b6907875f21ad922f4f5780ebfe5afa4",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -53,13 +53,49 @@
         "acceptance_rate_below_gate"
       ]
     },
-    "baseline_strategy_name": "vol-breakout-v15-adaptive-atrratio-v3b",
-    "baseline_score": -0.3940338879961339,
+    "baseline_strategy_name": "vol-breakout-v15-adaptive-atrratio-v3c",
+    "baseline_score": -0.3139796807566503,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
   },
   "leaderboard": [
     {
+      "strategy_name": "llm-85c7cd00",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -0.28593,
+      "metrics": {
+        "total_return": -0.0,
+        "sharpe": -0.285882,
+        "max_drawdown": 8e-06,
+        "average_turnover": 1.5e-05
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-85c7cd00",
+      "params": {
+        "decision": "keep",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": true,
+      "score": -0.28593,
+      "metrics": {
+        "total_return": -0.0,
+        "sharpe": -0.285882,
+        "max_drawdown": 8e-06,
+        "average_turnover": 1.5e-05
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-ad22390f",
       "params": {
         "decision": "screen_pass",
@@ -110,42 +146,6 @@
         "sharpe": -0.393979,
         "max_drawdown": 9e-06,
         "average_turnover": 1.7e-05
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-c5fdf56c",
-      "params": {
-        "decision": "keep",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": true,
-      "score": -0.394034,
-      "metrics": {
-        "total_return": -1e-06,
-        "sharpe": -0.393979,
-        "max_drawdown": 9e-06,
-        "average_turnover": 1.7e-05
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-dfaae459",
-      "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -0.454417,
-      "metrics": {
-        "total_return": -1e-06,
-        "sharpe": -0.454355,
-        "max_drawdown": 1e-05,
-        "average_turnover": 1.9e-05
       },
       "rejection_reasons": []
     }
@@ -153,10 +153,10 @@
   "latest_decision": {
     "decision": "keep",
     "stage": "full",
-    "mutation_label": "llm-ad22390f",
-    "baseline_score": -0.3940338879961339,
-    "candidate_score": -0.3139796807566503,
-    "kept_commit": "c5ab46a4d47f0ac24aa1e0c03890c9a13d3da03c",
+    "mutation_label": "llm-85c7cd00",
+    "baseline_score": -0.3139796807566503,
+    "candidate_score": -0.28593034323646566,
+    "kept_commit": "91766c36b6907875f21ad922f4f5780ebfe5afa4",
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
@@ -167,14 +167,14 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v15-adaptive-atrratio-v3c",
-    "research_score": -0.3139796807566503,
+    "strategy_name": "vol-breakout-v16-adaptive-atrratio-v3d",
+    "research_score": -0.28593034323646566,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -5.12950586673e-07,
-      "sharpe": -0.3139256643154097,
-      "max_drawdown": 8.59661293028946e-06,
-      "average_turnover": 1.706523658609282e-05,
+      "total_return": -4.2225690632946566e-07,
+      "sharpe": -0.2858818427705446,
+      "max_drawdown": 7.750762893832253e-06,
+      "average_turnover": 1.5386129814047093e-05,
       "bars_processed": 2015,
       "nonzero_turnover_steps": 2
     },
@@ -188,7 +188,7 @@
       "min_breakout_score": 0.05,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.008,
+      "fallback_scale": 0.006,
       "crowding_min_scale": 0.16,
       "min_atr_fraction": 0.0015
     },
@@ -201,16 +201,16 @@
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
   },
-  "current_best_strategy_name": "vol-breakout-v15-adaptive-atrratio-v3b",
+  "current_best_strategy_name": "vol-breakout-v15-adaptive-atrratio-v3c",
   "latest_kept_summary": {
-    "strategy_name": "vol-breakout-v15-adaptive-atrratio-v3c",
-    "baseline_strategy_name": "vol-breakout-v15-adaptive-atrratio-v3b",
-    "score_delta": 0.080054,
+    "strategy_name": "vol-breakout-v16-adaptive-atrratio-v3d",
+    "baseline_strategy_name": "vol-breakout-v15-adaptive-atrratio-v3c",
+    "score_delta": 0.028049,
     "config_diff": [
       {
         "key": "fallback_scale",
-        "before": 0.012,
-        "after": 0.008
+        "before": 0.008,
+        "after": 0.006
       }
     ]
   }
