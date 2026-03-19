@@ -29,11 +29,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t103500z",
-  "latest_cycle_completed_at": "2026-03-19T21:09:47.073062+00:00",
-  "last_processed_bar": "2026-03-19T21:05:00+00:00",
-  "recent_acceptance_rate": 0.14285714285714285,
-  "evaluation_acceptance_rate": 0.14285714285714285,
-  "generation_validity_rate": 0.7,
+  "latest_cycle_completed_at": "2026-03-19T21:21:47.073505+00:00",
+  "last_processed_bar": "2026-03-19T21:20:00+00:00",
+  "recent_acceptance_rate": 0.0,
+  "evaluation_acceptance_rate": 0.0,
+  "generation_validity_rate": 0.6,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-bybit-linear-5m-20260319t103500z.json",
@@ -41,7 +41,7 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-57124364",
+      "mutation_label": "llm-b5bbf99e",
       "baseline_score": 14.30411691440198,
       "candidate_score": -Infinity,
       "kept_commit": null,
@@ -99,26 +99,6 @@
       ]
     },
     {
-      "strategy_name": "llm-8dfcf144",
-      "params": {
-        "decision": "keep",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": true,
-      "score": 0.246326,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 0.001011,
-        "max_drawdown": 13.036021,
-        "average_turnover": 0.000289
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
       "strategy_name": "llm-791610cb",
       "params": {
         "decision": "discard_error",
@@ -157,12 +137,32 @@
       "rejection_reasons": [
         "[\"no_op_train_config\"]"
       ]
+    },
+    {
+      "strategy_name": "llm-57124364",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 1.0
+      },
+      "rejection_reasons": [
+        "[\"no_op_train_config\"]"
+      ]
     }
   ],
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-57124364",
+    "mutation_label": "llm-b5bbf99e",
     "baseline_score": 14.30411691440198,
     "candidate_score": -Infinity,
     "kept_commit": null,
