@@ -32,7 +32,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T06:43:10.201452+00:00",
+  "latest_cycle_completed_at": "2026-03-19T06:44:13.928549+00:00",
   "last_processed_bar": "2026-03-19T06:40:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
@@ -42,9 +42,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-22f8228d",
+      "mutation_label": "llm-adf661f9",
       "baseline_score": -50.57333452654521,
-      "candidate_score": -125.65664906096687,
+      "candidate_score": -211.53723902605165,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -135,7 +135,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-dfda46ad",
+      "strategy_name": "llm-adf661f9",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -143,12 +143,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -211.537274,
+      "score": -211.537239,
       "metrics": {
-        "total_return": -0.357096,
-        "sharpe": -207.91597,
-        "max_drawdown": 0.357096,
-        "average_turnover": 0.407444
+        "total_return": -0.34337,
+        "sharpe": -208.038229,
+        "max_drawdown": 0.34337,
+        "average_turnover": 0.408685
       },
       "rejection_reasons": []
     }
@@ -156,9 +156,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-22f8228d",
+    "mutation_label": "llm-adf661f9",
     "baseline_score": -50.57333452654521,
-    "candidate_score": -125.65664906096687,
+    "candidate_score": -211.53723902605165,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -171,27 +171,27 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-filter",
-    "research_score": -125.65664906096687,
+    "strategy_name": "ema-trend-filter-v2",
+    "research_score": -211.53723902605165,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.2080566956459141,
-      "sharpe": -123.5680035001008,
-      "max_drawdown": 0.2082443668129682,
-      "average_turnover": 0.2153846153846154,
+      "total_return": -0.34336950919818177,
+      "sharpe": -208.03822857974444,
+      "max_drawdown": 0.34336950919818177,
+      "average_turnover": 0.4086848635235732,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 656
+      "nonzero_turnover_steps": 1146
     },
     "train_config": {
       "gross_target": 0.5,
-      "fast_ema_bars": 12,
-      "slow_ema_bars": 72,
-      "trend_ema_bars": 144,
+      "fast_ema_bars": 8,
+      "slow_ema_bars": 40,
+      "trend_ema_bars": 96,
       "top_k": 1,
-      "min_signal_strength": 0.0,
+      "min_signal_strength": 0.1,
       "use_trend_filter": true,
-      "volume_confirmation": 0.2,
-      "volatility_floor": 0.002
+      "volume_confirmation": 0.4,
+      "volatility_floor": 0.0001
     },
     "gate_failures": [
       "total_return_below_gate",
