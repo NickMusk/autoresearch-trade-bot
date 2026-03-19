@@ -28,11 +28,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T23:28:27.740870+00:00",
+  "latest_cycle_completed_at": "2026-03-19T23:29:52.271918+00:00",
   "last_processed_bar": "2026-03-19T23:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.7,
+  "generation_validity_rate": 0.8,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/mean_reversion/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-714db19b",
+      "mutation_label": "llm-bd9a24f1",
       "baseline_score": 5.978532905979206,
-      "candidate_score": 5.799344927905247,
+      "candidate_score": 5.977403523457509,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -92,6 +92,24 @@
       "rejection_reasons": []
     },
     {
+      "strategy_name": "llm-bd9a24f1",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 5.977404,
+      "metrics": {
+        "total_return": 2e-06,
+        "sharpe": 5.977397,
+        "max_drawdown": 0.0,
+        "average_turnover": 1e-06
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-5a9274c3",
       "params": {
         "decision": "discard_screen",
@@ -126,32 +144,14 @@
         "average_turnover": 0.0
       },
       "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-6df32c7a",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 5.801965,
-      "metrics": {
-        "total_return": 2e-06,
-        "sharpe": 5.801959,
-        "max_drawdown": 0.0,
-        "average_turnover": 1e-06
-      },
-      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-714db19b",
+    "mutation_label": "llm-bd9a24f1",
     "baseline_score": 5.978532905979206,
-    "candidate_score": 5.799344927905247,
+    "candidate_score": 5.977403523457509,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -160,15 +160,15 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v4c",
-    "research_score": 5.799344927905247,
+    "research_score": 5.977403523457509,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 1.7530355624906235e-06,
-      "sharpe": 5.799338470506665,
-      "max_drawdown": 3.616029443653801e-07,
-      "average_turnover": 8.613674521145062e-07,
+      "total_return": 1.8251874167596327e-06,
+      "sharpe": 5.977396729003868,
+      "max_drawdown": 3.652208064863771e-07,
+      "average_turnover": 8.70600215515813e-07,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 8
+      "nonzero_turnover_steps": 9
     },
     "train_config": {
       "gross_target": 0.4,
@@ -176,21 +176,21 @@
       "rsi_period": 14,
       "rsi_lower": 34.0,
       "rsi_upper": 66.0,
-      "band_std_mult": 1.78,
+      "band_std_mult": 1.68,
       "top_k": 1,
       "min_reversion_score": 0.282,
       "volatility_floor": 0.005,
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
       "volatility_scale_alpha": 0.6,
-      "persistence": 5,
+      "persistence": 4,
       "per_symbol_cap_fraction": 0.028,
       "weak_signal_microcap_fraction": 0.004,
-      "weak_rsi_support_min": 0.74,
+      "weak_rsi_support_min": 0.78,
       "market_scale_floor": 0.48,
-      "rsi_relax_max": 0.66,
+      "rsi_relax_max": 0.75,
       "volatility_penalty_exponent": 3.0,
-      "damping_exponent": 2.2
+      "damping_exponent": 2.0
     },
     "gate_failures": [],
     "provider_name": "llm",
