@@ -3,6 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
+    "Latest LLM candidate underperformed the baseline on the screen window.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate."
@@ -16,11 +17,11 @@
   },
   "baseline_metrics": {
     "total_return": -0.0,
-    "sharpe": -0.2161,
+    "sharpe": -0.2123,
     "max_drawdown": 0.0,
     "average_turnover": 0.0,
     "bars_processed": 2015,
-    "score": -0.2161
+    "score": -0.2123
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -30,7 +31,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T15:17:17.870493+00:00",
+  "latest_cycle_completed_at": "2026-03-19T15:19:21.728427+00:00",
   "last_processed_bar": "2026-03-19T15:15:00+00:00",
   "recent_acceptance_rate": 0.6,
   "evaluation_acceptance_rate": 0.6,
@@ -40,12 +41,12 @@
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "keep",
-      "stage": "full",
-      "mutation_label": "llm-6178cbc0",
-      "baseline_score": -0.2161404144026428,
-      "candidate_score": -0.2123295022847312,
-      "kept_commit": "9bc512c1ffa67f07fcb22c7c900c03fbb2baa7a1",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-7735468d",
+      "baseline_score": -0.2123295022847312,
+      "candidate_score": -30.712906157196077,
+      "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -55,8 +56,8 @@
         "acceptance_rate_below_gate"
       ]
     },
-    "baseline_strategy_name": "vol-breakout-v18-persistent-v1",
-    "baseline_score": -0.2161404144026428,
+    "baseline_strategy_name": "vol-breakout-v19-persistent-v1",
+    "baseline_score": -0.2123295022847312,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
   },
@@ -153,12 +154,12 @@
     }
   ],
   "latest_decision": {
-    "decision": "keep",
-    "stage": "full",
-    "mutation_label": "llm-6178cbc0",
-    "baseline_score": -0.2161404144026428,
-    "candidate_score": -0.2123295022847312,
-    "kept_commit": "9bc512c1ffa67f07fcb22c7c900c03fbb2baa7a1",
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-7735468d",
+    "baseline_score": -0.2123295022847312,
+    "candidate_score": -30.712906157196077,
+    "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
@@ -170,15 +171,15 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "vol-breakout-v19-persistent-v1",
-    "research_score": -0.2123295022847312,
+    "research_score": -30.712906157196077,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -1.7975079169563202e-07,
-      "sharpe": -0.21230219308406048,
-      "max_drawdown": 4.4126907234876e-06,
-      "average_turnover": 8.75968381827604e-06,
+      "total_return": -0.0010943094962729827,
+      "sharpe": -30.701662548357135,
+      "max_drawdown": 0.0011852412086502673,
+      "average_turnover": 0.0010310965229803455,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 2
+      "nonzero_turnover_steps": 279
     },
     "train_config": {
       "gross_target": 0.22,
@@ -190,7 +191,7 @@
       "min_breakout_score": 0.05,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.0015,
+      "fallback_scale": 0.006,
       "crowding_min_scale": 0.16,
       "min_atr_fraction": 0.0015
     },
@@ -203,17 +204,6 @@
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
   },
-  "current_best_strategy_name": "vol-breakout-v18-persistent-v1",
-  "latest_kept_summary": {
-    "strategy_name": "vol-breakout-v19-persistent-v1",
-    "baseline_strategy_name": "vol-breakout-v18-persistent-v1",
-    "score_delta": 0.003811,
-    "config_diff": [
-      {
-        "key": "fallback_scale",
-        "before": 0.002,
-        "after": 0.0015
-      }
-    ]
-  }
+  "current_best_strategy_name": "vol-breakout-v19-persistent-v1",
+  "latest_kept_summary": {}
 }
