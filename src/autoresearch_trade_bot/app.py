@@ -334,6 +334,7 @@ def render_dashboard(payload: dict) -> str:
           <li><code>latest_cycle_completed_at</code>: {html.escape(str(cycle_completed_label))}</li>
           <li><code>last_processed_bar</code>: {html.escape(str(processed_bar_label))}</li>
           <li><code>recent_acceptance_rate</code>: {html.escape(str(acceptance_rate_label))}</li>
+          <li><code>generation_validity_rate</code>: {html.escape(str(snapshot.get("generation_validity_rate", 0.0)))}</li>
           <li><code>consecutive_failures</code>: {html.escape(str(snapshot.get("consecutive_failures", 0)))}</li>
           <li><code>latest_decision</code>: {html.escape(str(latest_decision.get("decision", "n/a")))}</li>
           <li><code>latest_candidate_score</code>: {html.escape(str(latest_decision.get("candidate_score", "n/a")))}</li>

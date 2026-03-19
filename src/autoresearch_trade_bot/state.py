@@ -180,6 +180,8 @@ class ResearchStatusSnapshot:
     last_processed_bar: str | None
     recent_acceptance_rate: float
     consecutive_failures: int
+    evaluation_acceptance_rate: float = 0.0
+    generation_validity_rate: float = 0.0
     multi_window_summary: dict[str, Any] = field(default_factory=dict)
     leaderboard: list[dict[str, Any]] = field(default_factory=list)
     latest_decision: dict[str, Any] | None = None
@@ -203,6 +205,8 @@ class ResearchStatusSnapshot:
             "latest_cycle_completed_at": self.latest_cycle_completed_at,
             "last_processed_bar": self.last_processed_bar,
             "recent_acceptance_rate": self.recent_acceptance_rate,
+            "evaluation_acceptance_rate": self.evaluation_acceptance_rate,
+            "generation_validity_rate": self.generation_validity_rate,
             "consecutive_failures": self.consecutive_failures,
             "multi_window_summary": dict(self.multi_window_summary),
             "leaderboard": list(self.leaderboard),
@@ -231,6 +235,8 @@ class ResearchStatusSnapshot:
             latest_cycle_completed_at=payload.get("latest_cycle_completed_at"),
             last_processed_bar=payload.get("last_processed_bar"),
             recent_acceptance_rate=float(payload.get("recent_acceptance_rate", 0.0)),
+            evaluation_acceptance_rate=float(payload.get("evaluation_acceptance_rate", payload.get("recent_acceptance_rate", 0.0))),
+            generation_validity_rate=float(payload.get("generation_validity_rate", 0.0)),
             consecutive_failures=int(payload.get("consecutive_failures", 0)),
             multi_window_summary=dict(payload.get("multi_window_summary", {})),
             leaderboard=[dict(item) for item in payload.get("leaderboard", [])],

@@ -41,6 +41,7 @@ class LLMCycleResult:
     refreshed_campaign: bool
     decisions: list[dict[str, object]]
     recent_acceptance_rate: float
+    generation_validity_rate: float
     rollout_ready: bool
     baseline_report: dict[str, object]
     latest_report: dict[str, object]
@@ -269,6 +270,7 @@ class LLMAutoresearchWorker:
             strategy_name=str(latest_decision.mutation_label),
             params={
                 "decision": latest_decision.decision,
+                "failure_reason": latest_decision.report.failure_reason,
                 "provider_name": latest_decision.report.provider_name,
                 "model_name": latest_decision.report.model_name,
             },
@@ -279,7 +281,8 @@ class LLMAutoresearchWorker:
         )
         recent_history = (history + [summary])[-max(self.config.recent_results_limit, 10) :]
         self.state_store.save_history(recent_history)
-        recent_acceptance_rate = self._acceptance_rate(recent_history)
+        recent_acceptance_rate = self._evaluation_acceptance_rate(recent_history)
+        generation_validity_rate = self._generation_validity_rate(recent_history)
 
         report = latest_decision.report
         baseline_report = latest_decision.baseline_report
@@ -314,6 +317,7 @@ class LLMAutoresearchWorker:
                 }
             ],
             recent_acceptance_rate=recent_acceptance_rate,
+            generation_validity_rate=generation_validity_rate,
             rollout_ready=rollout_ready,
             baseline_report={
                 "strategy_name": baseline_report.strategy_name,
@@ -413,6 +417,8 @@ class LLMAutoresearchWorker:
             latest_cycle_completed_at=cycle_result.completed_at.isoformat(),
             last_processed_bar=cycle_result.latest_closed_bar.isoformat(),
             recent_acceptance_rate=cycle_result.recent_acceptance_rate,
+            evaluation_acceptance_rate=cycle_result.recent_acceptance_rate,
+            generation_validity_rate=cycle_result.generation_validity_rate,
             consecutive_failures=checkpoint.consecutive_failures,
             multi_window_summary={
                 "campaign_path": cycle_result.campaign_path,
@@ -492,6 +498,12 @@ class LLMAutoresearchWorker:
         recent_acceptance_rate = (
             previous_snapshot.recent_acceptance_rate if previous_snapshot is not None else 0.0
         )
+        evaluation_acceptance_rate = (
+            previous_snapshot.evaluation_acceptance_rate if previous_snapshot is not None else recent_acceptance_rate
+        )
+        generation_validity_rate = (
+            previous_snapshot.generation_validity_rate if previous_snapshot is not None else 0.0
+        )
         multi_window_summary = (
             dict(previous_snapshot.multi_window_summary)
             if previous_snapshot is not None
@@ -538,6 +550,8 @@ class LLMAutoresearchWorker:
             latest_cycle_completed_at=latest_cycle_completed_at,
             last_processed_bar=last_processed_bar,
             recent_acceptance_rate=recent_acceptance_rate,
+            evaluation_acceptance_rate=evaluation_acceptance_rate,
+            generation_validity_rate=generation_validity_rate,
             consecutive_failures=checkpoint.consecutive_failures,
             multi_window_summary=multi_window_summary,
             leaderboard=leaderboard,
@@ -619,11 +633,27 @@ class LLMAutoresearchWorker:
         return sorted(scored_rows, key=lambda item: item["score"], reverse=True)[:5]
 
     @staticmethod
-    def _acceptance_rate(history: Sequence[CycleSummary]) -> float:
+    def _evaluation_acceptance_rate(history: Sequence[CycleSummary]) -> float:
+        evaluated = [
+            item
+            for item in history
+            if str(item.params.get("decision", "")) in {"keep", "discard_screen", "discard_full"}
+        ]
+        if not evaluated:
+            return 0.0
+        accepted = sum(1 for item in evaluated if item.accepted)
+        return accepted / len(evaluated)
+
+    @staticmethod
+    def _generation_validity_rate(history: Sequence[CycleSummary]) -> float:
         if not history:
             return 0.0
-        accepted = sum(1 for item in history if item.accepted)
-        return accepted / len(history)
+        valid = sum(
+            1
+            for item in history
+            if str(item.params.get("decision", "")) != "discard_error"
+        )
+        return valid / len(history)
 
     @staticmethod
     def _normalize_failure_message(exc: Exception) -> str:

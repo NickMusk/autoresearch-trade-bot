@@ -195,12 +195,23 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             assert snapshot is not None
             self.assertEqual(snapshot.phase, "LLM autoresearch worker active")
             self.assertEqual(snapshot.loop_state, "searching")
+            self.assertEqual(snapshot.evaluation_acceptance_rate, 0.0)
+            self.assertEqual(snapshot.generation_validity_rate, 1.0)
             self.assertEqual(snapshot.latest_dataset_id, campaign_calls[0])
             self.assertEqual(snapshot.multi_window_summary["latest_decision"]["decision"], "discard_screen")
             self.assertEqual(snapshot.latest_decision["decision"], "discard_screen")
             self.assertEqual(snapshot.current_best_strategy_name, "baseline-train-head")
             history = FilesystemResearchStateStore(config.state_root).load_history()
             self.assertEqual(len(history), 1)
+
+    def test_acceptance_rate_ignores_validation_errors_but_tracks_generation_validity(self) -> None:
+        history = [
+            SimpleNamespace(accepted=False, params={"decision": "discard_error"}),
+            SimpleNamespace(accepted=False, params={"decision": "discard_screen"}),
+            SimpleNamespace(accepted=True, params={"decision": "keep"}),
+        ]
+        self.assertEqual(LLMAutoresearchWorker._evaluation_acceptance_rate(history), 0.5)
+        self.assertEqual(LLMAutoresearchWorker._generation_validity_rate(history), 2 / 3)
 
     def test_run_forever_in_continuous_mode_still_respects_failure_cooldown(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
