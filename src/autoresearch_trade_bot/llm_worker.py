@@ -148,12 +148,16 @@ class LLMAutoresearchWorker:
         return datetime.fromtimestamp(floored_seconds, tz=timezone.utc)
 
     def _is_cycle_due(self, now: datetime, checkpoint: LLMWorkerCheckpoint) -> bool:
+        if self.config.cycle_interval_seconds <= 0:
+            return True
         if checkpoint.last_cycle_completed_at is None:
             return True
         elapsed = now - checkpoint.last_cycle_completed_at
         return elapsed.total_seconds() >= self.config.cycle_interval_seconds
 
     def _seconds_until_next_cycle(self, now: datetime, checkpoint: LLMWorkerCheckpoint) -> float:
+        if self.config.cycle_interval_seconds <= 0:
+            return 0.0
         if checkpoint.last_cycle_completed_at is None:
             return 1.0
         next_due = checkpoint.last_cycle_completed_at + timedelta(

@@ -87,6 +87,45 @@ def make_fake_decision(
 
 
 class LLMAutoresearchWorkerTests(unittest.TestCase):
+    def test_zero_cycle_interval_is_treated_as_continuous_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                cycle_interval_seconds=0,
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                llm_runner=lambda **_kwargs: [make_fake_decision()],
+                campaign_preparer=lambda **kwargs: Path(kwargs["campaigns_root"]) / "campaign.json",
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            checkpoint = worker.state_store.load_llm_checkpoint()
+            due = worker._is_cycle_due(datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc), checkpoint)
+            self.assertTrue(due)
+            self.assertEqual(
+                worker._seconds_until_next_cycle(
+                    datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                    checkpoint,
+                ),
+                0.0,
+            )
+
     def test_run_cycle_creates_campaign_status_and_history(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             temp_path = Path(tempdir)
@@ -150,6 +189,62 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertEqual(snapshot.current_best_strategy_name, "baseline-train-head")
             history = FilesystemResearchStateStore(config.state_root).load_history()
             self.assertEqual(len(history), 1)
+
+    def test_run_forever_in_continuous_mode_still_respects_failure_cooldown(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            sleep_calls: list[float] = []
+            run_calls = {"count": 0}
+
+            def fake_runner(**_kwargs):
+                run_calls["count"] += 1
+                if run_calls["count"] == 1:
+                    raise RuntimeError("openai_timeout")
+                return [make_fake_decision()]
+
+            def fake_prepare_campaign(**kwargs):
+                campaign_path = Path(kwargs["campaigns_root"]) / "campaign.json"
+                campaign_path.parent.mkdir(parents=True, exist_ok=True)
+                campaign_path.write_text("{}", encoding="utf-8")
+                Path(kwargs["active_pointer_path"]).write_text(
+                    str(campaign_path.resolve()),
+                    encoding="utf-8",
+                )
+                return campaign_path
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                cycle_interval_seconds=0,
+                timeout_failure_cooldown_seconds=180,
+                max_cycles=1,
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                llm_runner=fake_runner,
+                campaign_preparer=fake_prepare_campaign,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda seconds: sleep_calls.append(seconds),
+            )
+            worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+
+            worker.run_forever()
+
+            self.assertEqual(run_calls["count"], 1)
+            self.assertEqual(sleep_calls, [180.0])
 
     def test_success_snapshot_uses_baseline_report_metrics_not_latest_candidate_metrics(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
