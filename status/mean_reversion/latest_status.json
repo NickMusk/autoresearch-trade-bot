@@ -32,9 +32,9 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T07:02:41.480857+00:00",
+  "latest_cycle_completed_at": "2026-03-19T07:04:22.402778+00:00",
   "last_processed_bar": "2026-03-19T07:00:00+00:00",
-  "recent_acceptance_rate": 0.1,
+  "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/mean_reversion/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -42,7 +42,7 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-aebc5411",
+      "mutation_label": "llm-7b10cb6c",
       "baseline_score": -8.242246292579248,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -155,7 +155,7 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-aebc5411",
+    "mutation_label": "llm-7b10cb6c",
     "baseline_score": -8.242246292579248,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -169,7 +169,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v4-reversion-trigger",
+    "strategy_name": "mean-reversion-bbands-rsi-v4-adaptive-volscale-v2",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -181,19 +181,19 @@
       "nonzero_turnover_steps": 0
     },
     "train_config": {
-      "gross_target": 0.36,
-      "lookback_bars": 24,
+      "gross_target": 0.38,
+      "lookback_bars": 28,
       "rsi_period": 14,
       "rsi_lower": 40.0,
       "rsi_upper": 60.0,
-      "band_std_mult": 1.9,
+      "band_std_mult": 1.95,
       "top_k": 1,
-      "min_reversion_score": 0.42,
-      "volatility_floor": 0.002,
+      "min_reversion_score": 0.38,
+      "volatility_floor": 0.003,
       "use_trend_filter": true,
-      "trend_lookback_bars": 48,
-      "volatility_scale_alpha": 0.6,
-      "persistence": 2,
+      "trend_lookback_bars": 72,
+      "volatility_scale_alpha": 0.75,
+      "persistence": 3,
       "per_symbol_cap_fraction": 0.28
     },
     "gate_failures": [
