@@ -18,9 +18,9 @@
     "total_return": -0.0003,
     "sharpe": -10.2056,
     "max_drawdown": 0.0003,
-    "average_turnover": 0.0004,
+    "average_turnover": 0.0003,
     "bars_processed": 2015,
-    "score": -10.209
+    "score": -10.2087
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -30,9 +30,9 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T09:53:09.203826+00:00",
+  "latest_cycle_completed_at": "2026-03-19T09:53:53.990401+00:00",
   "last_processed_bar": "2026-03-19T09:50:00+00:00",
-  "recent_acceptance_rate": 0.3,
+  "recent_acceptance_rate": 0.4,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,10 +40,10 @@
     "latest_decision": {
       "decision": "keep",
       "stage": "full",
-      "mutation_label": "llm-6ba3ceb8",
-      "baseline_score": -10.209039707886529,
-      "candidate_score": -10.208658000673475,
-      "kept_commit": "5c3c0f2998b7407cff0198aa7229557c1e39da55",
+      "mutation_label": "llm-c5798b88",
+      "baseline_score": -10.208658000673475,
+      "candidate_score": -10.20804725564919,
+      "kept_commit": "caaa667be84cfbb8c9a84e33788cd37aa0f2cee0",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -53,49 +53,13 @@
         "acceptance_rate_below_gate"
       ]
     },
-    "baseline_strategy_name": "vol-breakout-donchian-v3",
-    "baseline_score": -10.209039707886529,
+    "baseline_strategy_name": "vol-breakout-donchian-v4",
+    "baseline_score": -10.208658000673475,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
   },
   "leaderboard": [
     {
-      "strategy_name": "llm-5e1012fe",
-      "params": {
-        "decision": "discard_full",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-91f5abf6",
-      "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
-    {
       "strategy_name": "llm-91f5abf6",
       "params": {
         "decision": "discard_full",
@@ -133,6 +97,42 @@
     },
     {
       "strategy_name": "llm-42dc72db",
+      "params": {
+        "decision": "discard_full",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-c731306f",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-c731306f",
       "params": {
         "decision": "discard_full",
         "provider_name": "llm",
@@ -153,10 +153,10 @@
   "latest_decision": {
     "decision": "keep",
     "stage": "full",
-    "mutation_label": "llm-6ba3ceb8",
-    "baseline_score": -10.209039707886529,
-    "candidate_score": -10.208658000673475,
-    "kept_commit": "5c3c0f2998b7407cff0198aa7229557c1e39da55",
+    "mutation_label": "llm-c5798b88",
+    "baseline_score": -10.208658000673475,
+    "candidate_score": -10.20804725564919,
+    "kept_commit": "caaa667be84cfbb8c9a84e33788cd37aa0f2cee0",
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
@@ -167,14 +167,14 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-donchian-v4",
-    "research_score": -10.208658000673475,
+    "strategy_name": "vol-breakout-donchian-v5-crowd",
+    "research_score": -10.20804725564919,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.000304030356104823,
-      "sharpe": -10.205604109602527,
-      "max_drawdown": 0.000304030356104823,
-      "average_turnover": 0.0003176178660049628,
+      "total_return": -0.0002432279726510833,
+      "sharpe": -10.205604109602525,
+      "max_drawdown": 0.0002432279726510833,
+      "average_turnover": 0.0002540942928039702,
       "bars_processed": 2015,
       "nonzero_turnover_steps": 2
     },
@@ -187,7 +187,9 @@
       "top_k": 1,
       "min_breakout_score": 0.07,
       "use_trend_filter": true,
-      "trend_lookback_bars": 42
+      "trend_lookback_bars": 42,
+      "fallback_scale": 0.6,
+      "crowding_min_scale": 0.6
     },
     "gate_failures": [
       "total_return_below_gate",
@@ -198,26 +200,21 @@
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
   },
-  "current_best_strategy_name": "vol-breakout-donchian-v3",
+  "current_best_strategy_name": "vol-breakout-donchian-v4",
   "latest_kept_summary": {
-    "strategy_name": "vol-breakout-donchian-v4",
-    "baseline_strategy_name": "vol-breakout-donchian-v3",
-    "score_delta": 0.000382,
+    "strategy_name": "vol-breakout-donchian-v5-crowd",
+    "baseline_strategy_name": "vol-breakout-donchian-v4",
+    "score_delta": 0.000611,
     "config_diff": [
       {
-        "key": "atr_multiplier",
-        "before": 1.2,
-        "after": 1.15
+        "key": "crowding_min_scale",
+        "before": null,
+        "after": 0.6
       },
       {
-        "key": "gross_target",
-        "before": 0.36,
-        "after": 0.32
-      },
-      {
-        "key": "min_breakout_score",
-        "before": 0.06,
-        "after": 0.07
+        "key": "fallback_scale",
+        "before": null,
+        "after": 0.6
       }
     ]
   }
