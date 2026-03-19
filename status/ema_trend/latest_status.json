@@ -15,12 +15,12 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": -0.004,
-    "sharpe": -17.8985,
-    "max_drawdown": 0.0041,
-    "average_turnover": 0.0034,
+    "total_return": -0.0027,
+    "sharpe": -13.0492,
+    "max_drawdown": 0.0027,
+    "average_turnover": 0.0021,
     "bars_processed": 2015,
-    "score": -17.9382
+    "score": -13.0754
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -30,7 +30,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T07:05:50.065842+00:00",
+  "latest_cycle_completed_at": "2026-03-19T07:07:29.308676+00:00",
   "last_processed_bar": "2026-03-19T07:05:00+00:00",
   "recent_acceptance_rate": 0.8,
   "consecutive_failures": 0,
@@ -40,10 +40,10 @@
     "latest_decision": {
       "decision": "keep",
       "stage": "full",
-      "mutation_label": "llm-ae0ad4ea",
-      "baseline_score": -17.938230598353876,
-      "candidate_score": -13.075350773875691,
-      "kept_commit": "faa8619585f17fdc83d3f20543dcbf72f41eab3e",
+      "mutation_label": "llm-d70d975b",
+      "baseline_score": -13.075350773875691,
+      "candidate_score": -11.824961402609068,
+      "kept_commit": "487dee063853b493c796976dac9699f7c1b19517",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -53,13 +53,49 @@
         "acceptance_rate_below_gate"
       ]
     },
-    "baseline_strategy_name": "ema-trend-stable-v5",
-    "baseline_score": -17.938230598353876,
+    "baseline_strategy_name": "ema-trend-stable-v6",
+    "baseline_score": -13.075350773875691,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
   },
   "leaderboard": [
     {
+      "strategy_name": "llm-d70d975b",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -11.824961,
+      "metrics": {
+        "total_return": -0.001827,
+        "sharpe": -11.807019,
+        "max_drawdown": 0.001828,
+        "average_turnover": 0.001494
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-d70d975b",
+      "params": {
+        "decision": "keep",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": true,
+      "score": -11.824961,
+      "metrics": {
+        "total_return": -0.001827,
+        "sharpe": -11.807019,
+        "max_drawdown": 0.001828,
+        "average_turnover": 0.001494
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-ae0ad4ea",
       "params": {
         "decision": "screen_pass",
@@ -110,42 +146,6 @@
         "sharpe": -17.898516,
         "max_drawdown": 0.004061,
         "average_turnover": 0.003443
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-2da74c46",
-      "params": {
-        "decision": "keep",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": true,
-      "score": -17.938231,
-      "metrics": {
-        "total_return": -0.004006,
-        "sharpe": -17.898516,
-        "max_drawdown": 0.004061,
-        "average_turnover": 0.003443
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-355495e8",
-      "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -31.260705,
-      "metrics": {
-        "total_return": -0.004769,
-        "sharpe": -31.214565,
-        "max_drawdown": 0.004769,
-        "average_turnover": 0.003217
       },
       "rejection_reasons": []
     }
@@ -153,10 +153,10 @@
   "latest_decision": {
     "decision": "keep",
     "stage": "full",
-    "mutation_label": "llm-ae0ad4ea",
-    "baseline_score": -17.938230598353876,
-    "candidate_score": -13.075350773875691,
-    "kept_commit": "faa8619585f17fdc83d3f20543dcbf72f41eab3e",
+    "mutation_label": "llm-d70d975b",
+    "baseline_score": -13.075350773875691,
+    "candidate_score": -11.824961402609068,
+    "kept_commit": "487dee063853b493c796976dac9699f7c1b19517",
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
@@ -167,30 +167,30 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-stable-v6",
-    "research_score": -13.075350773875691,
+    "strategy_name": "ema-trend-disp-v1",
+    "research_score": -11.824961402609068,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.002671583400169597,
-      "sharpe": -13.049220666909886,
-      "max_drawdown": 0.0026717547630403793,
-      "average_turnover": 0.002085170912795643,
+      "total_return": -0.0018273442804136453,
+      "sharpe": -11.807019127839013,
+      "max_drawdown": 0.0018278035089186462,
+      "average_turnover": 0.0014943393323126046,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 857
+      "nonzero_turnover_steps": 823
     },
     "train_config": {
-      "gross_target": 0.5,
+      "gross_target": 0.45,
       "fast_ema_bars": 6,
       "slow_ema_bars": 36,
       "trend_ema_bars": 160,
       "top_k": 2,
-      "min_signal_strength": 0.14,
+      "min_signal_strength": 0.15,
       "use_trend_filter": true,
       "volume_confirmation": 0.35,
       "volatility_floor": 0.002,
-      "smoothing_alpha": 0.12,
-      "per_symbol_cap_ratio": 0.45,
-      "signal_exponent": 1.6
+      "smoothing_alpha": 0.08,
+      "per_symbol_cap_ratio": 0.4,
+      "signal_exponent": 1.9
     },
     "gate_failures": [
       "total_return_below_gate",
@@ -201,31 +201,36 @@
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
   },
-  "current_best_strategy_name": "ema-trend-stable-v5",
+  "current_best_strategy_name": "ema-trend-stable-v6",
   "latest_kept_summary": {
-    "strategy_name": "ema-trend-stable-v6",
-    "baseline_strategy_name": "ema-trend-stable-v5",
-    "score_delta": 4.86288,
+    "strategy_name": "ema-trend-disp-v1",
+    "baseline_strategy_name": "ema-trend-stable-v6",
+    "score_delta": 1.250389,
     "config_diff": [
       {
-        "key": "min_signal_strength",
-        "before": 0.13,
-        "after": 0.14
-      },
-      {
-        "key": "per_symbol_cap_ratio",
+        "key": "gross_target",
         "before": 0.5,
         "after": 0.45
       },
       {
+        "key": "min_signal_strength",
+        "before": 0.14,
+        "after": 0.15
+      },
+      {
+        "key": "per_symbol_cap_ratio",
+        "before": 0.45,
+        "after": 0.4
+      },
+      {
         "key": "signal_exponent",
-        "before": 1.4,
-        "after": 1.6
+        "before": 1.6,
+        "after": 1.9
       },
       {
         "key": "smoothing_alpha",
-        "before": 0.2,
-        "after": 0.12
+        "before": 0.12,
+        "after": 0.08
       }
     ]
   }
