@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -8,7 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from autoresearch_trade_bot.config import DataConfig, LLMWorkerConfig, ResearchTargetGate
-from autoresearch_trade_bot.llm_worker import LLMAutoresearchWorker
+from autoresearch_trade_bot.llm_worker import LLMAutoresearchWorker, publisher_from_env
 from autoresearch_trade_bot.state import FilesystemResearchStateStore
 
 
@@ -87,6 +89,16 @@ def make_fake_decision(
 
 
 class LLMAutoresearchWorkerTests(unittest.TestCase):
+    def _git(self, cwd: Path, *args: str) -> str:
+        completed = subprocess.run(
+            ["git", *args],
+            cwd=cwd,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return completed.stdout.strip()
+
     def test_zero_cycle_interval_is_treated_as_continuous_mode(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             temp_path = Path(tempdir)
@@ -856,6 +868,93 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertIsNotNone(stored_snapshot)
             assert stored_snapshot is not None
             self.assertIn("GitHub status publish timed out", stored_snapshot.research_blockers[0])
+
+    def test_ensure_repo_ready_seeds_configured_family_branch(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            workspace = Path(tempdir)
+            source_repo = workspace / "source"
+            source_repo.mkdir()
+            self._git(source_repo, "init")
+            self._git(source_repo, "config", "user.email", "bot@example.com")
+            self._git(source_repo, "config", "user.name", "Bot")
+            (source_repo / "train.py").write_text(
+                "\n".join(
+                    [
+                        "from __future__ import annotations",
+                        "TRAIN_CONFIG = {'lookback_bars': 24, 'top_k': 1, 'gross_target': 0.5}",
+                        'STRATEGY_NAME = "baseline"',
+                        'STRATEGY_FAMILY = "momentum"',
+                        "",
+                        "def build_strategy(_dataset_spec=None):",
+                        "    return None",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            self._git(source_repo, "add", "train.py")
+            self._git(source_repo, "commit", "-m", "Initial baseline")
+            self._git(source_repo, "branch", "-M", "main")
+
+            config = LLMWorkerConfig(
+                repo_url=str(source_repo),
+                repo_root=str(workspace / "repo"),
+                branch_name="codex/family-mean-reversion",
+                strategy_family="mean_reversion",
+                campaigns_root=str(workspace / "campaigns"),
+                active_campaign_path=str(workspace / "active_campaign.txt"),
+                worktrees_root=str(workspace / "worktrees"),
+                state_root=str(workspace / "state"),
+                artifact_root=str(workspace / "artifacts"),
+                results_path=str(workspace / "results.tsv"),
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(workspace / "data"),
+                ),
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                llm_runner=lambda **_kwargs: [make_fake_decision()],
+                campaign_preparer=lambda **kwargs: Path(kwargs["campaigns_root"]) / "campaign.json",
+            )
+
+            worker._ensure_repo_ready()
+
+            repo_root = Path(config.repo_root)
+            self.assertEqual(self._git(repo_root, "branch", "--show-current"), "main")
+            self._git(repo_root, "checkout", config.branch_name)
+            train_text = (repo_root / "train.py").read_text(encoding="utf-8")
+            self.assertIn('STRATEGY_FAMILY = "mean_reversion"', train_text)
+
+    def test_publisher_from_env_uses_family_specific_status_namespace(self) -> None:
+        previous = {
+            key: os.environ.get(key)
+            for key in (
+                "GITHUB_TOKEN",
+                "AUTORESEARCH_STATUS_GITHUB_REPO",
+                "AUTORESEARCH_STATUS_GITHUB_BRANCH",
+                "AUTORESEARCH_STATUS_GITHUB_PATH",
+            )
+        }
+        os.environ["GITHUB_TOKEN"] = "token"
+        os.environ["AUTORESEARCH_STATUS_GITHUB_REPO"] = "NickMusk/autoresearch-trade-bot"
+        os.environ["AUTORESEARCH_STATUS_GITHUB_BRANCH"] = "render-state"
+        os.environ["AUTORESEARCH_STATUS_GITHUB_PATH"] = "status/ema_trend"
+        try:
+            publisher = publisher_from_env()
+        finally:
+            for key, value in previous.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+
+        self.assertIsNotNone(publisher)
+        assert publisher is not None
+        self.assertEqual(publisher.base_path, "status/ema_trend")
 
 
 if __name__ == "__main__":

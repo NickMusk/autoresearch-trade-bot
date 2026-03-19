@@ -8,7 +8,9 @@ services:
     healthCheckPath: /health
     envVars:
       - key: AUTORESEARCH_STATUS_URL
-        sync: false
+        value: https://raw.githubusercontent.com/NickMusk/autoresearch-trade-bot/render-state/status/main/latest_status.json
+      - key: AUTORESEARCH_FAMILY_STATUS_URL_TEMPLATE
+        value: https://raw.githubusercontent.com/NickMusk/autoresearch-trade-bot/render-state/status/{family_id}/latest_status.json
   - type: worker
     name: autoresearch-trade-bot-llm-worker
     runtime: python
@@ -37,6 +39,8 @@ services:
         value: https://github.com/NickMusk/autoresearch-trade-bot.git
       - key: AUTORESEARCH_LLM_BRANCH_NAME
         value: codex/autoresearch-crypto
+      - key: AUTORESEARCH_STRATEGY_FAMILY
+        value: momentum
       - key: AUTORESEARCH_LLM_MODEL_NAME
         value: gpt-5-mini
       - key: AUTORESEARCH_LLM_CYCLE_INTERVAL_SECONDS
@@ -80,12 +84,258 @@ services:
       - key: AUTORESEARCH_STATUS_GITHUB_BRANCH
         value: render-state
       - key: AUTORESEARCH_STATUS_GITHUB_PATH
-        value: status
+        value: status/main
       - key: GITHUB_TOKEN
         sync: false
       - key: OPENAI_API_KEY
         sync: false
     disk:
       name: autoresearch-trade-bot-llm-worker-disk
+      mountPath: /var/data
+      sizeGB: 5
+  - type: worker
+    name: autoresearch-trade-bot-mean-reversion-worker
+    runtime: python
+    plan: starter
+    region: frankfurt
+    buildCommand: pip install '.[data]'
+    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.llm_worker
+    envVars:
+      - key: AUTORESEARCH_LLM_DATA_ROOT
+        value: /var/data/autoresearch/mean_reversion/data
+      - key: AUTORESEARCH_LLM_STATE_ROOT
+        value: /var/data/autoresearch/mean_reversion/state
+      - key: AUTORESEARCH_LLM_ARTIFACT_ROOT
+        value: /var/data/autoresearch/mean_reversion/artifacts
+      - key: AUTORESEARCH_LLM_REPO_ROOT
+        value: /var/data/autoresearch/mean_reversion/repo
+      - key: AUTORESEARCH_LLM_CAMPAIGNS_ROOT
+        value: /var/data/autoresearch/mean_reversion/campaigns
+      - key: AUTORESEARCH_LLM_ACTIVE_CAMPAIGN_PATH
+        value: /var/data/autoresearch/mean_reversion/active_campaign.txt
+      - key: AUTORESEARCH_LLM_WORKTREES_ROOT
+        value: /var/data/autoresearch/mean_reversion/worktrees
+      - key: AUTORESEARCH_LLM_RESULTS_PATH
+        value: /var/data/autoresearch/mean_reversion/results.tsv
+      - key: AUTORESEARCH_LLM_REPO_URL
+        value: https://github.com/NickMusk/autoresearch-trade-bot.git
+      - key: AUTORESEARCH_LLM_BRANCH_NAME
+        value: codex/family-mean-reversion
+      - key: AUTORESEARCH_STRATEGY_FAMILY
+        value: mean_reversion
+      - key: AUTORESEARCH_LLM_MODEL_NAME
+        value: gpt-5-mini
+      - key: AUTORESEARCH_LLM_CYCLE_INTERVAL_SECONDS
+        value: "0"
+      - key: AUTORESEARCH_LLM_CAMPAIGN_REFRESH_INTERVAL_SECONDS
+        value: "86400"
+      - key: AUTORESEARCH_LLM_FAILURE_COOLDOWN_SECONDS
+        value: "900"
+      - key: AUTORESEARCH_LLM_TIMEOUT_FAILURE_COOLDOWN_SECONDS
+        value: "180"
+      - key: AUTORESEARCH_LLM_OPENAI_TIMEOUT_SECONDS
+        value: "120"
+      - key: AUTORESEARCH_LLM_OPENAI_MAX_RETRIES
+        value: "3"
+      - key: AUTORESEARCH_LLM_OPENAI_RETRY_BACKOFF_SECONDS
+        value: "2.0"
+      - key: AUTORESEARCH_LLM_MAX_MUTATIONS_PER_CYCLE
+        value: "1"
+      - key: AUTORESEARCH_LLM_RECENT_RESULTS_LIMIT
+        value: "5"
+      - key: AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS
+        value: "7"
+      - key: AUTORESEARCH_LLM_CAMPAIGN_WINDOW_COUNT
+        value: "1"
+      - key: AUTORESEARCH_SYMBOLS
+        value: BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT
+      - key: AUTORESEARCH_EXCHANGE
+        value: bybit
+      - key: AUTORESEARCH_MARKET
+        value: linear
+      - key: AUTORESEARCH_TIMEFRAME
+        value: 5m
+      - key: AUTORESEARCH_TARGET_MIN_SHARPE
+        value: "1.0"
+      - key: AUTORESEARCH_TARGET_MAX_DRAWDOWN
+        value: "0.20"
+      - key: AUTORESEARCH_TARGET_MIN_ACCEPTANCE_RATE
+        value: "0.60"
+      - key: AUTORESEARCH_STATUS_GITHUB_REPO
+        value: NickMusk/autoresearch-trade-bot
+      - key: AUTORESEARCH_STATUS_GITHUB_BRANCH
+        value: render-state
+      - key: AUTORESEARCH_STATUS_GITHUB_PATH
+        value: status/mean_reversion
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+    disk:
+      name: autoresearch-trade-bot-mean-reversion-worker-disk
+      mountPath: /var/data
+      sizeGB: 5
+  - type: worker
+    name: autoresearch-trade-bot-ema-trend-worker
+    runtime: python
+    plan: starter
+    region: frankfurt
+    buildCommand: pip install '.[data]'
+    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.llm_worker
+    envVars:
+      - key: AUTORESEARCH_LLM_DATA_ROOT
+        value: /var/data/autoresearch/ema_trend/data
+      - key: AUTORESEARCH_LLM_STATE_ROOT
+        value: /var/data/autoresearch/ema_trend/state
+      - key: AUTORESEARCH_LLM_ARTIFACT_ROOT
+        value: /var/data/autoresearch/ema_trend/artifacts
+      - key: AUTORESEARCH_LLM_REPO_ROOT
+        value: /var/data/autoresearch/ema_trend/repo
+      - key: AUTORESEARCH_LLM_CAMPAIGNS_ROOT
+        value: /var/data/autoresearch/ema_trend/campaigns
+      - key: AUTORESEARCH_LLM_ACTIVE_CAMPAIGN_PATH
+        value: /var/data/autoresearch/ema_trend/active_campaign.txt
+      - key: AUTORESEARCH_LLM_WORKTREES_ROOT
+        value: /var/data/autoresearch/ema_trend/worktrees
+      - key: AUTORESEARCH_LLM_RESULTS_PATH
+        value: /var/data/autoresearch/ema_trend/results.tsv
+      - key: AUTORESEARCH_LLM_REPO_URL
+        value: https://github.com/NickMusk/autoresearch-trade-bot.git
+      - key: AUTORESEARCH_LLM_BRANCH_NAME
+        value: codex/family-ema-trend
+      - key: AUTORESEARCH_STRATEGY_FAMILY
+        value: ema_trend
+      - key: AUTORESEARCH_LLM_MODEL_NAME
+        value: gpt-5-mini
+      - key: AUTORESEARCH_LLM_CYCLE_INTERVAL_SECONDS
+        value: "0"
+      - key: AUTORESEARCH_LLM_CAMPAIGN_REFRESH_INTERVAL_SECONDS
+        value: "86400"
+      - key: AUTORESEARCH_LLM_FAILURE_COOLDOWN_SECONDS
+        value: "900"
+      - key: AUTORESEARCH_LLM_TIMEOUT_FAILURE_COOLDOWN_SECONDS
+        value: "180"
+      - key: AUTORESEARCH_LLM_OPENAI_TIMEOUT_SECONDS
+        value: "120"
+      - key: AUTORESEARCH_LLM_OPENAI_MAX_RETRIES
+        value: "3"
+      - key: AUTORESEARCH_LLM_OPENAI_RETRY_BACKOFF_SECONDS
+        value: "2.0"
+      - key: AUTORESEARCH_LLM_MAX_MUTATIONS_PER_CYCLE
+        value: "1"
+      - key: AUTORESEARCH_LLM_RECENT_RESULTS_LIMIT
+        value: "5"
+      - key: AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS
+        value: "7"
+      - key: AUTORESEARCH_LLM_CAMPAIGN_WINDOW_COUNT
+        value: "1"
+      - key: AUTORESEARCH_SYMBOLS
+        value: BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT
+      - key: AUTORESEARCH_EXCHANGE
+        value: bybit
+      - key: AUTORESEARCH_MARKET
+        value: linear
+      - key: AUTORESEARCH_TIMEFRAME
+        value: 5m
+      - key: AUTORESEARCH_TARGET_MIN_SHARPE
+        value: "1.0"
+      - key: AUTORESEARCH_TARGET_MAX_DRAWDOWN
+        value: "0.20"
+      - key: AUTORESEARCH_TARGET_MIN_ACCEPTANCE_RATE
+        value: "0.60"
+      - key: AUTORESEARCH_STATUS_GITHUB_REPO
+        value: NickMusk/autoresearch-trade-bot
+      - key: AUTORESEARCH_STATUS_GITHUB_BRANCH
+        value: render-state
+      - key: AUTORESEARCH_STATUS_GITHUB_PATH
+        value: status/ema_trend
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+    disk:
+      name: autoresearch-trade-bot-ema-trend-worker-disk
+      mountPath: /var/data
+      sizeGB: 5
+  - type: worker
+    name: autoresearch-trade-bot-volatility-breakout-worker
+    runtime: python
+    plan: starter
+    region: frankfurt
+    buildCommand: pip install '.[data]'
+    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.llm_worker
+    envVars:
+      - key: AUTORESEARCH_LLM_DATA_ROOT
+        value: /var/data/autoresearch/volatility_breakout/data
+      - key: AUTORESEARCH_LLM_STATE_ROOT
+        value: /var/data/autoresearch/volatility_breakout/state
+      - key: AUTORESEARCH_LLM_ARTIFACT_ROOT
+        value: /var/data/autoresearch/volatility_breakout/artifacts
+      - key: AUTORESEARCH_LLM_REPO_ROOT
+        value: /var/data/autoresearch/volatility_breakout/repo
+      - key: AUTORESEARCH_LLM_CAMPAIGNS_ROOT
+        value: /var/data/autoresearch/volatility_breakout/campaigns
+      - key: AUTORESEARCH_LLM_ACTIVE_CAMPAIGN_PATH
+        value: /var/data/autoresearch/volatility_breakout/active_campaign.txt
+      - key: AUTORESEARCH_LLM_WORKTREES_ROOT
+        value: /var/data/autoresearch/volatility_breakout/worktrees
+      - key: AUTORESEARCH_LLM_RESULTS_PATH
+        value: /var/data/autoresearch/volatility_breakout/results.tsv
+      - key: AUTORESEARCH_LLM_REPO_URL
+        value: https://github.com/NickMusk/autoresearch-trade-bot.git
+      - key: AUTORESEARCH_LLM_BRANCH_NAME
+        value: codex/family-volatility-breakout
+      - key: AUTORESEARCH_STRATEGY_FAMILY
+        value: volatility_breakout
+      - key: AUTORESEARCH_LLM_MODEL_NAME
+        value: gpt-5-mini
+      - key: AUTORESEARCH_LLM_CYCLE_INTERVAL_SECONDS
+        value: "0"
+      - key: AUTORESEARCH_LLM_CAMPAIGN_REFRESH_INTERVAL_SECONDS
+        value: "86400"
+      - key: AUTORESEARCH_LLM_FAILURE_COOLDOWN_SECONDS
+        value: "900"
+      - key: AUTORESEARCH_LLM_TIMEOUT_FAILURE_COOLDOWN_SECONDS
+        value: "180"
+      - key: AUTORESEARCH_LLM_OPENAI_TIMEOUT_SECONDS
+        value: "120"
+      - key: AUTORESEARCH_LLM_OPENAI_MAX_RETRIES
+        value: "3"
+      - key: AUTORESEARCH_LLM_OPENAI_RETRY_BACKOFF_SECONDS
+        value: "2.0"
+      - key: AUTORESEARCH_LLM_MAX_MUTATIONS_PER_CYCLE
+        value: "1"
+      - key: AUTORESEARCH_LLM_RECENT_RESULTS_LIMIT
+        value: "5"
+      - key: AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS
+        value: "7"
+      - key: AUTORESEARCH_LLM_CAMPAIGN_WINDOW_COUNT
+        value: "1"
+      - key: AUTORESEARCH_SYMBOLS
+        value: BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT
+      - key: AUTORESEARCH_EXCHANGE
+        value: bybit
+      - key: AUTORESEARCH_MARKET
+        value: linear
+      - key: AUTORESEARCH_TIMEFRAME
+        value: 5m
+      - key: AUTORESEARCH_TARGET_MIN_SHARPE
+        value: "1.0"
+      - key: AUTORESEARCH_TARGET_MAX_DRAWDOWN
+        value: "0.20"
+      - key: AUTORESEARCH_TARGET_MIN_ACCEPTANCE_RATE
+        value: "0.60"
+      - key: AUTORESEARCH_STATUS_GITHUB_REPO
+        value: NickMusk/autoresearch-trade-bot
+      - key: AUTORESEARCH_STATUS_GITHUB_BRANCH
+        value: render-state
+      - key: AUTORESEARCH_STATUS_GITHUB_PATH
+        value: status/volatility_breakout
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+    disk:
+      name: autoresearch-trade-bot-volatility-breakout-worker-disk
       mountPath: /var/data
       sizeGB: 5

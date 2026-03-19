@@ -19,6 +19,7 @@ from .autoresearch import (
 )
 from .config import DataConfig, LLMWorkerConfig, ResearchTargetGate
 from .datasets import timeframe_to_timedelta
+from .family_wave import ensure_family_branch_seeded
 from .mutations import load_recent_results, run_llm_mutation_campaign
 from .state import (
     CycleSummary,
@@ -224,22 +225,28 @@ class LLMAutoresearchWorker:
                 text=True,
             )
             ensure_git_identity(repo_root)
-            return
-        subprocess.run(
-            ["git", "checkout", "main"],
-            cwd=repo_root,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        subprocess.run(
-            ["git", "pull", "--ff-only", "origin", "main"],
-            cwd=repo_root,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        else:
+            subprocess.run(
+                ["git", "checkout", "main"],
+                cwd=repo_root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "pull", "--ff-only", "origin", "main"],
+                cwd=repo_root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
         ensure_git_identity(repo_root)
+        ensure_family_branch_seeded(
+            repo_root=repo_root,
+            strategy_family=self.config.strategy_family,
+            branch_name=self.config.branch_name,
+            base_ref="main",
+        )
 
     def _record_cycle(
         self,
@@ -669,6 +676,7 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
         symbols=symbols,
         repo_root=repo_root,
         branch_name=os.environ.get("AUTORESEARCH_LLM_BRANCH_NAME", "codex/autoresearch-crypto"),
+        strategy_family=os.environ.get("AUTORESEARCH_STRATEGY_FAMILY", "momentum"),
         model_name=os.environ.get("AUTORESEARCH_LLM_MODEL_NAME", "gpt-5-mini"),
         cycle_interval_seconds=int(os.environ.get("AUTORESEARCH_LLM_CYCLE_INTERVAL_SECONDS", "3600")),
         campaign_refresh_interval_seconds=int(

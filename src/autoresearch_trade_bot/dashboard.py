@@ -80,14 +80,37 @@ def build_family_dashboard_data(snapshot: DashboardSnapshot) -> dict[str, object
 
 
 def load_family_snapshots() -> dict[str, ResearchStatusSnapshot]:
-    root = Path(os.environ.get("AUTORESEARCH_FAMILY_REPOS_ROOT", ".autoresearch/family_repos"))
     snapshots: dict[str, ResearchStatusSnapshot] = {}
     for family_id in WAVE1_FAMILY_IDS:
-        snapshot_path = root / family_id / ".autoresearch" / "runs" / "latest_status.json"
-        snapshot = load_status_snapshot_from_path(snapshot_path)
+        snapshot = None
+        status_url = _family_status_url(family_id)
+        if status_url:
+            snapshot = load_status_snapshot_from_url(status_url, timeout_seconds=5)
+        if snapshot is None:
+            snapshot_path = _family_status_path(family_id)
+            if snapshot_path is not None:
+                snapshot = load_status_snapshot_from_path(snapshot_path)
         if snapshot is not None:
             snapshots[family_id] = snapshot
     return snapshots
+
+
+def _family_status_url(family_id: str) -> str | None:
+    explicit_key = f"AUTORESEARCH_FAMILY_STATUS_URL_{family_id.upper()}"
+    explicit_url = os.environ.get(explicit_key)
+    if explicit_url:
+        return explicit_url
+    template = os.environ.get("AUTORESEARCH_FAMILY_STATUS_URL_TEMPLATE", "").strip()
+    if not template:
+        return None
+    return template.format(family_id=family_id)
+
+
+def _family_status_path(family_id: str) -> Path | None:
+    root = os.environ.get("AUTORESEARCH_FAMILY_REPOS_ROOT")
+    if not root:
+        return None
+    return Path(root) / family_id / ".autoresearch" / "runs" / "latest_status.json"
 
 
 def _build_demo_snapshot() -> DashboardSnapshot:

@@ -23,6 +23,43 @@ def default_family_branch_name(strategy_family: str) -> str:
     return f"codex/family-{strategy_family.replace('_', '-')}"
 
 
+def ensure_family_branch_seeded(
+    *,
+    repo_root: str | Path,
+    strategy_family: str,
+    branch_name: str | None = None,
+    base_ref: str = "main",
+) -> str:
+    resolved_repo_root = Path(repo_root).resolve()
+    family_branch = branch_name or default_family_branch_name(strategy_family)
+    existing_branch = _run_git(resolved_repo_root, "branch", "--list", family_branch).strip()
+    if existing_branch:
+        _run_git(resolved_repo_root, "checkout", family_branch)
+    else:
+        _run_git(resolved_repo_root, "checkout", "-b", family_branch, base_ref)
+
+    train_path = resolved_repo_root / "train.py"
+    profile = get_strategy_family_profile(strategy_family)
+    current_family = (
+        extract_strategy_family(train_path.read_text(encoding="utf-8"))
+        if train_path.exists()
+        else ""
+    )
+    if current_family != strategy_family:
+        train_path.write_text(
+            render_train_file(
+                profile.default_train_config,
+                strategy_family=strategy_family,
+            ),
+            encoding="utf-8",
+        )
+        _run_git(resolved_repo_root, "add", "train.py")
+        _run_git(resolved_repo_root, "commit", "-m", f"Seed {strategy_family} baseline")
+
+    _run_git(resolved_repo_root, "checkout", base_ref)
+    return family_branch
+
+
 def prepare_family_repo(
     *,
     source_repo_root: str | Path,
@@ -40,32 +77,12 @@ def prepare_family_repo(
     _run_git(repo_root, "checkout", "main")
     _run_git(repo_root, "merge", "--ff-only", "origin/main")
 
-    family_branch = branch_name or default_family_branch_name(strategy_family)
-    existing_branch = _run_git(repo_root, "branch", "--list", family_branch).strip()
-    if existing_branch:
-        _run_git(repo_root, "checkout", family_branch)
-    else:
-        _run_git(repo_root, "checkout", "-b", family_branch, "main")
-
-    train_path = repo_root / "train.py"
-    profile = get_strategy_family_profile(strategy_family)
-    current_family = (
-        extract_strategy_family(train_path.read_text(encoding="utf-8"))
-        if train_path.exists()
-        else ""
+    family_branch = ensure_family_branch_seeded(
+        repo_root=repo_root,
+        strategy_family=strategy_family,
+        branch_name=branch_name,
+        base_ref="main",
     )
-    if current_family != strategy_family:
-        train_path.write_text(
-            render_train_file(
-                profile.default_train_config,
-                strategy_family=strategy_family,
-            ),
-            encoding="utf-8",
-        )
-        _run_git(repo_root, "add", "train.py")
-        _run_git(repo_root, "commit", "-m", f"Seed {strategy_family} baseline")
-
-    _run_git(repo_root, "checkout", "main")
     return repo_root, family_branch
 
 

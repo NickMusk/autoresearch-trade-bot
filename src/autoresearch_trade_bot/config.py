@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
+from .strategy_families import FAMILY_MOMENTUM
+
 
 @dataclass(frozen=True)
 class RiskLimits:
@@ -82,6 +84,7 @@ class LLMWorkerConfig:
     symbols: Tuple[str, ...] = ("BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT")
     repo_root: str = "repo"
     branch_name: str = "codex/autoresearch-crypto"
+    strategy_family: str = FAMILY_MOMENTUM
     model_name: str = "gpt-5-mini"
     cycle_interval_seconds: int = 3600
     campaign_refresh_interval_seconds: int = 86400
