@@ -28,11 +28,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T23:10:25.536800+00:00",
+  "latest_cycle_completed_at": "2026-03-19T23:12:30.440108+00:00",
   "last_processed_bar": "2026-03-19T23:10:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.6,
+  "generation_validity_rate": 0.7,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-a4d13939",
+      "mutation_label": "llm-b8ab84bc",
       "baseline_score": 18.15769449048482,
-      "candidate_score": 10.593229576338503,
+      "candidate_score": 16.384458469765928,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -110,6 +110,24 @@
       "rejection_reasons": []
     },
     {
+      "strategy_name": "llm-b8ab84bc",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 16.384458,
+      "metrics": {
+        "total_return": 0.000262,
+        "sharpe": 16.383467,
+        "max_drawdown": 5.9e-05,
+        "average_turnover": 8.2e-05
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-a4d13939",
       "params": {
         "decision": "discard_screen",
@@ -126,32 +144,14 @@
         "average_turnover": 5.8e-05
       },
       "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-18256904",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 8.983766,
-      "metrics": {
-        "total_return": 0.000123,
-        "sharpe": 8.983397,
-        "max_drawdown": 5.3e-05,
-        "average_turnover": 3.2e-05
-      },
-      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-a4d13939",
+    "mutation_label": "llm-b8ab84bc",
     "baseline_score": 18.15769449048482,
-    "candidate_score": 10.593229576338503,
+    "candidate_score": 16.384458469765928,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -159,34 +159,34 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v10",
-    "research_score": 10.593229576338503,
+    "strategy_name": "ema-trend-disp-v11",
+    "research_score": 16.384458469765928,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.0001724454292959532,
-      "sharpe": 10.592687166059099,
-      "max_drawdown": 6.548445265652791e-05,
-      "average_turnover": 5.7879056448667395e-05,
+      "total_return": 0.0002618468245432215,
+      "sharpe": 16.383466790188475,
+      "max_drawdown": 5.892142475072415e-05,
+      "average_turnover": 8.186884625768201e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 652
+      "nonzero_turnover_steps": 827
     },
     "train_config": {
-      "gross_target": 0.45,
+      "gross_target": 0.42,
       "fast_ema_bars": 6,
       "slow_ema_bars": 56,
       "trend_ema_bars": 180,
       "top_k": 2,
       "min_signal_strength": 0.15,
       "use_trend_filter": true,
-      "volume_confirmation": 0.3,
+      "volume_confirmation": 0.35,
       "volatility_floor": 0.002,
       "smoothing_alpha": 0.02,
-      "per_symbol_cap_ratio": 0.28,
+      "per_symbol_cap_ratio": 0.27,
       "signal_exponent": 2.6,
-      "max_weight_move": 0.1,
+      "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
-      "crowding_exponent": 2.2,
+      "crowding_exponent": 1.9,
       "rel_threshold_mult": 1.2,
       "new_symbol_penalty": 0.7,
       "disp_low_frac_block": 0.5
