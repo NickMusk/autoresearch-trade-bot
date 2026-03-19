@@ -3,9 +3,8 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest kept candidate still fails gate: total_return_below_gate.",
-    "Latest kept candidate still fails gate: sharpe_below_gate.",
-    "Latest kept candidate still fails gate: acceptance_rate_below_gate."
+    "Latest LLM candidate failed validation or execution: no_op_train_config.",
+    "Latest kept candidate still fails gate: no_op_train_config."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -15,12 +14,12 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": -0.0001,
-    "sharpe": -7.9,
-    "max_drawdown": 0.0001,
+    "total_return": -0.0,
+    "sharpe": -7.2231,
+    "max_drawdown": 0.0,
     "average_turnover": 0.0001,
     "bars_processed": 2015,
-    "score": -7.9006
+    "score": -7.2236
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -30,7 +29,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T10:22:22.397557+00:00",
+  "latest_cycle_completed_at": "2026-03-19T10:23:38.560718+00:00",
   "last_processed_bar": "2026-03-19T10:20:00+00:00",
   "recent_acceptance_rate": 0.2,
   "consecutive_failures": 0,
@@ -38,45 +37,25 @@
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "keep",
-      "stage": "full",
-      "mutation_label": "llm-e7745b7a",
-      "baseline_score": -7.900559272760672,
-      "candidate_score": -7.223583781462204,
-      "kept_commit": "1901b609f48419840e199918fa5176aacf524863",
-      "failure_reason": "",
+      "decision": "discard_error",
+      "stage": "validation",
+      "mutation_label": "llm-0b43fdfd",
+      "baseline_score": -7.223583781462204,
+      "candidate_score": -Infinity,
+      "kept_commit": null,
+      "failure_reason": "no_op_train_config",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
-        "total_return_below_gate",
-        "sharpe_below_gate",
-        "acceptance_rate_below_gate"
+        "no_op_train_config"
       ]
     },
     "baseline_strategy_name": "vol-breakout-donchian-v6-adapt-bias",
-    "baseline_score": -7.900559272760672,
+    "baseline_score": -7.223583781462204,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-7ae2438c",
-      "params": {
-        "decision": "discard_full",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-18dfab80",
       "params": {
@@ -148,74 +127,60 @@
         "average_turnover": 9.4e-05
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-0a5920a3",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -7.900559,
+      "metrics": {
+        "total_return": -5.4e-05,
+        "sharpe": -7.899976,
+        "max_drawdown": 5.4e-05,
+        "average_turnover": 9.7e-05
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
-    "decision": "keep",
-    "stage": "full",
-    "mutation_label": "llm-e7745b7a",
-    "baseline_score": -7.900559272760672,
-    "candidate_score": -7.223583781462204,
-    "kept_commit": "1901b609f48419840e199918fa5176aacf524863",
-    "failure_reason": "",
+    "decision": "discard_error",
+    "stage": "validation",
+    "mutation_label": "llm-0b43fdfd",
+    "baseline_score": -7.223583781462204,
+    "candidate_score": -Infinity,
+    "kept_commit": null,
+    "failure_reason": "no_op_train_config",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
-      "total_return_below_gate",
-      "sharpe_below_gate",
-      "acceptance_rate_below_gate"
+      "no_op_train_config"
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-donchian-v6-adapt-bias",
-    "research_score": -7.223583781462204,
+    "strategy_name": "invalid-candidate",
+    "research_score": -Infinity,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -4.7324411044380454e-05,
-      "sharpe": -7.223063857887131,
-      "max_drawdown": 4.733437500004101e-05,
-      "average_turnover": 9.396401985111664e-05,
-      "bars_processed": 2015,
-      "nonzero_turnover_steps": 2
+      "total_return": 0.0,
+      "sharpe": 0.0,
+      "max_drawdown": 1.0,
+      "average_turnover": 0.0,
+      "bars_processed": 0,
+      "nonzero_turnover_steps": 0
     },
-    "train_config": {
-      "gross_target": 0.3,
-      "channel_bars": 30,
-      "atr_lookback_bars": 14,
-      "atr_multiplier": 1.35,
-      "breakout_buffer": 0.03,
-      "top_k": 2,
-      "min_breakout_score": 0.08,
-      "use_trend_filter": true,
-      "trend_lookback_bars": 42,
-      "fallback_scale": 0.35,
-      "crowding_min_scale": 0.55
-    },
+    "train_config": {},
     "gate_failures": [
-      "total_return_below_gate",
-      "sharpe_below_gate",
-      "acceptance_rate_below_gate"
+      "no_op_train_config"
     ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "failure_reason": ""
+    "failure_reason": "no_op_train_config"
   },
   "current_best_strategy_name": "vol-breakout-donchian-v6-adapt-bias",
-  "latest_kept_summary": {
-    "strategy_name": "vol-breakout-donchian-v6-adapt-bias",
-    "baseline_strategy_name": "vol-breakout-donchian-v6-adapt-bias",
-    "score_delta": 0.676975,
-    "config_diff": [
-      {
-        "key": "fallback_scale",
-        "before": 0.4,
-        "after": 0.35
-      },
-      {
-        "key": "top_k",
-        "before": 1,
-        "after": 2
-      }
-    ]
-  }
+  "latest_kept_summary": {}
 }
