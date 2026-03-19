@@ -32,10 +32,10 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T15:32:51.481569+00:00",
+  "latest_cycle_completed_at": "2026-03-19T15:34:43.490723+00:00",
   "last_processed_bar": "2026-03-19T15:30:00+00:00",
-  "recent_acceptance_rate": 0.3333333333333333,
-  "evaluation_acceptance_rate": 0.3333333333333333,
+  "recent_acceptance_rate": 0.2222222222222222,
+  "evaluation_acceptance_rate": 0.2222222222222222,
   "generation_validity_rate": 0.9,
   "consecutive_failures": 0,
   "multi_window_summary": {
@@ -44,7 +44,7 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-3164c2b3",
+      "mutation_label": "llm-c51145f4",
       "baseline_score": -0.19808878060834256,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -157,7 +157,7 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-3164c2b3",
+    "mutation_label": "llm-c51145f4",
     "baseline_score": -0.19808878060834256,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -171,7 +171,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v19a-selective-v1",
+    "strategy_name": "vol-breakout-v19-persistent-v1",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -192,9 +192,10 @@
       "min_breakout_score": 0.05,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.0009,
+      "fallback_scale": 0.0015,
       "crowding_min_scale": 0.18,
-      "min_atr_fraction": 0.0015
+      "min_atr_fraction": 0.0015,
+      "forced_opposite_scale": 0.12
     },
     "gate_failures": [
       "no_trades_executed",
