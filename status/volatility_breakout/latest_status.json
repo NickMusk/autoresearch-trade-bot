@@ -3,7 +3,6 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate underperformed the baseline on the screen window.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate."
@@ -31,20 +30,20 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T10:33:47.524911+00:00",
+  "latest_cycle_completed_at": "2026-03-19T10:34:50.221136+00:00",
   "last_processed_bar": "2026-03-19T10:30:00+00:00",
-  "recent_acceptance_rate": 0.1,
+  "recent_acceptance_rate": 0.2,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_screen",
-      "stage": "screen",
-      "mutation_label": "llm-e8bc5a8f",
+      "decision": "keep",
+      "stage": "full",
+      "mutation_label": "llm-d7638e06",
       "baseline_score": -6.416776898054758,
-      "candidate_score": -43.62102612886295,
-      "kept_commit": null,
+      "candidate_score": -5.487969309526083,
+      "kept_commit": "83bf3c68f929db803242120a1b54fdb3ae5c1642",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -152,12 +151,12 @@
     }
   ],
   "latest_decision": {
-    "decision": "discard_screen",
-    "stage": "screen",
-    "mutation_label": "llm-e8bc5a8f",
+    "decision": "keep",
+    "stage": "full",
+    "mutation_label": "llm-d7638e06",
     "baseline_score": -6.416776898054758,
-    "candidate_score": -43.62102612886295,
-    "kept_commit": null,
+    "candidate_score": -5.487969309526083,
+    "kept_commit": "83bf3c68f929db803242120a1b54fdb3ae5c1642",
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
@@ -168,25 +167,25 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-donchian-v6-imbalanced-accept",
-    "research_score": -43.62102612886295,
+    "strategy_name": "vol-breakout-donchian-v7-tuned-crowd",
+    "research_score": -5.487969309526083,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.011738964381341921,
-      "sharpe": -43.50464177579184,
-      "max_drawdown": 0.011821075719139373,
-      "average_turnover": 0.01040522828784119,
+      "total_return": -3.501571646513657e-05,
+      "sharpe": -5.4875249009189435,
+      "max_drawdown": 4.499999999996174e-05,
+      "average_turnover": 8.933002481389578e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 420
+      "nonzero_turnover_steps": 2
     },
     "train_config": {
       "gross_target": 0.3,
       "channel_bars": 36,
       "atr_lookback_bars": 14,
-      "atr_multiplier": 1.5,
-      "breakout_buffer": 0.02,
+      "atr_multiplier": 1.6,
+      "breakout_buffer": 0.018,
       "top_k": 2,
-      "min_breakout_score": 0.08,
+      "min_breakout_score": 0.09,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
       "fallback_scale": 0.25,
@@ -202,5 +201,36 @@
     "failure_reason": ""
   },
   "current_best_strategy_name": "vol-breakout-donchian-v6-persist-bias",
-  "latest_kept_summary": {}
+  "latest_kept_summary": {
+    "strategy_name": "vol-breakout-donchian-v7-tuned-crowd",
+    "baseline_strategy_name": "vol-breakout-donchian-v6-persist-bias",
+    "score_delta": 0.928808,
+    "config_diff": [
+      {
+        "key": "atr_multiplier",
+        "before": 1.5,
+        "after": 1.6
+      },
+      {
+        "key": "breakout_buffer",
+        "before": 0.02,
+        "after": 0.018
+      },
+      {
+        "key": "crowding_min_scale",
+        "before": 0.55,
+        "after": 0.6
+      },
+      {
+        "key": "fallback_scale",
+        "before": 0.3,
+        "after": 0.25
+      },
+      {
+        "key": "min_breakout_score",
+        "before": 0.1,
+        "after": 0.09
+      }
+    ]
+  }
 }
