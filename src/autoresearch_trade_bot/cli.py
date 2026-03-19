@@ -19,6 +19,7 @@ from .config import DataConfig
 from .data import HistoricalDatasetMaterializer
 from .datasets import DatasetSpec
 from .experiments import run_baseline_from_manifest_path
+from .family_wave import run_llm_family_wave, serialize_family_wave_results
 from .mutations import run_llm_mutation_campaign
 from .state import FilesystemResearchStateStore
 from .worker import ContinuousResearchWorker, worker_config_from_env
@@ -239,6 +240,32 @@ def cmd_run_llm_autoresearch(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_run_llm_family_wave(args: argparse.Namespace) -> int:
+    campaign_path = resolve_campaign_path(
+        args.campaign_path,
+        campaign_name=args.campaign_name,
+        campaigns_root=args.campaigns_root,
+        pointer_path=args.active_campaign_path,
+    )
+    strategy_families = tuple(
+        family.strip()
+        for family in args.strategy_families.split(",")
+        if family.strip()
+    )
+    results = run_llm_family_wave(
+        campaign_path=campaign_path,
+        source_repo_root=args.repo_root,
+        family_repos_root=args.family_repos_root,
+        model_name=args.model_name,
+        max_mutations=args.max_mutations,
+        recent_results_limit=args.recent_results_limit,
+        strategy_families=strategy_families,
+        max_parallel=args.max_parallel,
+    )
+    print(json.dumps(serialize_family_wave_results(results), indent=2))
+    return 0
+
+
 def parse_candidate_text(path: str) -> str:
     return Path(path).read_text(encoding="utf-8")
 
@@ -376,6 +403,23 @@ def build_parser() -> argparse.ArgumentParser:
     llm.add_argument("--max-mutations", type=int, default=1)
     llm.add_argument("--recent-results-limit", type=int, default=5)
     llm.set_defaults(func=cmd_run_llm_autoresearch)
+
+    family_wave = subparsers.add_parser(
+        "run-llm-family-wave",
+        help="Run wave-1 LLM family searches in parallel on isolated family branches",
+    )
+    family_wave.add_argument("--campaign-path")
+    family_wave.add_argument("--campaign-name")
+    family_wave.add_argument("--campaigns-root", default=DEFAULT_CAMPAIGNS_ROOT)
+    family_wave.add_argument("--active-campaign-path", default=DEFAULT_ACTIVE_CAMPAIGN)
+    family_wave.add_argument("--repo-root", default=".")
+    family_wave.add_argument("--family-repos-root", default=".autoresearch/family_repos")
+    family_wave.add_argument("--strategy-families", default="mean_reversion,ema_trend,volatility_breakout")
+    family_wave.add_argument("--max-parallel", type=int)
+    family_wave.add_argument("--model-name", default="gpt-5-mini")
+    family_wave.add_argument("--max-mutations", type=int, default=1)
+    family_wave.add_argument("--recent-results-limit", type=int, default=5)
+    family_wave.set_defaults(func=cmd_run_llm_family_wave)
 
     return parser
 

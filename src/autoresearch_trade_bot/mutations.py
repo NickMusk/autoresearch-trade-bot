@@ -23,9 +23,17 @@ from .autoresearch import (
     GitAutoresearchDecision,
     GitAutoresearchRunner,
     MutationProposal,
-    normalize_train_config,
     load_campaign,
-    render_train_file,
+)
+from .strategy_families import (
+    FAMILY_MOMENTUM,
+    config_traits as family_config_traits,
+    extract_strategy_family,
+    family_attempt_role_specs,
+    family_prompt_directions,
+    normalize_train_config as normalize_family_train_config,
+    render_train_file as render_family_train_file,
+    validate_train_candidate_semantics as validate_family_candidate_semantics,
 )
 
 ALLOWED_IMPORTS = {
@@ -39,32 +47,6 @@ ALLOWED_IMPORTS = {
 }
 FORBIDDEN_CALLS = {"open", "exec", "eval", "compile", "__import__", "input"}
 MAX_CANDIDATE_BYTES = 24_000
-ATTEMPT_ROLE_SPECS = (
-    {
-        "name": "exploit_baseline",
-        "objective": "Stay close to the current best baseline and improve score with one or two meaningful knob changes.",
-        "constraints": (
-            "Avoid stacking new filters. Prefer modest shifts to signal quality, turnover control, "
-            "or crowding control that still preserve trading activity."
-        ),
-    },
-    {
-        "name": "selectivity_without_no_trade",
-        "objective": "Improve selectivity without collapsing into a no-trade strategy.",
-        "constraints": (
-            "If you tighten thresholds, do it mildly. Do not combine high signal floors, high spread floors, "
-            "and strict regime filters in the same candidate."
-        ),
-    },
-    {
-        "name": "alternative_signal_family",
-        "objective": "Explore a meaningfully different signal expression using reversal, funding, or volatility controls.",
-        "constraints": (
-            "Do not just tweak lookback. Shift the signal family while keeping the strategy cheap to evaluate "
-            "and still able to trade."
-        ),
-    },
-)
 
 
 @dataclass(frozen=True)
@@ -78,6 +60,7 @@ class MutationContext:
     artifact_root: Path
     program_text: str
     current_train_text: str
+    strategy_family: str
     recent_results: tuple[dict[str, str], ...]
     symbol_count: int
     experiment_memory_summary: str = ""
@@ -127,7 +110,10 @@ class DeterministicMutationProvider:
             proposals.append(
                 MutationProposal(
                     label=item.label,
-                    candidate_text=render_train_file(candidate_config),
+                    candidate_text=render_family_train_file(
+                        candidate_config,
+                        strategy_family=context.strategy_family,
+                    ),
                     commit_message=item.commit_message,
                     provider_name="deterministic",
                     notes=json.dumps(item.config_updates, sort_keys=True),
@@ -240,6 +226,7 @@ class LLMMutationProvider:
                 base_user_prompt=user_prompt,
                 attempt_index=attempt_index,
                 max_mutations=max_mutations,
+                strategy_family=context.strategy_family,
             )
             completion = self.client.generate(system_prompt=system_prompt, user_prompt=attempt_user_prompt)
             candidate_text = extract_python_candidate(completion.content)
@@ -268,7 +255,7 @@ class LLMMutationProvider:
             )
             proposals.append(
                 MutationProposal(
-                    label=f"{self.mutation_label_prefix}-{uuid.uuid4().hex[:8]}",
+                    label=label,
                     candidate_text=candidate_text,
                     commit_message=proposal.commit_message,
                     provider_name=proposal.provider_name,
@@ -291,20 +278,6 @@ def validate_train_candidate_text(candidate_text: str) -> tuple[bool, str]:
     except SyntaxError:
         return False, "candidate_syntax_error"
 
-    required_names = {"TRAIN_CONFIG", "STRATEGY_NAME", "build_strategy"}
-    seen_names: set[str] = set()
-    for node in tree.body:
-        if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name):
-                    seen_names.add(target.id)
-        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-            seen_names.add(node.name)
-
-    missing = required_names - seen_names
-    if missing:
-        return False, f"missing_required_symbols:{','.join(sorted(missing))}"
-
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
@@ -317,6 +290,20 @@ def validate_train_candidate_text(candidate_text: str) -> tuple[bool, str]:
         elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
             if node.func.id in FORBIDDEN_CALLS:
                 return False, f"forbidden_call:{node.func.id}"
+
+    required_names = {"TRAIN_CONFIG", "STRATEGY_NAME", "STRATEGY_FAMILY", "build_strategy"}
+    seen_names: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    seen_names.add(target.id)
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            seen_names.add(node.name)
+
+    missing = required_names - seen_names
+    if missing:
+        return False, f"missing_required_symbols:{','.join(sorted(missing))}"
     return True, ""
 
 
@@ -326,31 +313,18 @@ def validate_train_candidate_semantics(
     current_train_text: str,
     symbol_count: int,
 ) -> tuple[bool, str]:
-    candidate_config = normalize_train_config(extract_train_config(candidate_text))
-    current_config = normalize_train_config(extract_train_config(current_train_text))
-
-    if candidate_config == current_config:
-        return False, "no_op_train_config"
-    if int(candidate_config["top_k"]) < 1:
-        return False, "invalid_top_k"
-    if int(candidate_config["top_k"]) * 2 > symbol_count:
-        return False, "top_k_exceeds_cross_sectional_capacity"
-    if float(candidate_config["gross_target"]) <= 0.0 or float(candidate_config["gross_target"]) > 1.5:
-        return False, "invalid_gross_target"
-    if str(candidate_config["ranking_mode"]) not in {"raw_return", "risk_adjusted"}:
-        return False, "invalid_ranking_mode"
-    if (
-        float(candidate_config["min_signal_strength"]) > 0.10
-        and float(candidate_config["min_cross_sectional_spread"]) > 0.10
-    ):
-        return False, "likely_no_trade_filter_stack"
-    if float(candidate_config["min_signal_strength"]) > 0.12:
-        return False, "likely_no_trade_signal_threshold"
-    if float(candidate_config["min_cross_sectional_spread"]) > 0.15:
-        return False, "likely_no_trade_spread_threshold"
-    if bool(candidate_config["use_regime_filter"]) and float(candidate_config["regime_threshold"]) > 0.06:
-        return False, "likely_no_trade_regime_threshold"
-    return True, ""
+    current_family = extract_strategy_family(current_train_text)
+    candidate_family = extract_strategy_family(candidate_text)
+    if candidate_family != current_family:
+        return False, "strategy_family_mismatch"
+    candidate_config = extract_train_config(candidate_text)
+    current_config = extract_train_config(current_train_text)
+    return validate_family_candidate_semantics(
+        current_family,
+        candidate_config=candidate_config,
+        current_config=current_config,
+        symbol_count=symbol_count,
+    )
 
 
 def build_mutation_context(
@@ -365,14 +339,17 @@ def build_mutation_context(
 ) -> MutationContext:
     campaign = load_campaign(campaign_path)
     current_train_text = train_path.read_text(encoding="utf-8")
+    strategy_family = extract_strategy_family(current_train_text)
     recent_results = tuple(load_recent_results(results_path, limit=max(recent_results_limit, 12)))
     memory_payload = build_experiment_memory_artifact(
         recent_results,
         current_train_text=current_train_text,
+        strategy_family=strategy_family,
     )
     memory_summary = build_experiment_memory_summary(
         recent_results,
         current_train_text=current_train_text,
+        strategy_family=strategy_family,
     )
     write_experiment_memory_artifact(
         artifact_root=artifact_root,
@@ -389,6 +366,7 @@ def build_mutation_context(
         artifact_root=artifact_root,
         program_text=(Path(repo_root) / "program.md").read_text(encoding="utf-8"),
         current_train_text=current_train_text,
+        strategy_family=strategy_family,
         recent_results=recent_results,
         symbol_count=len(campaign.symbols),
         experiment_memory_summary=memory_summary,
@@ -400,10 +378,16 @@ def build_experiment_memory_artifact(
     recent_results: Sequence[Mapping[str, str]],
     *,
     current_train_text: str,
+    strategy_family: str | None = None,
 ) -> dict[str, Any]:
-    normalized_config = normalize_train_config(extract_train_config(current_train_text))
+    family = strategy_family or extract_strategy_family(current_train_text)
+    normalized_config = normalize_family_train_config(
+        extract_train_config(current_train_text),
+        strategy_family=family,
+    )
     if not recent_results:
         return {
+            "strategy_family": family,
             "current_baseline_config": normalized_config,
             "decision_mix": {},
             "stage_mix": {},
@@ -411,11 +395,7 @@ def build_experiment_memory_artifact(
             "common_gate_failures": [],
             "near_wins": [],
             "dead_zones": [],
-            "promising_directions": [
-                "Add selectivity carefully with min_cross_sectional_spread or min_signal_strength.",
-                "Use volatility_floor to stabilize risk-adjusted ranking.",
-                "Use reversal_bias_weight or funding_penalty_weight to avoid crowded or overextended entries.",
-            ],
+            "promising_directions": list(family_prompt_directions(family)),
         }
 
     decisions = Counter(str(row.get("decision", "")) for row in recent_results)
@@ -427,8 +407,8 @@ def build_experiment_memory_artifact(
     near_wins: list[dict[str, Any]] = []
 
     for row in recent_results:
-        config = _load_train_config_from_result_row(row)
-        traits = _config_traits(config)
+        config = _load_train_config_from_result_row(row, strategy_family=family)
+        traits = _config_traits(family, config)
         for failure in _parse_gate_failures(row):
             gate_failures[failure] += 1
             if failure == "no_trades_executed":
@@ -452,13 +432,13 @@ def build_experiment_memory_artifact(
                         "delta_score": delta,
                         "decision": str(row.get("decision", "")),
                         "stage": str(row.get("stage", "")),
-                        "config_focus": _format_config_focus(config),
+                        "config_focus": _format_config_focus(family, config),
                     }
                 )
 
     dead_zones = [
         {"trait": trait, "count": count}
-        for trait, count in no_trade_traits.most_common(4)
+        for trait, count in no_trade_traits.most_common(6)
     ]
     if duplicate_traits:
         dead_zones.extend(
@@ -467,6 +447,7 @@ def build_experiment_memory_artifact(
         )
 
     promising_directions = _promising_directions_from_memory(
+        strategy_family=family,
         normalized_config=normalized_config,
         dead_zones=dead_zones,
         near_wins=near_wins,
@@ -474,6 +455,7 @@ def build_experiment_memory_artifact(
     )
 
     return {
+        "strategy_family": family,
         "current_baseline_config": normalized_config,
         "decision_mix": dict(sorted(decisions.items())),
         "stage_mix": dict(sorted(stages.items())),
@@ -495,10 +477,12 @@ def build_experiment_memory_summary(
     recent_results: Sequence[Mapping[str, str]],
     *,
     current_train_text: str,
+    strategy_family: str | None = None,
 ) -> str:
     memory = build_experiment_memory_artifact(
         recent_results,
         current_train_text=current_train_text,
+        strategy_family=strategy_family,
     )
     decision_mix = memory["decision_mix"]
     stage_mix = memory["stage_mix"]
@@ -569,6 +553,7 @@ def build_llm_mutation_prompt(
             "Return only valid Python source code for the full train.py file.",
             "Do not add markdown fences or commentary.",
             "Keep the editable surface within TRAIN_CONFIG, STRATEGY_NAME, class logic, and build_strategy.",
+            f"Preserve STRATEGY_FAMILY as {context.strategy_family}. Do not switch strategy families in this branch.",
             "Do not import forbidden modules or perform I/O, subprocess, networking, or dynamic imports.",
             "Optimize research_score while respecting the hard gates described below.",
             "Prefer one substantial research hypothesis over cosmetic rewrites.",
@@ -585,8 +570,10 @@ def build_llm_mutation_prompt(
                 "Mutation request:\n"
                 "Return a single best full train.py candidate as raw Python only.\n"
                 f"- The harness will evaluate up to {max_mutations} mutation attempt(s) this cycle, but this response should contain one candidate only.\n"
+                f"- Stay inside the {context.strategy_family} strategy family.\n"
                 "- Make a meaningful change to strategy behavior.\n"
                 "- Prefer changes that improve selectivity, reduce weak-signal trades, or reduce crowding/overextension risk.\n"
+                "- Use the promising directions from research memory and avoid repeated dead zones.\n"
                 "- Keep compute cheap and stay within the one-file editable boundary."
             ),
         ]
@@ -599,8 +586,10 @@ def build_attempt_prompt(
     base_user_prompt: str,
     attempt_index: int,
     max_mutations: int,
+    strategy_family: str = FAMILY_MOMENTUM,
 ) -> tuple[str, str]:
-    role = ATTEMPT_ROLE_SPECS[attempt_index % len(ATTEMPT_ROLE_SPECS)]
+    role_specs = family_attempt_role_specs(strategy_family)
+    role = role_specs[attempt_index % len(role_specs)]
     return (
         role["name"],
         "\n\n".join(
@@ -719,10 +708,14 @@ def _parse_json_field(raw_value: str | None) -> Any:
         return None
 
 
-def _load_train_config_from_result_row(row: Mapping[str, str]) -> dict[str, Any]:
+def _load_train_config_from_result_row(
+    row: Mapping[str, str],
+    *,
+    strategy_family: str,
+) -> dict[str, Any]:
     payload = _parse_json_field(row.get("train_config_json"))
     if isinstance(payload, Mapping):
-        return normalize_train_config(payload)
+        return normalize_family_train_config(payload, strategy_family=strategy_family)
 
     artifact_path = (row.get("proposal_artifact_path") or "").strip()
     if artifact_path:
@@ -730,7 +723,11 @@ def _load_train_config_from_result_row(row: Mapping[str, str]) -> dict[str, Any]
             artifact_payload = json.loads(Path(artifact_path).read_text(encoding="utf-8"))
             candidate_text = artifact_payload.get("candidate_text")
             if isinstance(candidate_text, str) and candidate_text.strip():
-                return normalize_train_config(extract_train_config(candidate_text))
+                artifact_family = extract_strategy_family(candidate_text)
+                return normalize_family_train_config(
+                    extract_train_config(candidate_text),
+                    strategy_family=artifact_family,
+                )
         except Exception:
             return {}
     return {}
@@ -743,64 +740,70 @@ def _parse_gate_failures(row: Mapping[str, str]) -> list[str]:
     return []
 
 
-def _config_traits(config: Mapping[str, Any]) -> list[str]:
-    if not config:
-        return []
-    traits = [
-        f"ranking_mode={config.get('ranking_mode', '')}",
-        f"top_k={config.get('top_k', '')}",
-    ]
-    if bool(config.get("use_regime_filter", False)):
-        traits.append("regime_filter=on")
-    if float(config.get("min_signal_strength", 0.0)) > 0.0:
-        traits.append(
-            "signal_floor="
-            + ("high" if float(config.get("min_signal_strength", 0.0)) > 0.05 else "low")
-        )
-    if float(config.get("min_cross_sectional_spread", 0.0)) > 0.0:
-        traits.append(
-            "spread_floor="
-            + ("high" if float(config.get("min_cross_sectional_spread", 0.0)) > 0.05 else "low")
-        )
-    if float(config.get("volatility_floor", 0.0)) > 0.0:
-        traits.append("volatility_floor=on")
-    if float(config.get("reversal_bias_weight", 0.0)) > 0.0:
-        traits.append("reversal_bias=on")
-    if float(config.get("funding_penalty_weight", 0.0)) > 0.0:
-        traits.append("funding_penalty=on")
-    return traits
+def _config_traits(strategy_family: str, config: Mapping[str, Any]) -> list[str]:
+    return family_config_traits(strategy_family, config)
 
 
-def _format_config_focus(config: Mapping[str, Any]) -> str:
+def _format_config_focus(strategy_family: str, config: Mapping[str, Any]) -> str:
     if not config:
         return "config unavailable"
-    fields = [
-        f"lookback={config.get('lookback_bars')}",
-        f"top_k={config.get('top_k')}",
-        f"gross={config.get('gross_target')}",
-        f"ranking={config.get('ranking_mode')}",
-    ]
-    if float(config.get("min_signal_strength", 0.0)) > 0.0:
-        fields.append(f"signal_floor={config.get('min_signal_strength')}")
-    if float(config.get("min_cross_sectional_spread", 0.0)) > 0.0:
-        fields.append(f"spread_floor={config.get('min_cross_sectional_spread')}")
-    if bool(config.get("use_regime_filter", False)):
-        fields.append(f"regime_threshold={config.get('regime_threshold')}")
-    if float(config.get("reversal_bias_weight", 0.0)) > 0.0:
-        fields.append(f"reversal_bias={config.get('reversal_bias_weight')}")
-    if float(config.get("funding_penalty_weight", 0.0)) > 0.0:
-        fields.append(f"funding_penalty={config.get('funding_penalty_weight')}")
+    fields = [f"family={strategy_family}", f"top_k={config.get('top_k')}", f"gross={config.get('gross_target')}"]
+    if strategy_family == "mean_reversion":
+        fields.extend(
+            [
+                f"lookback={config.get('lookback_bars')}",
+                f"rsi={config.get('rsi_lower')}/{config.get('rsi_upper')}",
+                f"band_std={config.get('band_std_mult')}",
+            ]
+        )
+        if bool(config.get("use_trend_filter", False)):
+            fields.append(f"trend_lookback={config.get('trend_lookback_bars')}")
+    elif strategy_family == "ema_trend":
+        fields.extend(
+            [
+                f"ema={config.get('fast_ema_bars')}/{config.get('slow_ema_bars')}/{config.get('trend_ema_bars')}",
+                f"signal_floor={config.get('min_signal_strength')}",
+            ]
+        )
+        if bool(config.get("use_trend_filter", False)):
+            fields.append("trend_filter=on")
+        if float(config.get("volume_confirmation", 0.0)) > 0.0:
+            fields.append(f"volume_confirmation={config.get('volume_confirmation')}")
+    elif strategy_family == "volatility_breakout":
+        fields.extend(
+            [
+                f"channel={config.get('channel_bars')}",
+                f"atr={config.get('atr_lookback_bars')}x{config.get('atr_multiplier')}",
+                f"breakout_buffer={config.get('breakout_buffer')}",
+            ]
+        )
+        if bool(config.get("use_trend_filter", False)):
+            fields.append(f"trend_lookback={config.get('trend_lookback_bars')}")
+    else:
+        fields.extend(
+            [
+                f"lookback={config.get('lookback_bars')}",
+                f"ranking={config.get('ranking_mode')}",
+            ]
+        )
+        if float(config.get("min_signal_strength", 0.0)) > 0.0:
+            fields.append(f"signal_floor={config.get('min_signal_strength')}")
+        if float(config.get("min_cross_sectional_spread", 0.0)) > 0.0:
+            fields.append(f"spread_floor={config.get('min_cross_sectional_spread')}")
+        if bool(config.get("use_regime_filter", False)):
+            fields.append(f"regime_threshold={config.get('regime_threshold')}")
     return ", ".join(fields)
 
 
 def _promising_directions_from_memory(
     *,
+    strategy_family: str,
     normalized_config: Mapping[str, Any],
     dead_zones: Sequence[Mapping[str, Any]],
     near_wins: Sequence[Mapping[str, Any]],
     decisions: Counter,
 ) -> list[str]:
-    directions: list[str] = []
+    directions: list[str] = list(family_prompt_directions(strategy_family))
     dead_zone_traits = {str(item["trait"]) for item in dead_zones}
     if decisions.get("discard_screen", 0) >= 2:
         directions.append(
@@ -826,15 +829,15 @@ def _promising_directions_from_memory(
         directions.append(
             "Near-wins suggest reversal-aware candidates may help. Explore moderate reversal_bias_weight."
         )
-    if not directions:
-        directions.append(
-            "Explore one meaningful change at a time: either mild selectivity, mild funding control, or mild reversal control."
-        )
-    if not normalized_config.get("use_regime_filter", False):
+    if strategy_family == FAMILY_MOMENTUM and not normalized_config.get("use_regime_filter", False):
         directions.append(
             "Only turn on use_regime_filter if paired with a clear reason and conservative threshold."
         )
-    return directions[:5]
+    deduped: list[str] = []
+    for direction in directions:
+        if direction not in deduped:
+            deduped.append(direction)
+    return deduped[:5]
 
 
 def extract_train_config(train_text: str) -> dict[str, Any]:

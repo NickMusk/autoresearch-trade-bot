@@ -6,7 +6,6 @@ import importlib.util
 import inspect
 import json
 import os
-import pprint
 import re
 import subprocess
 import sys
@@ -26,6 +25,12 @@ from .data import (
 from .datasets import DatasetSpec, ensure_utc
 from .experiments import WindowEvaluationReport, build_baseline_experiment_config, build_rolling_window_specs
 from .research import ResearchEvaluator, compute_research_score
+from .strategy_families import (
+    FAMILY_MOMENTUM,
+    deterministic_mutation_specs,
+    normalize_train_config as normalize_family_train_config,
+    render_train_file as render_family_train_file,
+)
 from .strategy import Strategy
 
 
@@ -467,7 +472,11 @@ def evaluate_train_file(
     module = _load_train_module(train_file)
     strategy_builder = _load_strategy_builder(module)
     strategy_name = str(getattr(module, "STRATEGY_NAME", train_file.stem))
-    train_config = normalize_train_config(getattr(module, "TRAIN_CONFIG", {}))
+    strategy_family = str(getattr(module, "STRATEGY_FAMILY", FAMILY_MOMENTUM))
+    train_config = normalize_train_config(
+        getattr(module, "TRAIN_CONFIG", {}),
+        strategy_family=strategy_family,
+    )
     train_sha1 = _git(["hash-object", str(train_file_resolved)], cwd=train_file_resolved.parent)
     git_branch = _safe_git(["branch", "--show-current"], cwd=train_file_resolved.parent)
     git_commit = _safe_git(["rev-parse", "HEAD"], cwd=train_file_resolved.parent)
@@ -1066,237 +1075,39 @@ class DeterministicTrainMutator:
         module = _load_train_module(Path(train_path))
         if not hasattr(module, "TRAIN_CONFIG"):
             raise AttributeError("train.py must define TRAIN_CONFIG for deterministic mutations")
-        config = normalize_train_config(dict(getattr(module, "TRAIN_CONFIG")))
+        strategy_family = str(getattr(module, "STRATEGY_FAMILY", FAMILY_MOMENTUM))
+        config = normalize_train_config(
+            dict(getattr(module, "TRAIN_CONFIG")),
+            strategy_family=strategy_family,
+        )
         proposals: list[DeterministicMutationProposal] = []
-        for lookback in (12, 24, 36):
-            if lookback != int(config["lookback_bars"]):
-                proposals.append(
-                    DeterministicMutationProposal(
-                        label=f"lookback-{lookback}",
-                        config_updates={"lookback_bars": lookback},
-                        commit_message=f"Mutate train.py: lookback={lookback}",
-                    )
+        for item in deterministic_mutation_specs(strategy_family, config):
+            label = str(item["label"])
+            config_updates = dict(item["config_updates"])
+            proposals.append(
+                DeterministicMutationProposal(
+                    label=label,
+                    config_updates=config_updates,
+                    commit_message=f"Mutate train.py: {label}",
                 )
-        for top_k in (1, 2):
-            if top_k != int(config["top_k"]):
-                proposals.append(
-                    DeterministicMutationProposal(
-                        label=f"topk-{top_k}",
-                        config_updates={"top_k": top_k},
-                        commit_message=f"Mutate train.py: top_k={top_k}",
-                    )
-                )
-        for gross_target in (0.25, 0.5, 0.75, 1.0):
-            if gross_target != float(config["gross_target"]):
-                proposals.append(
-                    DeterministicMutationProposal(
-                        label=f"gross-{gross_target:.2f}",
-                        config_updates={"gross_target": gross_target},
-                        commit_message=f"Mutate train.py: gross_target={gross_target:.2f}",
-                    )
-                )
-        for ranking_mode in ("raw_return", "risk_adjusted"):
-            if ranking_mode != str(config["ranking_mode"]):
-                proposals.append(
-                    DeterministicMutationProposal(
-                        label=f"ranking-{ranking_mode}",
-                        config_updates={"ranking_mode": ranking_mode},
-                        commit_message=f"Mutate train.py: ranking_mode={ranking_mode}",
-                    )
-                )
-        for regime_filter in (False, True):
-            if regime_filter != bool(config["use_regime_filter"]):
-                proposals.append(
-                    DeterministicMutationProposal(
-                        label=f"regime-{str(regime_filter).lower()}",
-                        config_updates={"use_regime_filter": regime_filter},
-                        commit_message=f"Mutate train.py: use_regime_filter={regime_filter}",
-                    )
-                )
-        for signal_floor in (0.0, 0.01, 0.02):
-            if signal_floor != float(config["min_signal_strength"]):
-                proposals.append(
-                    DeterministicMutationProposal(
-                        label=f"signal-floor-{signal_floor:.2f}",
-                        config_updates={"min_signal_strength": signal_floor},
-                        commit_message=f"Mutate train.py: min_signal_strength={signal_floor:.2f}",
-                    )
-                )
-        for spread in (0.0, 0.05, 0.10):
-            if spread != float(config["min_cross_sectional_spread"]):
-                proposals.append(
-                    DeterministicMutationProposal(
-                        label=f"spread-{spread:.2f}",
-                        config_updates={"min_cross_sectional_spread": spread},
-                        commit_message=f"Mutate train.py: min_cross_sectional_spread={spread:.2f}",
-                    )
-                )
-        for floor in (0.0, 0.005, 0.01):
-            if floor != float(config["volatility_floor"]):
-                proposals.append(
-                    DeterministicMutationProposal(
-                        label=f"vol-floor-{floor:.3f}",
-                        config_updates={"volatility_floor": floor},
-                        commit_message=f"Mutate train.py: volatility_floor={floor:.3f}",
-                    )
-                )
-        for weight in (0.0, 0.5, 1.0):
-            if weight != float(config["reversal_bias_weight"]):
-                proposals.append(
-                    DeterministicMutationProposal(
-                        label=f"reversal-bias-{weight:.1f}",
-                        config_updates={"reversal_bias_weight": weight},
-                        commit_message=f"Mutate train.py: reversal_bias_weight={weight:.1f}",
-                    )
-                )
-        for funding_weight in (0.0, 10.0, 25.0):
-            if funding_weight != float(config["funding_penalty_weight"]):
-                proposals.append(
-                    DeterministicMutationProposal(
-                        label=f"funding-penalty-{funding_weight:.1f}",
-                        config_updates={"funding_penalty_weight": funding_weight},
-                        commit_message=f"Mutate train.py: funding_penalty_weight={funding_weight:.1f}",
-                    )
-                )
+            )
         return proposals
 
 
-DEFAULT_TRAIN_CONFIG = {
-    "gross_target": 0.5,
-    "lookback_bars": 24,
-    "min_signal_strength": 0.0,
-    "ranking_mode": "risk_adjusted",
-    "regime_lookback_bars": 36,
-    "regime_threshold": 0.015,
-    "top_k": 1,
-    "use_regime_filter": False,
-    "min_cross_sectional_spread": 0.0,
-    "volatility_floor": 0.0,
-    "reversal_bias_weight": 0.0,
-    "funding_penalty_weight": 0.0,
-}
+def normalize_train_config(
+    train_config: Mapping[str, Any],
+    *,
+    strategy_family: str = FAMILY_MOMENTUM,
+) -> dict[str, Any]:
+    return normalize_family_train_config(train_config, strategy_family=strategy_family)
 
 
-def normalize_train_config(train_config: Mapping[str, Any]) -> dict[str, Any]:
-    normalized = dict(DEFAULT_TRAIN_CONFIG)
-    normalized.update(dict(train_config))
-    return normalized
-
-
-def render_train_file(train_config: Mapping[str, Any]) -> str:
-    payload = pprint.pformat(normalize_train_config(train_config), sort_dicts=True, width=88)
-    return "\n".join(
-        [
-            "from __future__ import annotations",
-            "",
-            "from dataclasses import dataclass",
-            "import math",
-            "import statistics",
-            "from typing import Dict, Mapping, Sequence",
-            "",
-            "from autoresearch_trade_bot.models import Bar",
-            "from autoresearch_trade_bot.strategy import Strategy",
-            "",
-            f"TRAIN_CONFIG = {payload}",
-            'STRATEGY_NAME = "configurable-momentum"',
-            "",
-            "",
-            "@dataclass(frozen=True)",
-            "class ConfigurableMomentumStrategy:",
-            "    lookback_bars: int",
-            "    top_k: int",
-            "    gross_target: float",
-            "    ranking_mode: str",
-            "    use_regime_filter: bool",
-            "    regime_lookback_bars: int",
-            "    regime_threshold: float",
-            "    min_signal_strength: float",
-            "    min_cross_sectional_spread: float",
-            "    volatility_floor: float",
-            "    reversal_bias_weight: float",
-            "    funding_penalty_weight: float",
-            "",
-            "    def target_weights(self, history_by_symbol: Mapping[str, Sequence[Bar]]) -> Dict[str, float]:",
-            "        if not history_by_symbol:",
-            "            return {}",
-            "        if self.use_regime_filter and not self._passes_regime_filter(history_by_symbol):",
-            "            return {}",
-            "        ready_scores = []",
-            "        for symbol, history in history_by_symbol.items():",
-            "            if len(history) <= self.lookback_bars:",
-            "                continue",
-            "            score = self._score(history)",
-            "            if abs(score) < self.min_signal_strength:",
-            "                continue",
-            "            ready_scores.append((symbol, score))",
-            "        if len(ready_scores) < self.top_k * 2:",
-            "            return {}",
-            "        ranked = sorted(ready_scores, key=lambda item: item[1], reverse=True)",
-            "        cross_sectional_spread = ranked[0][1] - ranked[-1][1]",
-            "        if cross_sectional_spread < self.min_cross_sectional_spread:",
-            "            return {}",
-            "        longs = ranked[: self.top_k]",
-            "        shorts = ranked[-self.top_k:]",
-            "        side_gross = self.gross_target / 2.0",
-            "        long_weight = side_gross / len(longs)",
-            "        short_weight = -side_gross / len(shorts)",
-            "        weights: Dict[str, float] = {}",
-            "        for symbol, _score in longs:",
-            "            weights[symbol] = long_weight",
-            "        for symbol, _score in shorts:",
-            "            weights[symbol] = short_weight",
-            "        return weights",
-            "",
-            "    def _score(self, history: Sequence[Bar]) -> float:",
-            "        recent = history[-(self.lookback_bars + 1):]",
-            "        start_close = recent[0].close",
-            "        end_close = recent[-1].close",
-            "        raw_return = (end_close / start_close) - 1.0",
-            "        if self.ranking_mode == 'raw_return':",
-            "            return raw_return",
-            "        one_bar_returns = []",
-            "        for index in range(1, len(recent)):",
-            "            previous = recent[index - 1].close",
-            "            current = recent[index].close",
-            "            one_bar_returns.append((current / previous) - 1.0)",
-            "        volatility = max(statistics.pstdev(one_bar_returns), self.volatility_floor)",
-            "        if math.isclose(volatility, 0.0):",
-            "            base_signal = raw_return",
-            "        else:",
-            "            base_signal = raw_return if self.ranking_mode == 'raw_return' else raw_return / volatility",
-            "        last_bar_return = one_bar_returns[-1] if one_bar_returns else 0.0",
-            "        funding_penalty = self.funding_penalty_weight * recent[-1].funding_rate",
-            "        reversal_penalty = self.reversal_bias_weight * last_bar_return",
-            "        return base_signal - funding_penalty - reversal_penalty",
-            "",
-            "    def _passes_regime_filter(self, history_by_symbol: Mapping[str, Sequence[Bar]]) -> bool:",
-            "        anchor_symbol = 'BTCUSDT' if 'BTCUSDT' in history_by_symbol else next(iter(history_by_symbol))",
-            "        history = history_by_symbol[anchor_symbol]",
-            "        if len(history) <= self.regime_lookback_bars:",
-            "            return True",
-            "        recent = history[-(self.regime_lookback_bars + 1):]",
-            "        regime_return = (recent[-1].close / recent[0].close) - 1.0",
-            "        return abs(regime_return) >= self.regime_threshold",
-            "",
-            "",
-            "def build_strategy(_dataset_spec=None):",
-            "    return ConfigurableMomentumStrategy(",
-            "        lookback_bars=int(TRAIN_CONFIG['lookback_bars']),",
-            "        top_k=int(TRAIN_CONFIG['top_k']),",
-            "        gross_target=float(TRAIN_CONFIG['gross_target']),",
-            "        ranking_mode=str(TRAIN_CONFIG['ranking_mode']),",
-            "        use_regime_filter=bool(TRAIN_CONFIG['use_regime_filter']),",
-            "        regime_lookback_bars=int(TRAIN_CONFIG['regime_lookback_bars']),",
-            "        regime_threshold=float(TRAIN_CONFIG['regime_threshold']),",
-            "        min_signal_strength=float(TRAIN_CONFIG['min_signal_strength']),",
-            "        min_cross_sectional_spread=float(TRAIN_CONFIG['min_cross_sectional_spread']),",
-            "        volatility_floor=float(TRAIN_CONFIG['volatility_floor']),",
-            "        reversal_bias_weight=float(TRAIN_CONFIG['reversal_bias_weight']),",
-            "        funding_penalty_weight=float(TRAIN_CONFIG['funding_penalty_weight']),",
-            "    )",
-            "",
-        ]
-    )
+def render_train_file(
+    train_config: Mapping[str, Any],
+    *,
+    strategy_family: str = FAMILY_MOMENTUM,
+) -> str:
+    return render_family_train_file(train_config, strategy_family=strategy_family)
 
 
 def run_deterministic_mutation_campaign(
@@ -1317,9 +1128,10 @@ def run_deterministic_mutation_campaign(
     decisions = []
     for proposal in mutator.generate(runner.train_path)[:max_mutations]:
         module = _load_train_module(runner.train_path)
+        strategy_family = str(getattr(module, "STRATEGY_FAMILY", FAMILY_MOMENTUM))
         config = dict(getattr(module, "TRAIN_CONFIG"))
         config.update(proposal.config_updates)
-        candidate_text = render_train_file(config)
+        candidate_text = render_train_file(config, strategy_family=strategy_family)
         decisions.append(
             runner.apply_candidate_staged(
                 campaign_path=campaign_path,

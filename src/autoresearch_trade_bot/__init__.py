@@ -42,6 +42,7 @@ from .experiments import (
     run_baseline_from_manifest_path,
     run_variant_search,
 )
+from .family_wave import FamilyWaveRunResult, prepare_family_repo, run_llm_family_wave
 from .models import Bar, ExperimentResult, SimulationMetrics, SimulationResult
 from .llm_worker import LLMAutoresearchWorker
 from .mutations import (
@@ -88,6 +89,7 @@ __all__ = [
     "DatasetSpec",
     "ExperimentConfig",
     "ExperimentResult",
+    "FamilyWaveRunResult",
     "FilesystemResearchStateStore",
     "FrozenResearchWindow",
     "GitAutoresearchDecision",
@@ -128,10 +130,12 @@ __all__ = [
     "campaign_path_for_name",
     "evaluate_train_file",
     "prepare_campaign",
+    "prepare_family_repo",
     "render_train_file",
     "resolve_campaign_path",
     "run_baseline_from_manifest_path",
     "run_deterministic_mutation_campaign",
+    "run_llm_family_wave",
     "run_llm_mutation_campaign",
     "run_variant_search",
     "validate_train_candidate_text",

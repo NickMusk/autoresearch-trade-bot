@@ -23,6 +23,12 @@ from autoresearch_trade_bot.mutations import (
     validate_train_candidate_text,
     validate_train_candidate_semantics,
 )
+from autoresearch_trade_bot.strategy_families import (
+    FAMILY_EMA_TREND,
+    FAMILY_MEAN_REVERSION,
+    extract_strategy_family,
+    render_train_file as render_family_train_file,
+)
 
 
 class FakeLLMClient:
@@ -100,6 +106,7 @@ class MutationTests(unittest.TestCase):
                         "min_signal_strength": 0.0,
                     }
                 ),
+                strategy_family="momentum",
                 recent_results=(),
                 symbol_count=5,
             )
@@ -166,6 +173,7 @@ class MutationTests(unittest.TestCase):
                         "min_signal_strength": 0.0,
                     }
                 ),
+                strategy_family="momentum",
                 recent_results=(),
                 symbol_count=5,
                 experiment_memory_summary="Decision mix: no prior LLM evaluations yet.",
@@ -256,6 +264,7 @@ class MutationTests(unittest.TestCase):
             artifact_root=Path("/tmp/artifacts"),
             program_text="Mutate train.py only.",
             current_train_text=current_train,
+            strategy_family="momentum",
             recent_results=recent_results,
             symbol_count=5,
             experiment_memory_summary=summary,
@@ -266,6 +275,60 @@ class MutationTests(unittest.TestCase):
         self.assertIn("Research memory:", user_prompt)
         self.assertIn("Promising directions:", user_prompt)
         self.assertIn("Recent raw results:", user_prompt)
+
+    def test_mean_reversion_family_is_extracted_and_validated_with_family_rules(self) -> None:
+        current_train = render_family_train_file(
+            {
+                "lookback_bars": 24,
+                "rsi_period": 14,
+                "rsi_lower": 35.0,
+                "rsi_upper": 65.0,
+                "band_std_mult": 1.5,
+                "top_k": 1,
+                "gross_target": 0.5,
+                "min_reversion_score": 0.0,
+                "volatility_floor": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 48,
+            },
+            strategy_family=FAMILY_MEAN_REVERSION,
+        )
+        self.assertEqual(extract_strategy_family(current_train), FAMILY_MEAN_REVERSION)
+
+        risky_candidate = render_family_train_file(
+            {
+                "lookback_bars": 24,
+                "rsi_period": 14,
+                "rsi_lower": 20.0,
+                "rsi_upper": 80.0,
+                "band_std_mult": 3.0,
+                "top_k": 1,
+                "gross_target": 0.5,
+                "min_reversion_score": 0.0,
+                "volatility_floor": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 48,
+            },
+            strategy_family=FAMILY_MEAN_REVERSION,
+        )
+        self.assertEqual(
+            validate_train_candidate_semantics(
+                risky_candidate,
+                current_train_text=current_train,
+                symbol_count=5,
+            ),
+            (False, "likely_no_trade_reversion_stack"),
+        )
+
+    def test_attempt_prompt_uses_family_specific_role_specs(self) -> None:
+        role_name, prompt = build_attempt_prompt(
+            base_user_prompt="base prompt",
+            attempt_index=1,
+            max_mutations=3,
+            strategy_family=FAMILY_EMA_TREND,
+        )
+        self.assertEqual(role_name, "trend_filter_quality")
+        self.assertIn("role_name=trend_filter_quality", prompt)
 
     def test_attempt_prompt_assigns_role_specific_guidance(self) -> None:
         role_name, prompt = build_attempt_prompt(
