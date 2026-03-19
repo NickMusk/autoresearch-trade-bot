@@ -32,7 +32,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T08:55:20.471888+00:00",
+  "latest_cycle_completed_at": "2026-03-19T08:56:15.496158+00:00",
   "last_processed_bar": "2026-03-19T08:55:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
@@ -42,7 +42,7 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-f93c042a",
+      "mutation_label": "llm-8aa4a5a9",
       "baseline_score": -10.21037563208329,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -155,7 +155,7 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-f93c042a",
+    "mutation_label": "llm-8aa4a5a9",
     "baseline_score": -10.21037563208329,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -187,9 +187,10 @@
       "atr_multiplier": 1.15,
       "breakout_buffer": 0.035,
       "top_k": 1,
-      "min_breakout_score": 0.9,
-      "use_trend_filter": false,
-      "trend_lookback_bars": 48
+      "min_breakout_score": 0.5,
+      "use_trend_filter": true,
+      "trend_lookback_bars": 48,
+      "trend_threshold": 0.005
     },
     "gate_failures": [
       "no_trades_executed",
