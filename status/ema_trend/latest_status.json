@@ -28,11 +28,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T22:16:46.604120+00:00",
+  "latest_cycle_completed_at": "2026-03-19T22:18:43.200902+00:00",
   "last_processed_bar": "2026-03-19T22:15:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.5,
+  "generation_validity_rate": 0.6,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-bcc37430",
+      "mutation_label": "llm-d5b45485",
       "baseline_score": 18.15769449048482,
-      "candidate_score": 5.788120290634978,
+      "candidate_score": 6.822815330557721,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -128,7 +128,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-7968bea8",
+      "strategy_name": "llm-d5b45485",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -136,12 +136,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": 11.211784,
+      "score": 6.822815,
       "metrics": {
-        "total_return": 0.000209,
-        "sharpe": 11.211104,
-        "max_drawdown": 6.7e-05,
-        "average_turnover": 9.7e-05
+        "total_return": 0.000102,
+        "sharpe": 6.822785,
+        "max_drawdown": 0.000102,
+        "average_turnover": 7.1e-05
       },
       "rejection_reasons": []
     }
@@ -149,9 +149,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-bcc37430",
+    "mutation_label": "llm-d5b45485",
     "baseline_score": 18.15769449048482,
-    "candidate_score": 5.788120290634978,
+    "candidate_score": 6.822815330557721,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -160,33 +160,33 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "ema-trend-disp-v11",
-    "research_score": 5.788120290634978,
+    "research_score": 6.822815330557721,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 6.168724510624557e-05,
-      "sharpe": 5.788187044128717,
-      "max_drawdown": 8.04074312762415e-05,
-      "average_turnover": 5.35599941652671e-05,
+      "total_return": 0.00010181186094193606,
+      "sharpe": 6.822784638175115,
+      "max_drawdown": 0.0001019043181398338,
+      "average_turnover": 7.074964954449136e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 622
+      "nonzero_turnover_steps": 643
     },
     "train_config": {
       "gross_target": 0.45,
       "fast_ema_bars": 6,
-      "slow_ema_bars": 56,
+      "slow_ema_bars": 64,
       "trend_ema_bars": 200,
       "top_k": 2,
       "min_signal_strength": 0.15,
       "use_trend_filter": true,
-      "volume_confirmation": 0.3,
+      "volume_confirmation": 0.35,
       "volatility_floor": 0.002,
-      "smoothing_alpha": 0.03,
-      "per_symbol_cap_ratio": 0.24,
+      "smoothing_alpha": 0.02,
+      "per_symbol_cap_ratio": 0.28,
       "signal_exponent": 2.6,
-      "max_weight_move": 0.1,
+      "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
-      "crowding_exponent": 2.1,
+      "crowding_exponent": 1.9,
       "rel_threshold_mult": 1.2,
       "new_symbol_penalty": 0.7,
       "disp_low_frac_block": 0.5
