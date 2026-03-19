@@ -3,9 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate passed screen but underperformed on the full campaign.",
-    "Latest LLM candidate produced no trades on the evaluation window.",
-    "Latest kept candidate still fails gate: no_trades_executed.",
+    "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate."
   ],
@@ -32,25 +30,25 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T12:32:43.897242+00:00",
+  "latest_cycle_completed_at": "2026-03-19T12:33:48.892370+00:00",
   "last_processed_bar": "2026-03-19T12:30:00+00:00",
-  "recent_acceptance_rate": 0.0,
+  "recent_acceptance_rate": 0.1,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_full",
+      "decision": "keep",
       "stage": "full",
-      "mutation_label": "llm-0e117638",
+      "mutation_label": "llm-b77b7773",
       "baseline_score": -1.1784871792465603,
-      "candidate_score": 0.0,
-      "kept_commit": null,
+      "candidate_score": -1.178468736632384,
+      "kept_commit": "5d2a6232693978cdf07b833724de7f46edab28ec",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
-        "no_trades_executed",
+        "total_return_below_gate",
         "sharpe_below_gate",
         "acceptance_rate_below_gate"
       ]
@@ -98,6 +96,42 @@
       "rejection_reasons": []
     },
     {
+      "strategy_name": "llm-b77b7773",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -1.178469,
+      "metrics": {
+        "total_return": -3e-06,
+        "sharpe": -1.178358,
+        "max_drawdown": 1.6e-05,
+        "average_turnover": 3.1e-05
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-b77b7773",
+      "params": {
+        "decision": "keep",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": true,
+      "score": -1.178469,
+      "metrics": {
+        "total_return": -3e-06,
+        "sharpe": -1.178358,
+        "max_drawdown": 1.6e-05,
+        "average_turnover": 3.1e-05
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-4386302b",
       "params": {
         "decision": "discard_screen",
@@ -114,88 +148,51 @@
         "average_turnover": 3.6e-05
       },
       "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-8cc7bece",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -19.205656,
-      "metrics": {
-        "total_return": -0.002412,
-        "sharpe": -19.179318,
-        "max_drawdown": 0.002972,
-        "average_turnover": 0.002387
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-52aad273",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -41.777703,
-      "metrics": {
-        "total_return": -0.007239,
-        "sharpe": -41.705419,
-        "max_drawdown": 0.007497,
-        "average_turnover": 0.006102
-      },
-      "rejection_reasons": []
     }
   ],
   "latest_decision": {
-    "decision": "discard_full",
+    "decision": "keep",
     "stage": "full",
-    "mutation_label": "llm-0e117638",
+    "mutation_label": "llm-b77b7773",
     "baseline_score": -1.1784871792465603,
-    "candidate_score": 0.0,
-    "kept_commit": null,
+    "candidate_score": -1.178468736632384,
+    "kept_commit": "5d2a6232693978cdf07b833724de7f46edab28ec",
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
-      "no_trades_executed",
+      "total_return_below_gate",
       "sharpe_below_gate",
       "acceptance_rate_below_gate"
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v13-recency",
-    "research_score": 0.0,
+    "strategy_name": "vol-breakout-v12-prop-weight-v2",
+    "research_score": -1.178468736632384,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 0.0,
-      "sharpe": 0.0,
-      "max_drawdown": 0.0,
-      "average_turnover": 0.0,
+      "total_return": -3.277806093437974e-06,
+      "sharpe": -1.178358082093232,
+      "max_drawdown": 1.5749999999981057e-05,
+      "average_turnover": 3.1265508684863525e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 0
+      "nonzero_turnover_steps": 2
     },
     "train_config": {
-      "gross_target": 0.28,
-      "channel_bars": 30,
+      "gross_target": 0.24,
+      "channel_bars": 26,
       "atr_lookback_bars": 14,
       "atr_multiplier": 1.9,
-      "breakout_buffer": 0.018,
-      "top_k": 2,
+      "breakout_buffer": 0.016,
+      "top_k": 1,
       "min_breakout_score": 0.08,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
       "fallback_scale": 0.05,
-      "crowding_min_scale": 0.25,
-      "recency_strength": 0.7
+      "crowding_min_scale": 0.25
     },
     "gate_failures": [
-      "no_trades_executed",
+      "total_return_below_gate",
       "sharpe_below_gate",
       "acceptance_rate_below_gate"
     ],
@@ -204,5 +201,31 @@
     "failure_reason": ""
   },
   "current_best_strategy_name": "vol-breakout-v12-prop-weight",
-  "latest_kept_summary": {}
+  "latest_kept_summary": {
+    "strategy_name": "vol-breakout-v12-prop-weight-v2",
+    "baseline_strategy_name": "vol-breakout-v12-prop-weight",
+    "score_delta": 1.8e-05,
+    "config_diff": [
+      {
+        "key": "breakout_buffer",
+        "before": 0.018,
+        "after": 0.016
+      },
+      {
+        "key": "channel_bars",
+        "before": 30,
+        "after": 26
+      },
+      {
+        "key": "gross_target",
+        "before": 0.28,
+        "after": 0.24
+      },
+      {
+        "key": "top_k",
+        "before": 2,
+        "after": 1
+      }
+    ]
+  }
 }
