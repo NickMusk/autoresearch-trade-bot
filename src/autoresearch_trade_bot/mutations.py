@@ -552,12 +552,15 @@ def build_llm_mutation_prompt(
             "You are mutating exactly one file: train.py.",
             "Return only valid Python source code for the full train.py file.",
             "Do not add markdown fences or commentary.",
+            f"Keep the candidate under {MAX_CANDIDATE_BYTES} bytes of UTF-8 source code.",
             "Keep the editable surface within TRAIN_CONFIG, STRATEGY_NAME, class logic, and build_strategy.",
             f"Preserve STRATEGY_FAMILY as {context.strategy_family}. Do not switch strategy families in this branch.",
             "Do not import forbidden modules or perform I/O, subprocess, networking, or dynamic imports.",
             "Optimize research_score while respecting the hard gates described below.",
             "Prefer one substantial research hypothesis over cosmetic rewrites.",
             "Do not only rename identifiers or make no-op refactors.",
+            "Preserve the existing file structure whenever possible instead of expanding helpers or rewriting the whole template.",
+            "Avoid adding new helper functions, verbose comments, or repeated logic unless absolutely necessary for the mutation.",
         ]
     )
     user_prompt = "\n\n".join(
@@ -574,7 +577,9 @@ def build_llm_mutation_prompt(
                 "- Make a meaningful change to strategy behavior.\n"
                 "- Prefer changes that improve selectivity, reduce weak-signal trades, or reduce crowding/overextension risk.\n"
                 "- Use the promising directions from research memory and avoid repeated dead zones.\n"
-                "- Keep compute cheap and stay within the one-file editable boundary."
+                "- Keep compute cheap and stay within the one-file editable boundary.\n"
+                "- Make the smallest full-file edit that expresses the hypothesis; do not bloat the file.\n"
+                "- Reuse existing helpers and structure instead of introducing large new code blocks."
             ),
         ]
     )

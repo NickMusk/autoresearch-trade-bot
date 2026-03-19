@@ -272,9 +272,12 @@ class MutationTests(unittest.TestCase):
         )
         system_prompt, user_prompt = build_llm_mutation_prompt(context=context, max_mutations=1)
         self.assertIn("Prefer one substantial research hypothesis", system_prompt)
+        self.assertIn("Keep the candidate under 24000 bytes", system_prompt)
+        self.assertIn("Preserve the existing file structure whenever possible", system_prompt)
         self.assertIn("Research memory:", user_prompt)
         self.assertIn("Promising directions:", user_prompt)
         self.assertIn("Recent raw results:", user_prompt)
+        self.assertIn("Make the smallest full-file edit that expresses the hypothesis", user_prompt)
 
     def test_mean_reversion_family_is_extracted_and_validated_with_family_rules(self) -> None:
         current_train = render_family_train_file(
