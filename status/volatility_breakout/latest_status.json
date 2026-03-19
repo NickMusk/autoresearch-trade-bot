@@ -31,8 +31,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T16:37:04.905608+00:00",
-  "last_processed_bar": "2026-03-19T16:35:00+00:00",
+  "latest_cycle_completed_at": "2026-03-19T16:41:07.079618+00:00",
+  "last_processed_bar": "2026-03-19T16:40:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.9,
@@ -43,7 +43,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-f161b19e",
+      "mutation_label": "llm-5d5dd588",
       "baseline_score": -0.1963664282252853,
       "candidate_score": -10.205775901987252,
       "kept_commit": null,
@@ -63,24 +63,6 @@
   },
   "leaderboard": [
     {
-      "strategy_name": "llm-03a46d4e",
-      "params": {
-        "decision": "discard_full",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
-    {
       "strategy_name": "llm-b0dc0898",
       "params": {
         "decision": "screen_pass",
@@ -141,6 +123,24 @@
         "provider_name": "llm",
         "model_name": "gpt-5-mini-2025-08-07",
         "stage": "full"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-27b822f8",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
       },
       "accepted": false,
       "score": 0.0,
@@ -156,7 +156,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-f161b19e",
+    "mutation_label": "llm-5d5dd588",
     "baseline_score": -0.1963664282252853,
     "candidate_score": -10.205775901987252,
     "kept_commit": null,
@@ -191,8 +191,8 @@
       "min_breakout_score": 0.035,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.004,
-      "crowding_min_scale": 0.18,
+      "fallback_scale": 0.015,
+      "crowding_min_scale": 0.22,
       "min_atr_fraction": 0.0015
     },
     "gate_failures": [
