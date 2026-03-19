@@ -3,7 +3,11 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate underperformed the baseline on the screen window."
+    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest LLM candidate produced no trades on the evaluation window.",
+    "Latest kept candidate still fails gate: no_trades_executed.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -28,7 +32,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T20:10:52.804952+00:00",
+  "latest_cycle_completed_at": "2026-03-19T20:12:55.465950+00:00",
   "last_processed_bar": "2026-03-19T20:10:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
@@ -40,14 +44,18 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-6deb285f",
+      "mutation_label": "llm-7a9d517d",
       "baseline_score": 18.15769449048482,
-      "candidate_score": 17.5793716176521,
+      "candidate_score": 0.0,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": []
+      "gate_failures": [
+        "no_trades_executed",
+        "sharpe_below_gate",
+        "acceptance_rate_below_gate"
+      ]
     },
     "baseline_strategy_name": "ema-trend-disp-v10",
     "baseline_score": 18.15769449048482,
@@ -149,49 +157,57 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-6deb285f",
+    "mutation_label": "llm-7a9d517d",
     "baseline_score": 18.15769449048482,
-    "candidate_score": 17.5793716176521,
+    "candidate_score": 0.0,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "gate_failures": []
+    "gate_failures": [
+      "no_trades_executed",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v10",
-    "research_score": 17.5793716176521,
-    "ready_for_paper": true,
+    "strategy_name": "ema-trend-disp-v11",
+    "research_score": 0.0,
+    "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 0.0003452142238924427,
-      "sharpe": 17.5780004084358,
-      "max_drawdown": 6.599886042146785e-05,
-      "average_turnover": 9.08664614773575e-05,
+      "total_return": 0.0,
+      "sharpe": 0.0,
+      "max_drawdown": 0.0,
+      "average_turnover": 0.0,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 848
+      "nonzero_turnover_steps": 0
     },
     "train_config": {
       "gross_target": 0.45,
-      "fast_ema_bars": 8,
+      "fast_ema_bars": 5,
       "slow_ema_bars": 56,
       "trend_ema_bars": 180,
       "top_k": 2,
       "min_signal_strength": 0.15,
       "use_trend_filter": true,
-      "volume_confirmation": 0.45,
-      "volatility_floor": 0.002,
-      "smoothing_alpha": 0.02,
+      "volume_confirmation": 0.4,
+      "volatility_floor": 0.003,
+      "smoothing_alpha": 0.015,
       "per_symbol_cap_ratio": 0.28,
       "signal_exponent": 2.6,
       "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
-      "crowding_exponent": 1.9,
-      "rel_threshold_mult": 1.2,
+      "crowding_exponent": 2.1,
+      "rel_threshold_mult": 1.6,
       "new_symbol_penalty": 0.7,
       "disp_low_frac_block": 0.5
     },
-    "gate_failures": [],
+    "gate_failures": [
+      "no_trades_executed",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
