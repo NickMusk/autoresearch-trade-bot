@@ -43,26 +43,6 @@
     {
       "strategy_name": "llm-8dfcf144",
       "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.246326,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 0.001011,
-        "max_drawdown": 13.036021,
-        "average_turnover": 0.000289
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
-      "strategy_name": "llm-8dfcf144",
-      "params": {
         "decision": "keep",
         "provider_name": "llm",
         "model_name": "gpt-5-mini-2025-08-07",
@@ -98,6 +78,26 @@
       },
       "rejection_reasons": [
         "[\"candidate_too_large\"]"
+      ]
+    },
+    {
+      "strategy_name": "llm-785752d3",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 1.0
+      },
+      "rejection_reasons": [
+        "[\"no_op_train_config\"]"
       ]
     }
   ]
