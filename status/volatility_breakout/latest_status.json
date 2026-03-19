@@ -3,7 +3,6 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate underperformed the baseline on the screen window.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate."
@@ -31,20 +30,20 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T10:12:44.325413+00:00",
+  "latest_cycle_completed_at": "2026-03-19T10:14:26.937312+00:00",
   "last_processed_bar": "2026-03-19T10:10:00+00:00",
-  "recent_acceptance_rate": 0.1,
+  "recent_acceptance_rate": 0.2,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_screen",
-      "stage": "screen",
-      "mutation_label": "llm-0512b2ec",
+      "decision": "keep",
+      "stage": "full",
+      "mutation_label": "llm-0a5920a3",
       "baseline_score": -8.892383648164762,
-      "candidate_score": -58.33642802468778,
-      "kept_commit": null,
+      "candidate_score": -7.900559272760672,
+      "kept_commit": "c0b49856eead510fbf556b215063b2302c477547",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -152,12 +151,12 @@
     }
   ],
   "latest_decision": {
-    "decision": "discard_screen",
-    "stage": "screen",
-    "mutation_label": "llm-0512b2ec",
+    "decision": "keep",
+    "stage": "full",
+    "mutation_label": "llm-0a5920a3",
     "baseline_score": -8.892383648164762,
-    "candidate_score": -58.33642802468778,
-    "kept_commit": null,
+    "candidate_score": -7.900559272760672,
+    "kept_commit": "c0b49856eead510fbf556b215063b2302c477547",
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
@@ -168,30 +167,29 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-donchian-v7-single-side-safe",
-    "research_score": -58.33642802468778,
+    "strategy_name": "vol-breakout-donchian-v6-adapt-bias",
+    "research_score": -7.900559272760672,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.03675138999979355,
-      "sharpe": -57.9720013261305,
-      "max_drawdown": 0.0371523999187332,
-      "average_turnover": 0.03206014888337469,
+      "total_return": -5.393467229342086e-05,
+      "sharpe": -7.899976416541296,
+      "max_drawdown": 5.393467229342086e-05,
+      "average_turnover": 9.744416873449133e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 566
+      "nonzero_turnover_steps": 2
     },
     "train_config": {
-      "gross_target": 0.32,
-      "channel_bars": 22,
+      "gross_target": 0.3,
+      "channel_bars": 30,
       "atr_lookback_bars": 14,
-      "atr_multiplier": 1.25,
-      "breakout_buffer": 0.025,
+      "atr_multiplier": 1.35,
+      "breakout_buffer": 0.03,
       "top_k": 1,
-      "min_breakout_score": 0.07,
+      "min_breakout_score": 0.08,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.5,
-      "crowding_min_scale": 0.5,
-      "single_side_scale": 0.6
+      "fallback_scale": 0.4,
+      "crowding_min_scale": 0.55
     },
     "gate_failures": [
       "total_return_below_gate",
@@ -203,5 +201,46 @@
     "failure_reason": ""
   },
   "current_best_strategy_name": "vol-breakout-donchian-v6-adapt",
-  "latest_kept_summary": {}
+  "latest_kept_summary": {
+    "strategy_name": "vol-breakout-donchian-v6-adapt-bias",
+    "baseline_strategy_name": "vol-breakout-donchian-v6-adapt",
+    "score_delta": 0.991824,
+    "config_diff": [
+      {
+        "key": "atr_multiplier",
+        "before": 1.2,
+        "after": 1.35
+      },
+      {
+        "key": "breakout_buffer",
+        "before": 0.025,
+        "after": 0.03
+      },
+      {
+        "key": "channel_bars",
+        "before": 22,
+        "after": 30
+      },
+      {
+        "key": "crowding_min_scale",
+        "before": 0.5,
+        "after": 0.55
+      },
+      {
+        "key": "fallback_scale",
+        "before": 0.5,
+        "after": 0.4
+      },
+      {
+        "key": "gross_target",
+        "before": 0.32,
+        "after": 0.3
+      },
+      {
+        "key": "min_breakout_score",
+        "before": 0.07,
+        "after": 0.08
+      }
+    ]
+  }
 }
