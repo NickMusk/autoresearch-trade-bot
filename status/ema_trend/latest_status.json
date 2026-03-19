@@ -3,8 +3,8 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate failed validation or execution: candidate_too_large.",
-    "Latest kept candidate still fails gate: candidate_too_large."
+    "Latest LLM candidate failed validation or execution: no_op_train_config.",
+    "Latest kept candidate still fails gate: no_op_train_config."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -29,7 +29,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T11:50:12.074749+00:00",
+  "latest_cycle_completed_at": "2026-03-19T11:52:10.215801+00:00",
   "last_processed_bar": "2026-03-19T11:50:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
@@ -39,15 +39,15 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-3a607218",
+      "mutation_label": "llm-d3957daf",
       "baseline_score": 14.039514293243014,
       "candidate_score": -Infinity,
       "kept_commit": null,
-      "failure_reason": "candidate_too_large",
+      "failure_reason": "no_op_train_config",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
-        "candidate_too_large"
+        "no_op_train_config"
       ]
     },
     "baseline_strategy_name": "ema-trend-disp-v8",
@@ -150,15 +150,15 @@
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-3a607218",
+    "mutation_label": "llm-d3957daf",
     "baseline_score": 14.039514293243014,
     "candidate_score": -Infinity,
     "kept_commit": null,
-    "failure_reason": "candidate_too_large",
+    "failure_reason": "no_op_train_config",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
-      "candidate_too_large"
+      "no_op_train_config"
     ]
   },
   "latest_candidate_summary": {
@@ -175,11 +175,11 @@
     },
     "train_config": {},
     "gate_failures": [
-      "candidate_too_large"
+      "no_op_train_config"
     ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "failure_reason": "candidate_too_large"
+    "failure_reason": "no_op_train_config"
   },
   "current_best_strategy_name": "ema-trend-disp-v8",
   "latest_kept_summary": {}
