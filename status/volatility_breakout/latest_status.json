@@ -31,7 +31,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T13:27:28.362024+00:00",
+  "latest_cycle_completed_at": "2026-03-19T13:28:29.493164+00:00",
   "last_processed_bar": "2026-03-19T13:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
@@ -41,9 +41,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-4825cc96",
+      "mutation_label": "llm-88f250a1",
       "baseline_score": -0.5556789513578184,
-      "candidate_score": -0.5556789513578184,
+      "candidate_score": -37.06139996159208,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -154,9 +154,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-4825cc96",
+    "mutation_label": "llm-88f250a1",
     "baseline_score": -0.5556789513578184,
-    "candidate_score": -0.5556789513578184,
+    "candidate_score": -37.06139996159208,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -168,30 +168,31 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v14-adaptive-atrratio-v2",
-    "research_score": -0.5556789513578184,
+    "strategy_name": "vol-breakout-v14-adaptive-atrratio-v3",
+    "research_score": -37.06139996159208,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -1.1382825851891099e-06,
-      "sharpe": -0.5556073279548182,
-      "max_drawdown": 1.1015999999974824e-05,
-      "average_turnover": 2.1867990074441684e-05,
+      "total_return": -0.0031984069154766814,
+      "sharpe": -37.02918160472391,
+      "max_drawdown": 0.003371030994532842,
+      "average_turnover": 0.002742198312655087,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 2
+      "nonzero_turnover_steps": 333
     },
     "train_config": {
       "gross_target": 0.24,
-      "channel_bars": 22,
+      "channel_bars": 26,
       "atr_lookback_bars": 14,
       "atr_multiplier": 1.9,
-      "breakout_buffer": 0.018,
+      "breakout_buffer": 0.02,
       "top_k": 1,
       "min_breakout_score": 0.07,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.02,
+      "fallback_scale": 0.015,
       "crowding_min_scale": 0.18,
-      "min_atr_fraction": 0.0015
+      "min_atr_fraction": 0.0015,
+      "fallback_include_frac": 0.35
     },
     "gate_failures": [
       "total_return_below_gate",
