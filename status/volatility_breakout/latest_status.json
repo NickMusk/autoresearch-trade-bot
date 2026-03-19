@@ -3,6 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
+    "Latest LLM candidate underperformed the baseline on the screen window.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate."
@@ -30,7 +31,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T12:33:48.892370+00:00",
+  "latest_cycle_completed_at": "2026-03-19T12:34:52.877839+00:00",
   "last_processed_bar": "2026-03-19T12:30:00+00:00",
   "recent_acceptance_rate": 0.1,
   "consecutive_failures": 0,
@@ -38,12 +39,12 @@
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "keep",
-      "stage": "full",
-      "mutation_label": "llm-b77b7773",
-      "baseline_score": -1.1784871792465603,
-      "candidate_score": -1.178468736632384,
-      "kept_commit": "5d2a6232693978cdf07b833724de7f46edab28ec",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-93c0ff30",
+      "baseline_score": -1.178468736632384,
+      "candidate_score": -49.61549997335318,
+      "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -53,8 +54,8 @@
         "acceptance_rate_below_gate"
       ]
     },
-    "baseline_strategy_name": "vol-breakout-v12-prop-weight",
-    "baseline_score": -1.1784871792465603,
+    "baseline_strategy_name": "vol-breakout-v12-prop-weight-v2",
+    "baseline_score": -1.178468736632384,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
   },
@@ -151,12 +152,12 @@
     }
   ],
   "latest_decision": {
-    "decision": "keep",
-    "stage": "full",
-    "mutation_label": "llm-b77b7773",
-    "baseline_score": -1.1784871792465603,
-    "candidate_score": -1.178468736632384,
-    "kept_commit": "5d2a6232693978cdf07b833724de7f46edab28ec",
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-93c0ff30",
+    "baseline_score": -1.178468736632384,
+    "candidate_score": -49.61549997335318,
+    "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
@@ -168,24 +169,24 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "vol-breakout-v12-prop-weight-v2",
-    "research_score": -1.178468736632384,
+    "research_score": -49.61549997335318,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -3.277806093437974e-06,
-      "sharpe": -1.178358082093232,
-      "max_drawdown": 1.5749999999981057e-05,
-      "average_turnover": 3.1265508684863525e-05,
+      "total_return": -0.005987588129173882,
+      "sharpe": -49.55672278436627,
+      "max_drawdown": 0.006022642077748275,
+      "average_turnover": 0.004748680030039469,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 2
+      "nonzero_turnover_steps": 425
     },
     "train_config": {
       "gross_target": 0.24,
       "channel_bars": 26,
       "atr_lookback_bars": 14,
       "atr_multiplier": 1.9,
-      "breakout_buffer": 0.016,
+      "breakout_buffer": 0.015,
       "top_k": 1,
-      "min_breakout_score": 0.08,
+      "min_breakout_score": 0.07,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
       "fallback_scale": 0.05,
@@ -200,32 +201,6 @@
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
   },
-  "current_best_strategy_name": "vol-breakout-v12-prop-weight",
-  "latest_kept_summary": {
-    "strategy_name": "vol-breakout-v12-prop-weight-v2",
-    "baseline_strategy_name": "vol-breakout-v12-prop-weight",
-    "score_delta": 1.8e-05,
-    "config_diff": [
-      {
-        "key": "breakout_buffer",
-        "before": 0.018,
-        "after": 0.016
-      },
-      {
-        "key": "channel_bars",
-        "before": 30,
-        "after": 26
-      },
-      {
-        "key": "gross_target",
-        "before": 0.28,
-        "after": 0.24
-      },
-      {
-        "key": "top_k",
-        "before": 2,
-        "after": 1
-      }
-    ]
-  }
+  "current_best_strategy_name": "vol-breakout-v12-prop-weight-v2",
+  "latest_kept_summary": {}
 }
