@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import socket
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -337,21 +338,30 @@ class GitHubStatusPublisher:
     def publish_json(self, filename: str, payload: dict[str, Any], message: str) -> None:
         path = "/".join(part for part in (self.base_path, filename) if part)
         content = json.dumps(payload, indent=2).encode("utf-8")
-        sha = self._lookup_existing_sha(path)
-        body: dict[str, Any] = {
-            "message": message,
-            "content": base64.b64encode(content).decode("ascii"),
-            "branch": self.branch,
-        }
-        if sha is not None:
-            body["sha"] = sha
-        request = Request(
-            f"{self.api_base_url}/repos/{self.repo}/contents/{path}",
-            data=json.dumps(body).encode("utf-8"),
-            method="PUT",
-            headers=self._headers(),
-        )
-        self._urlopen_with_retry(request)
+        attempts = 3
+        for attempt in range(1, attempts + 1):
+            sha = self._lookup_existing_sha(path)
+            body: dict[str, Any] = {
+                "message": message,
+                "content": base64.b64encode(content).decode("ascii"),
+                "branch": self.branch,
+            }
+            if sha is not None:
+                body["sha"] = sha
+            request = Request(
+                f"{self.api_base_url}/repos/{self.repo}/contents/{path}",
+                data=json.dumps(body).encode("utf-8"),
+                method="PUT",
+                headers=self._headers(),
+            )
+            try:
+                self._urlopen_with_retry(request)
+                return
+            except HTTPError as exc:
+                if exc.code == 409 and attempt < attempts:
+                    time.sleep(0.25 * attempt)
+                    continue
+                raise
 
     def _lookup_existing_sha(self, path: str) -> str | None:
         request = Request(
