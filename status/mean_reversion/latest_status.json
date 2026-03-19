@@ -1,9 +1,9 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker degraded",
+  "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "OpenAI request timed out"
+    "Latest LLM candidate underperformed the baseline on the screen window."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -22,25 +22,27 @@
   },
   "accepted_for_paper": false,
   "next_milestones": [
-    "Recover the worker from the latest API, repo, or campaign failure."
+    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
+    "Accumulate multiple kept improvements in the research branch.",
+    "Promote only candidates that satisfy the hard rollout gates."
   ],
-  "loop_state": "degraded",
+  "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T20:24:46.736109+00:00",
-  "last_processed_bar": "2026-03-19T20:20:00+00:00",
+  "latest_cycle_completed_at": "2026-03-19T20:51:38.553658+00:00",
+  "last_processed_bar": "2026-03-19T20:50:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.9,
-  "consecutive_failures": 2,
+  "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/mean_reversion/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-c6d3735c",
+      "mutation_label": "llm-0f1bf8cf",
       "baseline_score": 5.90982347835722,
-      "candidate_score": 5.898908838272172,
+      "candidate_score": 4.88718158010256,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -147,9 +149,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-c6d3735c",
+    "mutation_label": "llm-0f1bf8cf",
     "baseline_score": 5.90982347835722,
-    "candidate_score": 5.898908838272172,
+    "candidate_score": 4.88718158010256,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -157,16 +159,16 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v16-looserbands-volpen2.2-persist4-tightcap-v2",
-    "research_score": 5.898908838272172,
+    "strategy_name": "mean-reversion-bbands-rsi-v15-looserbands-volpen2p0-persist4-tightcap-microstricter-v2-relax65-min285-vol006-trend035",
+    "research_score": 4.88718158010256,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 5.1163034715528966e-06,
-      "sharpe": 5.8988904554370345,
-      "max_drawdown": 1.1012366581963917e-06,
-      "average_turnover": 2.793735588202071e-06,
+      "total_return": 5.222010438510338e-06,
+      "sharpe": 4.88717329273237,
+      "max_drawdown": 2.430736212089002e-06,
+      "average_turnover": 8.099737153751709e-06,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 9
+      "nonzero_turnover_steps": 14
     },
     "train_config": {
       "gross_target": 0.4,
@@ -174,20 +176,20 @@
       "rsi_period": 14,
       "rsi_lower": 35.0,
       "rsi_upper": 65.0,
-      "band_std_mult": 1.8,
+      "band_std_mult": 1.85,
       "top_k": 1,
-      "min_reversion_score": 0.295,
+      "min_reversion_score": 0.285,
       "volatility_floor": 0.006,
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
       "volatility_scale_alpha": 0.6,
       "persistence": 4,
-      "per_symbol_cap_fraction": 0.045,
+      "per_symbol_cap_fraction": 0.05,
       "weak_signal_microcap_fraction": 0.006,
       "weak_rsi_support_min": 0.76,
       "market_scale_floor": 0.48,
-      "rsi_relax_max": 0.7,
-      "volatility_penalty_exponent": 2.2
+      "rsi_relax_max": 0.65,
+      "volatility_penalty_exponent": 2.0
     },
     "gate_failures": [],
     "provider_name": "llm",
