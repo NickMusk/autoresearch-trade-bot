@@ -28,11 +28,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T18:31:35.221089+00:00",
-  "last_processed_bar": "2026-03-19T18:30:00+00:00",
+  "latest_cycle_completed_at": "2026-03-19T18:35:49.339194+00:00",
+  "last_processed_bar": "2026-03-19T18:35:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.7,
+  "generation_validity_rate": 0.8,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-030b9bf6",
+      "mutation_label": "llm-969f5414",
       "baseline_score": 18.15769449048482,
-      "candidate_score": 16.00863931320949,
+      "candidate_score": 18.15769449048482,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -57,6 +57,24 @@
   "leaderboard": [
     {
       "strategy_name": "llm-fd0c7850",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 18.157694,
+      "metrics": {
+        "total_return": 0.000359,
+        "sharpe": 18.15624,
+        "max_drawdown": 6.3e-05,
+        "average_turnover": 9.2e-05
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-969f5414",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -126,32 +144,14 @@
         "average_turnover": 6.9e-05
       },
       "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-2ee5a5f6",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 11.854305,
-      "metrics": {
-        "total_return": 0.00019,
-        "sharpe": 11.853615,
-        "max_drawdown": 4.9e-05,
-        "average_turnover": 6.5e-05
-      },
-      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-030b9bf6",
+    "mutation_label": "llm-969f5414",
     "baseline_score": 18.15769449048482,
-    "candidate_score": 16.00863931320949,
+    "candidate_score": 18.15769449048482,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -159,16 +159,16 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v10-flippenalize",
-    "research_score": 16.00863931320949,
+    "strategy_name": "ema-trend-disp-v10",
+    "research_score": 18.15769449048482,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.0002923549962703387,
-      "sharpe": 16.00745019470548,
-      "max_drawdown": 5.100829219861769e-05,
-      "average_turnover": 6.862330854583177e-05,
+      "total_return": 0.0003594573838521242,
+      "sharpe": 18.15623987958565,
+      "max_drawdown": 6.263828322661258e-05,
+      "average_turnover": 9.212288718452835e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 629
+      "nonzero_turnover_steps": 845
     },
     "train_config": {
       "gross_target": 0.45,
@@ -190,8 +190,7 @@
       "rel_threshold_mult": 1.2,
       "new_symbol_penalty": 0.7,
       "disp_low_frac_block": 0.5,
-      "flip_penalty": 0.45,
-      "trend_strength_min": 0.05
+      "allowed_new_per_side": 1
     },
     "gate_failures": [],
     "provider_name": "llm",
