@@ -31,7 +31,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T09:33:34.034115+00:00",
+  "latest_cycle_completed_at": "2026-03-19T09:34:08.543872+00:00",
   "last_processed_bar": "2026-03-19T09:30:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
@@ -41,9 +41,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-3035f286",
+      "mutation_label": "llm-b4e2f9dd",
       "baseline_score": -10.21037563208329,
-      "candidate_score": -37.412008653012634,
+      "candidate_score": -29.31074859628338,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -154,9 +154,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-3035f286",
+    "mutation_label": "llm-b4e2f9dd",
     "baseline_score": -10.21037563208329,
-    "candidate_score": -37.412008653012634,
+    "candidate_score": -29.31074859628338,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -169,15 +169,15 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "vol-breakout-donchian-v2",
-    "research_score": -37.412008653012634,
+    "research_score": -29.31074859628338,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.04415785080009604,
-      "sharpe": -36.96100544214625,
-      "max_drawdown": 0.0482482782983622,
-      "average_turnover": 0.03722084367245657,
+      "total_return": -0.023041872750438785,
+      "sharpe": -29.076818313263804,
+      "max_drawdown": 0.02615665661585298,
+      "average_turnover": 0.014094292803970225,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 275
+      "nonzero_turnover_steps": 138
     },
     "train_config": {
       "gross_target": 0.5,
@@ -185,8 +185,8 @@
       "atr_lookback_bars": 14,
       "atr_multiplier": 1.15,
       "breakout_buffer": 0.03,
-      "top_k": 1,
-      "min_breakout_score": 0.5,
+      "top_k": 2,
+      "min_breakout_score": 0.9,
       "use_trend_filter": true,
       "trend_lookback_bars": 48
     },
