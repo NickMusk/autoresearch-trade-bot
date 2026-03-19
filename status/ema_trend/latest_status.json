@@ -1,9 +1,10 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker degraded",
+  "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "OpenAI request timed out"
+    "Latest LLM candidate failed validation or execution: no_op_train_config.",
+    "Latest kept candidate still fails gate: no_op_train_config."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -22,31 +23,33 @@
   },
   "accepted_for_paper": false,
   "next_milestones": [
-    "Recover the worker from the latest API, repo, or campaign failure."
+    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
+    "Accumulate multiple kept improvements in the research branch.",
+    "Promote only candidates that satisfy the hard rollout gates."
   ],
-  "loop_state": "degraded",
+  "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T16:16:43.629772+00:00",
-  "last_processed_bar": "2026-03-19T16:15:00+00:00",
+  "latest_cycle_completed_at": "2026-03-19T16:55:11.544493+00:00",
+  "last_processed_bar": "2026-03-19T16:55:00+00:00",
   "recent_acceptance_rate": 0.2,
   "evaluation_acceptance_rate": 0.2,
   "generation_validity_rate": 0.5,
-  "consecutive_failures": 4,
+  "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-ccd8d228",
+      "mutation_label": "llm-58f1e57a",
       "baseline_score": 18.15769449048482,
       "candidate_score": -Infinity,
       "kept_commit": null,
-      "failure_reason": "likely_no_trade_signal_threshold",
+      "failure_reason": "no_op_train_config",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
-        "likely_no_trade_signal_threshold"
+        "no_op_train_config"
       ]
     },
     "baseline_strategy_name": "ema-trend-disp-v10",
@@ -149,15 +152,15 @@
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-ccd8d228",
+    "mutation_label": "llm-58f1e57a",
     "baseline_score": 18.15769449048482,
     "candidate_score": -Infinity,
     "kept_commit": null,
-    "failure_reason": "likely_no_trade_signal_threshold",
+    "failure_reason": "no_op_train_config",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
-      "likely_no_trade_signal_threshold"
+      "no_op_train_config"
     ]
   },
   "latest_candidate_summary": {
@@ -174,11 +177,11 @@
     },
     "train_config": {},
     "gate_failures": [
-      "likely_no_trade_signal_threshold"
+      "no_op_train_config"
     ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "failure_reason": "likely_no_trade_signal_threshold"
+    "failure_reason": "no_op_train_config"
   },
   "current_best_strategy_name": "ema-trend-disp-v10",
   "latest_kept_summary": {}
