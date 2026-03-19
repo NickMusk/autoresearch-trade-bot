@@ -55,6 +55,24 @@
       "rejection_reasons": []
     },
     {
+      "strategy_name": "llm-22f8228d",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -125.656649,
+      "metrics": {
+        "total_return": -0.208057,
+        "sharpe": -123.568004,
+        "max_drawdown": 0.208244,
+        "average_turnover": 0.215385
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-dfda46ad",
       "params": {
         "decision": "discard_screen",
@@ -71,26 +89,6 @@
         "average_turnover": 0.407444
       },
       "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-b82c1992",
-      "params": {
-        "decision": "discard_error",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "validation"
-      },
-      "accepted": false,
-      "score": -Infinity,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 1.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": [
-        "likely_no_trade_signal_threshold"
-      ]
     }
   ]
 }
