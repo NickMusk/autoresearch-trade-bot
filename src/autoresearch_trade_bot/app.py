@@ -6,7 +6,7 @@ import os
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from .dashboard import build_dashboard_snapshot
+from .dashboard import build_dashboard_snapshot, build_family_dashboard_data
 
 
 class DashboardHandler(BaseHTTPRequestHandler):
@@ -16,11 +16,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             return
         if self.path == "/api/status":
             snapshot = build_dashboard_snapshot()
-            self._write_json(HTTPStatus.OK, snapshot.__dict__)
+            self._write_json(HTTPStatus.OK, build_family_dashboard_data(snapshot))
             return
         if self.path == "/":
             snapshot = build_dashboard_snapshot()
-            self._write_html(HTTPStatus.OK, render_dashboard(snapshot.__dict__))
+            self._write_html(HTTPStatus.OK, render_dashboard(build_family_dashboard_data(snapshot)))
             return
         self._write_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
 
@@ -44,7 +44,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
 
-def render_dashboard(snapshot: dict) -> str:
+def render_dashboard(payload: dict) -> str:
+    snapshot = payload["primary_snapshot"]
+    family_tabs = payload.get("family_tabs", [])
     blockers = "".join(
         f"<li>{html.escape(blocker)}</li>" for blocker in snapshot["research_blockers"]
     )
@@ -114,6 +116,17 @@ def render_dashboard(snapshot: dict) -> str:
             f"{html.escape(str(item.get('before')))} -&gt; {html.escape(str(item.get('after')))}</li>"
         )
         for item in latest_kept_summary.get("config_diff", [])
+    )
+    family_tab_buttons = "".join(
+        (
+            f"<button class='tab-button{' active' if index == 0 else ''}' data-family='{html.escape(str(item['family_id']))}'>"
+            f"{html.escape(str(item['label']))}</button>"
+        )
+        for index, item in enumerate(family_tabs)
+    )
+    family_tab_panels = "".join(
+        _render_family_tab_panel(item, is_active=index == 0)
+        for index, item in enumerate(family_tabs)
     )
 
     return f"""<!doctype html>
@@ -221,6 +234,44 @@ def render_dashboard(snapshot: dict) -> str:
       font-size: 14px;
       color: var(--muted);
     }}
+    .tabs {{
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }}
+    .tab-button {{
+      border: 1px solid var(--border);
+      background: #ede3d0;
+      color: var(--ink);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font: inherit;
+    }}
+    .tab-button.active {{
+      background: var(--accent);
+      color: #fffdf8;
+      border-color: var(--accent);
+    }}
+    .tab-panel {{
+      display: none;
+      margin-top: 16px;
+    }}
+    .tab-panel.active {{
+      display: block;
+    }}
+    .family-summary {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }}
+    .family-chip {{
+      padding: 14px;
+      border-radius: 14px;
+      background: #f7f0e2;
+      border: 1px solid #e2d6c0;
+    }}
     @media (max-width: 640px) {{
       main {{ padding: 24px 16px 40px; }}
       .hero, .panel {{ padding: 18px; }}
@@ -316,10 +367,76 @@ def render_dashboard(snapshot: dict) -> str:
       </article>
     </section>
 
+    <section class="panel">
+      <h2>Strategy Families</h2>
+      <p>These tabs track the parallel wave-1 family searches on the same frozen campaign.</p>
+      <div class="tabs">{family_tab_buttons or "<span class='badge'>No family snapshots yet</span>"}</div>
+      {family_tab_panels or "<p class='footer'>No family snapshots published yet.</p>"}
+    </section>
+
     <p class="footer">This dashboard is intentionally read-only in v1. It exposes the current research kernel state, not a live trading control plane.</p>
   </main>
+  <script>
+    const buttons = Array.from(document.querySelectorAll('.tab-button'));
+    const panels = Array.from(document.querySelectorAll('.tab-panel'));
+    for (const button of buttons) {{
+      button.addEventListener('click', () => {{
+        const familyId = button.getAttribute('data-family');
+        for (const item of buttons) item.classList.toggle('active', item === button);
+        for (const panel of panels) panel.classList.toggle('active', panel.getAttribute('data-family') === familyId);
+      }});
+    }}
+  </script>
 </body>
 </html>"""
+
+
+def _render_family_tab_panel(item: dict, *, is_active: bool) -> str:
+    family_id = str(item["family_id"])
+    label = str(item["label"])
+    snapshot = item.get("snapshot")
+    if not snapshot:
+        body = "<p class='footer'>No snapshot published for this family yet.</p>"
+    else:
+        latest_decision = snapshot.get("latest_decision") or {}
+        blockers = snapshot.get("research_blockers") or []
+        blocker_items = "".join(f"<li>{html.escape(str(blocker))}</li>" for blocker in blockers[:4])
+        body = f"""
+        <div class="family-summary">
+          <div class="family-chip"><span class="label">Phase</span><strong>{html.escape(str(snapshot.get("phase", "n/a")))}</strong></div>
+          <div class="family-chip"><span class="label">Loop State</span><strong>{html.escape(str(snapshot.get("loop_state", "n/a")))}</strong></div>
+          <div class="family-chip"><span class="label">Best Strategy</span><strong>{html.escape(str(snapshot.get("current_best_strategy_name") or "n/a"))}</strong></div>
+          <div class="family-chip"><span class="label">Baseline Score</span><strong>{html.escape(str(snapshot.get("baseline_metrics", {}).get("score", "n/a")))}</strong></div>
+          <div class="family-chip"><span class="label">Latest Decision</span><strong>{html.escape(str(latest_decision.get("decision", "n/a")))}</strong></div>
+          <div class="family-chip"><span class="label">Cycle Completed</span><strong>{html.escape(str(snapshot.get("latest_cycle_completed_at") or "n/a"))}</strong></div>
+        </div>
+        <div class="grid">
+          <article class="panel">
+            <h2>{html.escape(label)} Leaderboard</h2>
+            <ul>{
+                "".join(
+                    "<li><strong>"
+                    + html.escape(str(entry.get("strategy_name")))
+                    + "</strong> (score "
+                    + html.escape(str(round(float(entry.get("score", 0.0)), 4)))
+                    + ", accepted "
+                    + html.escape("yes" if entry.get("accepted") else "no")
+                    + ")</li>"
+                    for entry in snapshot.get("leaderboard", [])[:5]
+                )
+                or "<li>No leaderboard entries yet.</li>"
+            }</ul>
+          </article>
+          <article class="panel warn">
+            <h2>{html.escape(label)} Blockers</h2>
+            <ul>{blocker_items or "<li>No blockers recorded.</li>"}</ul>
+          </article>
+        </div>
+        """
+    return (
+        f"<div class='tab-panel{' active' if is_active else ''}' data-family='{html.escape(family_id)}'>"
+        f"{body}</div>"
+    )
 
 
 def main() -> None:

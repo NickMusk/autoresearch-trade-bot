@@ -15,6 +15,7 @@ from .state import (
 from .strategy import CrossSectionalMomentumStrategy
 
 DashboardSnapshot = ResearchStatusSnapshot
+WAVE1_FAMILY_IDS = ("mean_reversion", "ema_trend", "volatility_breakout")
 
 
 def default_experiment_config() -> ExperimentConfig:
@@ -58,6 +59,35 @@ def build_dashboard_snapshot(storage_root: str | None = None) -> DashboardSnapsh
             return real_snapshot
 
     return _build_demo_snapshot()
+
+
+def build_family_dashboard_data(snapshot: DashboardSnapshot) -> dict[str, object]:
+    family_snapshots = load_family_snapshots()
+    families = []
+    for family_id in WAVE1_FAMILY_IDS:
+        family_snapshot = family_snapshots.get(family_id)
+        families.append(
+            {
+                "family_id": family_id,
+                "label": family_id.replace("_", " ").title(),
+                "snapshot": family_snapshot.to_dict() if family_snapshot is not None else None,
+            }
+        )
+    return {
+        "primary_snapshot": snapshot.to_dict(),
+        "family_tabs": families,
+    }
+
+
+def load_family_snapshots() -> dict[str, ResearchStatusSnapshot]:
+    root = Path(os.environ.get("AUTORESEARCH_FAMILY_REPOS_ROOT", ".autoresearch/family_repos"))
+    snapshots: dict[str, ResearchStatusSnapshot] = {}
+    for family_id in WAVE1_FAMILY_IDS:
+        snapshot_path = root / family_id / ".autoresearch" / "runs" / "latest_status.json"
+        snapshot = load_status_snapshot_from_path(snapshot_path)
+        if snapshot is not None:
+            snapshots[family_id] = snapshot
+    return snapshots
 
 
 def _build_demo_snapshot() -> DashboardSnapshot:
