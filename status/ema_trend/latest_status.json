@@ -3,7 +3,8 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate underperformed the baseline on the screen window."
+    "Latest LLM candidate failed validation or execution: no_op_train_config.",
+    "Latest kept candidate still fails gate: no_op_train_config."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -28,26 +29,28 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T15:55:01.643523+00:00",
+  "latest_cycle_completed_at": "2026-03-19T15:57:16.617222+00:00",
   "last_processed_bar": "2026-03-19T15:55:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.9,
+  "generation_validity_rate": 0.8,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_screen",
-      "stage": "screen",
-      "mutation_label": "llm-67c5388c",
+      "decision": "discard_error",
+      "stage": "validation",
+      "mutation_label": "llm-beab37fb",
       "baseline_score": 17.24192901152775,
-      "candidate_score": 16.1047435687709,
+      "candidate_score": -Infinity,
       "kept_commit": null,
-      "failure_reason": "",
+      "failure_reason": "no_op_train_config",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": []
+      "gate_failures": [
+        "no_op_train_config"
+      ]
     },
     "baseline_strategy_name": "ema-trend-disp-v9",
     "baseline_score": 17.24192901152775,
@@ -147,54 +150,38 @@
     }
   ],
   "latest_decision": {
-    "decision": "discard_screen",
-    "stage": "screen",
-    "mutation_label": "llm-67c5388c",
+    "decision": "discard_error",
+    "stage": "validation",
+    "mutation_label": "llm-beab37fb",
     "baseline_score": 17.24192901152775,
-    "candidate_score": 16.1047435687709,
+    "candidate_score": -Infinity,
     "kept_commit": null,
-    "failure_reason": "",
+    "failure_reason": "no_op_train_config",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "gate_failures": []
+    "gate_failures": [
+      "no_op_train_config"
+    ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v10",
-    "research_score": 16.1047435687709,
-    "ready_for_paper": true,
+    "strategy_name": "invalid-candidate",
+    "research_score": -Infinity,
+    "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 0.00029612119361788203,
-      "sharpe": 16.103652801601392,
-      "max_drawdown": 7.42371520014995e-05,
-      "average_turnover": 9.289019057611698e-05,
-      "bars_processed": 2015,
-      "nonzero_turnover_steps": 867
+      "total_return": 0.0,
+      "sharpe": 0.0,
+      "max_drawdown": 1.0,
+      "average_turnover": 0.0,
+      "bars_processed": 0,
+      "nonzero_turnover_steps": 0
     },
-    "train_config": {
-      "gross_target": 0.45,
-      "fast_ema_bars": 8,
-      "slow_ema_bars": 56,
-      "trend_ema_bars": 180,
-      "top_k": 2,
-      "min_signal_strength": 0.15,
-      "use_trend_filter": true,
-      "volume_confirmation": 0.35,
-      "volatility_floor": 0.002,
-      "smoothing_alpha": 0.03,
-      "per_symbol_cap_ratio": 0.3,
-      "signal_exponent": 2.6,
-      "max_weight_move": 0.1,
-      "disp_ref": 0.3,
-      "disp_floor": 0.12,
-      "crowding_exponent": 1.8,
-      "rel_threshold_mult": 1.4,
-      "new_symbol_penalty": 0.7,
-      "disp_low_frac_block": 0.5
-    },
-    "gate_failures": [],
+    "train_config": {},
+    "gate_failures": [
+      "no_op_train_config"
+    ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "failure_reason": ""
+    "failure_reason": "no_op_train_config"
   },
   "current_best_strategy_name": "ema-trend-disp-v9",
   "latest_kept_summary": {}
