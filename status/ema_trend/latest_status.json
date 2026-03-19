@@ -28,8 +28,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T10:48:48.753280+00:00",
-  "last_processed_bar": "2026-03-19T10:45:00+00:00",
+  "latest_cycle_completed_at": "2026-03-19T10:50:12.631602+00:00",
+  "last_processed_bar": "2026-03-19T10:50:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
   "multi_window_summary": {
@@ -38,9 +38,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-59f37aa1",
+      "mutation_label": "llm-c646d8dd",
       "baseline_score": 13.488132169596604,
-      "candidate_score": 7.387930594144155,
+      "candidate_score": 6.625125940511472,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -126,7 +126,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-b4d33891",
+      "strategy_name": "llm-c646d8dd",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -134,12 +134,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -1.176906,
+      "score": 6.625126,
       "metrics": {
-        "total_return": -2.5e-05,
-        "sharpe": -1.176177,
-        "max_drawdown": 0.00014,
-        "average_turnover": 4.5e-05
+        "total_return": 0.000123,
+        "sharpe": 6.625003,
+        "max_drawdown": 0.000108,
+        "average_turnover": 6.2e-05
       },
       "rejection_reasons": []
     }
@@ -147,9 +147,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-59f37aa1",
+    "mutation_label": "llm-c646d8dd",
     "baseline_score": 13.488132169596604,
-    "candidate_score": 7.387930594144155,
+    "candidate_score": 6.625125940511472,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -157,16 +157,16 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v8b",
-    "research_score": 7.387930594144155,
+    "strategy_name": "ema-trend-disp-v9",
+    "research_score": 6.625125940511472,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.00014125108375018236,
-      "sharpe": 7.387746579366983,
-      "max_drawdown": 0.00011229482208940933,
-      "average_turnover": 7.306135322172262e-05,
+      "total_return": 0.00012321659324854295,
+      "sharpe": 6.6250032971597905,
+      "max_drawdown": 0.0001078692366133227,
+      "average_turnover": 6.196266810794809e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 599
+      "nonzero_turnover_steps": 460
     },
     "train_config": {
       "gross_target": 0.45,
@@ -188,7 +188,8 @@
       "rel_threshold_mult": 1.1,
       "new_symbol_penalty": 0.75,
       "disp_low_frac_block": 0.5,
-      "trend_slope_strength": 0.025
+      "trend_slope_min_ratio": 0.06,
+      "stability_frac_floor": 0.5
     },
     "gate_failures": [],
     "provider_name": "llm",
