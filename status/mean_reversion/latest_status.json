@@ -3,7 +3,10 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate underperformed the baseline on the screen window."
+    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest kept candidate still fails gate: total_return_below_gate.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -28,11 +31,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T18:28:35.064590+00:00",
-  "last_processed_bar": "2026-03-19T18:25:00+00:00",
-  "recent_acceptance_rate": 0.2222222222222222,
-  "evaluation_acceptance_rate": 0.2222222222222222,
-  "generation_validity_rate": 0.9,
+  "latest_cycle_completed_at": "2026-03-19T18:30:34.109535+00:00",
+  "last_processed_bar": "2026-03-19T18:30:00+00:00",
+  "recent_acceptance_rate": 0.2,
+  "evaluation_acceptance_rate": 0.2,
+  "generation_validity_rate": 1.0,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/mean_reversion/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,14 +43,18 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-7d59392a",
+      "mutation_label": "llm-b302771d",
       "baseline_score": 5.73820527834467,
-      "candidate_score": 5.514325504549312,
+      "candidate_score": -3.000370419685702,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": []
+      "gate_failures": [
+        "total_return_below_gate",
+        "sharpe_below_gate",
+        "acceptance_rate_below_gate"
+      ]
     },
     "baseline_strategy_name": "mean-reversion-bbands-rsi-v15-looserbands-volpen1p6-persist4-tightcap",
     "baseline_score": 5.73820527834467,
@@ -149,26 +156,30 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-7d59392a",
+    "mutation_label": "llm-b302771d",
     "baseline_score": 5.73820527834467,
-    "candidate_score": 5.514325504549312,
+    "candidate_score": -3.000370419685702,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "gate_failures": []
+    "gate_failures": [
+      "total_return_below_gate",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v15-looserbands-volpen1p6-persist5-tightcap",
-    "research_score": 5.514325504549312,
-    "ready_for_paper": true,
+    "strategy_name": "mean-reversion-bbands-rsi-v16-persist5-tightcap-volfloor7e-3-volpen1p6",
+    "research_score": -3.000370419685702,
+    "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 4.888595592111855e-06,
-      "sharpe": 5.51430866085445,
-      "max_drawdown": 1.1515130977635124e-06,
-      "average_turnover": 2.9932307079354273e-06,
+      "total_return": -3.32493682364543e-07,
+      "sharpe": -3.0003642806355275,
+      "max_drawdown": 9.676307797246153e-07,
+      "average_turnover": 6.060586435894312e-07,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 8
+      "nonzero_turnover_steps": 5
     },
     "train_config": {
       "gross_target": 0.4,
@@ -178,20 +189,24 @@
       "rsi_upper": 65.0,
       "band_std_mult": 1.95,
       "top_k": 1,
-      "min_reversion_score": 0.285,
-      "volatility_floor": 0.005,
+      "min_reversion_score": 0.295,
+      "volatility_floor": 0.007,
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
       "volatility_scale_alpha": 0.6,
       "persistence": 5,
       "per_symbol_cap_fraction": 0.05,
       "weak_signal_microcap_fraction": 0.01,
-      "weak_rsi_support_min": 0.74,
+      "weak_rsi_support_min": 0.75,
       "market_scale_floor": 0.48,
-      "rsi_relax_max": 0.48,
+      "rsi_relax_max": 0.45,
       "volatility_penalty_exponent": 1.6
     },
-    "gate_failures": [],
+    "gate_failures": [
+      "total_return_below_gate",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
