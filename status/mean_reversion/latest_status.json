@@ -28,10 +28,10 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T23:08:26.926260+00:00",
-  "last_processed_bar": "2026-03-19T23:05:00+00:00",
-  "recent_acceptance_rate": 0.14285714285714285,
-  "evaluation_acceptance_rate": 0.14285714285714285,
+  "latest_cycle_completed_at": "2026-03-19T23:10:39.744608+00:00",
+  "last_processed_bar": "2026-03-19T23:10:00+00:00",
+  "recent_acceptance_rate": 0.0,
+  "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.7,
   "consecutive_failures": 0,
   "multi_window_summary": {
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-17c3d594",
+      "mutation_label": "llm-a2773b40",
       "baseline_score": 5.978532905979206,
-      "candidate_score": 5.798980253148132,
+      "candidate_score": 2.500908568262404,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -92,24 +92,6 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-b9a35015",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 5.978504,
-      "metrics": {
-        "total_return": 2e-06,
-        "sharpe": 5.978496,
-        "max_drawdown": 0.0,
-        "average_turnover": 1e-06
-      },
-      "rejection_reasons": []
-    },
-    {
       "strategy_name": "llm-5a9274c3",
       "params": {
         "decision": "discard_screen",
@@ -144,14 +126,32 @@
         "average_turnover": 0.0
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-6df32c7a",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 5.801965,
+      "metrics": {
+        "total_return": 2e-06,
+        "sharpe": 5.801959,
+        "max_drawdown": 0.0,
+        "average_turnover": 1e-06
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-17c3d594",
+    "mutation_label": "llm-a2773b40",
     "baseline_score": 5.978532905979206,
-    "candidate_score": 5.798980253148132,
+    "candidate_score": 2.500908568262404,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -159,16 +159,16 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v5",
-    "research_score": 5.798980253148132,
+    "strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v4c",
+    "research_score": 2.500908568262404,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 1.8734242717144411e-06,
-      "sharpe": 5.79897335278988,
-      "max_drawdown": 3.86453048339952e-07,
-      "average_turnover": 9.209509141622111e-07,
+      "total_return": 8.695400877112291e-07,
+      "sharpe": 2.5009118759164783,
+      "max_drawdown": 1.4914018593437106e-06,
+      "average_turnover": 1.6897470757038067e-06,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 8
+      "nonzero_turnover_steps": 11
     },
     "train_config": {
       "gross_target": 0.4,
@@ -178,17 +178,17 @@
       "rsi_upper": 66.0,
       "band_std_mult": 1.78,
       "top_k": 1,
-      "min_reversion_score": 0.255,
+      "min_reversion_score": 0.282,
       "volatility_floor": 0.005,
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
       "volatility_scale_alpha": 0.6,
-      "persistence": 5,
+      "persistence": 4,
       "per_symbol_cap_fraction": 0.03,
-      "weak_signal_microcap_fraction": 0.004,
-      "weak_rsi_support_min": 0.78,
+      "weak_signal_microcap_fraction": 0.0035,
+      "weak_rsi_support_min": 0.82,
       "market_scale_floor": 0.48,
-      "rsi_relax_max": 0.75,
+      "rsi_relax_max": 0.7,
       "volatility_penalty_exponent": 3.0,
       "damping_exponent": 2.0
     },
