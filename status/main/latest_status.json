@@ -1,9 +1,9 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker degraded",
+  "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "OpenAI request timed out"
+    "No kept LLM candidate is ready for rollout yet."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -22,26 +22,28 @@
   },
   "accepted_for_paper": false,
   "next_milestones": [
-    "Recover the worker from the latest API, repo, or campaign failure."
+    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
+    "Accumulate multiple kept improvements in the research branch.",
+    "Promote only candidates that satisfy the hard rollout gates."
   ],
-  "loop_state": "degraded",
+  "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t103500z",
-  "latest_cycle_completed_at": "2026-03-19T16:07:26.562609+00:00",
-  "last_processed_bar": "2026-03-19T16:05:00+00:00",
-  "recent_acceptance_rate": 0.3333333333333333,
-  "evaluation_acceptance_rate": 0.3333333333333333,
-  "generation_validity_rate": 0.3,
-  "consecutive_failures": 4,
+  "latest_cycle_completed_at": "2026-03-19T16:55:53.156045+00:00",
+  "last_processed_bar": "2026-03-19T16:55:00+00:00",
+  "recent_acceptance_rate": 0.5,
+  "evaluation_acceptance_rate": 0.5,
+  "generation_validity_rate": 0.4,
+  "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-bybit-linear-5m-20260319t103500z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_screen",
-      "stage": "screen",
-      "mutation_label": "llm-5cf1acce",
+      "decision": "keep",
+      "stage": "full",
+      "mutation_label": "llm-a05640a0",
       "baseline_score": 11.77809103454771,
-      "candidate_score": 11.132776340025831,
-      "kept_commit": null,
+      "candidate_score": 12.793425481564851,
+      "kept_commit": "daecee6c5b6f01c72e695030e50bcc828448eca8",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -94,6 +96,46 @@
       ]
     },
     {
+      "strategy_name": "llm-a05640a0",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 1.015334,
+      "metrics": {
+        "total_return": 1.0,
+        "sharpe": 0.000954,
+        "max_drawdown": 12.789793,
+        "average_turnover": 0.000236
+      },
+      "rejection_reasons": [
+        "[]"
+      ]
+    },
+    {
+      "strategy_name": "llm-a05640a0",
+      "params": {
+        "decision": "keep",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": true,
+      "score": 1.015334,
+      "metrics": {
+        "total_return": 1.0,
+        "sharpe": 0.000954,
+        "max_drawdown": 12.789793,
+        "average_turnover": 0.000236
+      },
+      "rejection_reasons": [
+        "[]"
+      ]
+    },
+    {
       "strategy_name": "llm-752f3675",
       "params": {
         "decision": "screen_pass",
@@ -112,76 +154,36 @@
       "rejection_reasons": [
         "[]"
       ]
-    },
-    {
-      "strategy_name": "llm-752f3675",
-      "params": {
-        "decision": "keep",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": true,
-      "score": 0.469576,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 0.000727,
-        "max_drawdown": 10.64272,
-        "average_turnover": 0.000358
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
-      "strategy_name": "llm-8bebc1fb",
-      "params": {
-        "decision": "discard_error",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "validation"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 1.0
-      },
-      "rejection_reasons": [
-        "[\"candidate_too_large\"]"
-      ]
     }
   ],
   "latest_decision": {
-    "decision": "discard_screen",
-    "stage": "screen",
-    "mutation_label": "llm-5cf1acce",
+    "decision": "keep",
+    "stage": "full",
+    "mutation_label": "llm-a05640a0",
     "baseline_score": 11.77809103454771,
-    "candidate_score": 11.132776340025831,
-    "kept_commit": null,
+    "candidate_score": 12.793425481564851,
+    "kept_commit": "daecee6c5b6f01c72e695030e50bcc828448eca8",
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v4-selective-relative-strength",
-    "research_score": 11.132776340025831,
+    "strategy_name": "cs-demeaned-momentum-inertia-v3-selective-relative-strength-dyn",
+    "research_score": 12.793425481564851,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.000878371814644785,
-      "sharpe": 11.129557072487462,
-      "max_drawdown": 0.0002568025146771902,
-      "average_turnover": 0.0001453814761441573,
+      "total_return": 0.0009535403211038407,
+      "sharpe": 12.789793374134858,
+      "max_drawdown": 0.00023569862864114555,
+      "average_turnover": 0.0001927996609611638,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 43
+      "nonzero_turnover_steps": 64
     },
     "train_config": {
       "gross_target": 0.06,
       "lookback_bars": 30,
-      "min_signal_strength": 0.055,
+      "min_signal_strength": 0.052,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 60,
       "regime_threshold": 0.02,
@@ -197,8 +199,8 @@
       "drawdown_cut": 0.16,
       "max_vol_for_full": 0.02,
       "initial_leg_fraction": 0.5,
-      "consistency_threshold": 0.4,
-      "relative_strength_threshold": 0.5,
+      "consistency_threshold": 0.35,
+      "relative_strength_threshold": 0.4,
       "crowding_threshold": 2.2,
       "crowding_penalty": 0.6
     },
@@ -208,5 +210,16 @@
     "failure_reason": ""
   },
   "current_best_strategy_name": "cs-demeaned-momentum-inertia-v3-selective-relative-strength",
-  "latest_kept_summary": {}
+  "latest_kept_summary": {
+    "strategy_name": "cs-demeaned-momentum-inertia-v3-selective-relative-strength-dyn",
+    "baseline_strategy_name": "cs-demeaned-momentum-inertia-v3-selective-relative-strength",
+    "score_delta": 1.015334,
+    "config_diff": [
+      {
+        "key": "min_signal_strength",
+        "before": 0.05,
+        "after": 0.052
+      }
+    ]
+  }
 }
