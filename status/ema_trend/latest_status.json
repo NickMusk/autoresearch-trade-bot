@@ -28,7 +28,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T15:36:36.911823+00:00",
+  "latest_cycle_completed_at": "2026-03-19T15:38:35.963563+00:00",
   "last_processed_bar": "2026-03-19T15:35:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-0faea004",
+      "mutation_label": "llm-8fe4ec34",
       "baseline_score": 17.24192901152775,
-      "candidate_score": 6.104180562632937,
+      "candidate_score": 6.755478007519542,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -128,7 +128,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-0faea004",
+      "strategy_name": "llm-8fe4ec34",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -136,12 +136,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": 6.104181,
+      "score": 6.755478,
       "metrics": {
-        "total_return": 9.8e-05,
-        "sharpe": 6.10424,
-        "max_drawdown": 0.000118,
-        "average_turnover": 7.8e-05
+        "total_return": 0.000123,
+        "sharpe": 6.75533,
+        "max_drawdown": 9.7e-05,
+        "average_turnover": 8.2e-05
       },
       "rejection_reasons": []
     }
@@ -149,9 +149,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-0faea004",
+    "mutation_label": "llm-8fe4ec34",
     "baseline_score": 17.24192901152775,
-    "candidate_score": 6.104180562632937,
+    "candidate_score": 6.755478007519542,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -159,28 +159,28 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-strength-v1",
-    "research_score": 6.104180562632937,
+    "strategy_name": "ema-trend-disp-v10",
+    "research_score": 6.755478007519542,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 9.846340162855682e-05,
-      "sharpe": 6.104240030168789,
-      "max_drawdown": 0.00011834171854330222,
-      "average_turnover": 7.841766982131265e-05,
+      "total_return": 0.0001232899178096325,
+      "sharpe": 6.755330129363862,
+      "max_drawdown": 9.675397227515425e-05,
+      "average_turnover": 8.155554426746187e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 659
+      "nonzero_turnover_steps": 584
     },
     "train_config": {
       "gross_target": 0.45,
       "fast_ema_bars": 6,
-      "slow_ema_bars": 64,
-      "trend_ema_bars": 200,
+      "slow_ema_bars": 56,
+      "trend_ema_bars": 180,
       "top_k": 2,
       "min_signal_strength": 0.15,
       "use_trend_filter": true,
-      "volume_confirmation": 0.38,
+      "volume_confirmation": 0.35,
       "volatility_floor": 0.002,
-      "smoothing_alpha": 0.025,
+      "smoothing_alpha": 0.05,
       "per_symbol_cap_ratio": 0.3,
       "signal_exponent": 2.6,
       "max_weight_move": 0.12,
