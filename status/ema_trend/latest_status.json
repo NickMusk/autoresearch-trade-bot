@@ -28,11 +28,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T23:02:03.952508+00:00",
-  "last_processed_bar": "2026-03-19T23:00:00+00:00",
+  "latest_cycle_completed_at": "2026-03-19T23:06:22.612169+00:00",
+  "last_processed_bar": "2026-03-19T23:05:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.4,
+  "generation_validity_rate": 0.5,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-d08da48c",
+      "mutation_label": "llm-0919e777",
       "baseline_score": 18.15769449048482,
-      "candidate_score": 17.90742481246104,
+      "candidate_score": 17.744606434800172,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -70,6 +70,24 @@
         "sharpe": 17.905997,
         "max_drawdown": 6.5e-05,
         "average_turnover": 9.3e-05
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-0919e777",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 17.744606,
+      "metrics": {
+        "total_return": 0.000353,
+        "sharpe": 17.743212,
+        "max_drawdown": 7e-05,
+        "average_turnover": 9.4e-05
       },
       "rejection_reasons": []
     },
@@ -126,32 +144,14 @@
         "average_turnover": 7.1e-05
       },
       "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-bcc37430",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 5.78812,
-      "metrics": {
-        "total_return": 6.2e-05,
-        "sharpe": 5.788187,
-        "max_drawdown": 8e-05,
-        "average_turnover": 5.4e-05
-      },
-      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-d08da48c",
+    "mutation_label": "llm-0919e777",
     "baseline_score": 18.15769449048482,
-    "candidate_score": 17.90742481246104,
+    "candidate_score": 17.744606434800172,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -160,15 +160,15 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "ema-trend-disp-v11",
-    "research_score": 17.90742481246104,
+    "research_score": 17.744606434800172,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.0003560075800617124,
-      "sharpe": 17.90599749431613,
-      "max_drawdown": 6.48199606523292e-05,
-      "average_turnover": 9.343991278341821e-05,
+      "total_return": 0.0003532714487248789,
+      "sharpe": 17.74321247050275,
+      "max_drawdown": 6.960015030499367e-05,
+      "average_turnover": 9.399234498105172e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 848
+      "nonzero_turnover_steps": 854
     },
     "train_config": {
       "gross_target": 0.45,
@@ -176,9 +176,9 @@
       "slow_ema_bars": 56,
       "trend_ema_bars": 180,
       "top_k": 2,
-      "min_signal_strength": 0.12,
+      "min_signal_strength": 0.15,
       "use_trend_filter": true,
-      "volume_confirmation": 0.3,
+      "volume_confirmation": 0.35,
       "volatility_floor": 0.002,
       "smoothing_alpha": 0.02,
       "per_symbol_cap_ratio": 0.28,
@@ -189,7 +189,7 @@
       "crowding_exponent": 1.9,
       "rel_threshold_mult": 1.2,
       "new_symbol_penalty": 0.7,
-      "disp_low_frac_block": 0.5
+      "disp_low_frac_block": 0.3
     },
     "gate_failures": [],
     "provider_name": "llm",
