@@ -32,7 +32,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T18:02:24.474685+00:00",
+  "latest_cycle_completed_at": "2026-03-19T18:04:14.014806+00:00",
   "last_processed_bar": "2026-03-19T18:00:00+00:00",
   "recent_acceptance_rate": 0.25,
   "evaluation_acceptance_rate": 0.25,
@@ -44,7 +44,7 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-10f5aeb7",
+      "mutation_label": "llm-2fca1615",
       "baseline_score": -0.15539925831544793,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -136,7 +136,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-8431f518",
+      "strategy_name": "llm-2fca1615",
       "params": {
         "decision": "screen_pass",
         "provider_name": "llm",
@@ -144,12 +144,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -0.155399,
+      "score": 0.0,
       "metrics": {
-        "total_return": -0.0,
-        "sharpe": -0.155389,
-        "max_drawdown": 2e-06,
-        "average_turnover": 3e-06
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
       },
       "rejection_reasons": []
     }
@@ -157,7 +157,7 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-10f5aeb7",
+    "mutation_label": "llm-2fca1615",
     "baseline_score": -0.15539925831544793,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -171,7 +171,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v24-stability",
+    "strategy_name": "vol-breakout-v25-riskadjust",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -192,8 +192,8 @@
       "min_breakout_score": 0.04,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.00045,
-      "crowding_min_scale": 0.18,
+      "fallback_scale": 0.0005,
+      "crowding_min_scale": 0.2,
       "min_atr_fraction": 0.0015
     },
     "gate_failures": [
