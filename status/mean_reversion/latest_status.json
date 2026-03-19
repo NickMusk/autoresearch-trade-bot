@@ -3,7 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate underperformed the baseline on the screen window."
+    "No kept LLM candidate is ready for rollout yet."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -28,22 +28,22 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T19:26:59.000912+00:00",
+  "latest_cycle_completed_at": "2026-03-19T19:29:08.612024+00:00",
   "last_processed_bar": "2026-03-19T19:25:00+00:00",
-  "recent_acceptance_rate": 0.125,
-  "evaluation_acceptance_rate": 0.125,
+  "recent_acceptance_rate": 0.25,
+  "evaluation_acceptance_rate": 0.25,
   "generation_validity_rate": 0.8,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/mean_reversion/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_screen",
-      "stage": "screen",
-      "mutation_label": "llm-ddd98c6a",
+      "decision": "keep",
+      "stage": "full",
+      "mutation_label": "llm-e46b531e",
       "baseline_score": 5.87129074891816,
-      "candidate_score": 5.501633924349169,
-      "kept_commit": null,
+      "candidate_score": 5.890551281602607,
+      "kept_commit": "c974bc0ec77b8d4ac836f37cf358488f35ea798c",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -56,6 +56,42 @@
   },
   "leaderboard": [
     {
+      "strategy_name": "llm-e46b531e",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 5.890551,
+      "metrics": {
+        "total_return": 1.2e-05,
+        "sharpe": 5.890508,
+        "max_drawdown": 3e-06,
+        "average_turnover": 6e-06
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-e46b531e",
+      "params": {
+        "decision": "keep",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": true,
+      "score": 5.890551,
+      "metrics": {
+        "total_return": 1.2e-05,
+        "sharpe": 5.890508,
+        "max_drawdown": 3e-06,
+        "average_turnover": 6e-06
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-d423c03e",
       "params": {
         "decision": "screen_pass",
@@ -106,69 +142,33 @@
         "sharpe": 5.738159,
         "max_drawdown": 3e-06,
         "average_turnover": 7e-06
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-70f5e9be",
-      "params": {
-        "decision": "keep",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": true,
-      "score": 5.738205,
-      "metrics": {
-        "total_return": 1.3e-05,
-        "sharpe": 5.738159,
-        "max_drawdown": 3e-06,
-        "average_turnover": 7e-06
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-feb9e379",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 5.73701,
-      "metrics": {
-        "total_return": 1.1e-05,
-        "sharpe": 5.736972,
-        "max_drawdown": 2e-06,
-        "average_turnover": 5e-06
       },
       "rejection_reasons": []
     }
   ],
   "latest_decision": {
-    "decision": "discard_screen",
-    "stage": "screen",
-    "mutation_label": "llm-ddd98c6a",
+    "decision": "keep",
+    "stage": "full",
+    "mutation_label": "llm-e46b531e",
     "baseline_score": 5.87129074891816,
-    "candidate_score": 5.501633924349169,
-    "kept_commit": null,
+    "candidate_score": 5.890551281602607,
+    "kept_commit": "c974bc0ec77b8d4ac836f37cf358488f35ea798c",
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v15-looserbands-volpen2p0-persist5-tightcap",
-    "research_score": 5.501633924349169,
+    "strategy_name": "mean-reversion-bbands-rsi-v15-looserbands-volpen2p0-persist4-tightcap-microstricter",
+    "research_score": 5.890551281602607,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 8.358633012184313e-06,
-      "sharpe": 5.501605919019149,
-      "max_drawdown": 2.1590721323017092e-06,
-      "average_turnover": 5.151546513199635e-06,
+      "total_return": 1.1926585919308508e-05,
+      "sharpe": 5.890507743398481,
+      "max_drawdown": 2.5651171186025223e-06,
+      "average_turnover": 5.834256995254641e-06,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 8
+      "nonzero_turnover_steps": 9
     },
     "train_config": {
       "gross_target": 0.4,
@@ -183,10 +183,10 @@
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
       "volatility_scale_alpha": 0.6,
-      "persistence": 5,
-      "per_symbol_cap_fraction": 0.05,
-      "weak_signal_microcap_fraction": 0.01,
-      "weak_rsi_support_min": 0.7,
+      "persistence": 4,
+      "per_symbol_cap_fraction": 0.055,
+      "weak_signal_microcap_fraction": 0.007,
+      "weak_rsi_support_min": 0.74,
       "market_scale_floor": 0.48,
       "rsi_relax_max": 0.55,
       "volatility_penalty_exponent": 2.0
@@ -197,5 +197,26 @@
     "failure_reason": ""
   },
   "current_best_strategy_name": "mean-reversion-bbands-rsi-v15-looserbands-volpen1p5-persist4-tightcap",
-  "latest_kept_summary": {}
+  "latest_kept_summary": {
+    "strategy_name": "mean-reversion-bbands-rsi-v15-looserbands-volpen2p0-persist4-tightcap-microstricter",
+    "baseline_strategy_name": "mean-reversion-bbands-rsi-v15-looserbands-volpen1p5-persist4-tightcap",
+    "score_delta": 0.019261,
+    "config_diff": [
+      {
+        "key": "volatility_penalty_exponent",
+        "before": 1.5,
+        "after": 2.0
+      },
+      {
+        "key": "weak_rsi_support_min",
+        "before": 0.7,
+        "after": 0.74
+      },
+      {
+        "key": "weak_signal_microcap_fraction",
+        "before": 0.01,
+        "after": 0.007
+      }
+    ]
+  }
 }
