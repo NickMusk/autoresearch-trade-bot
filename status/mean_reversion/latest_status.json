@@ -28,7 +28,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T20:12:53.237261+00:00",
+  "latest_cycle_completed_at": "2026-03-19T20:14:42.459027+00:00",
   "last_processed_bar": "2026-03-19T20:10:00+00:00",
   "recent_acceptance_rate": 0.125,
   "evaluation_acceptance_rate": 0.125,
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-a2b58d3a",
+      "mutation_label": "llm-7c071038",
       "baseline_score": 5.90982347835722,
-      "candidate_score": 5.671133198511602,
+      "candidate_score": 4.160871326041208,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -149,9 +149,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-a2b58d3a",
+    "mutation_label": "llm-7c071038",
     "baseline_score": 5.90982347835722,
-    "candidate_score": 5.671133198511602,
+    "candidate_score": 4.160871326041208,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -159,16 +159,16 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v15-volsuppression-v2",
-    "research_score": 5.671133198511602,
+    "strategy_name": "mean-reversion-bbands-rsi-v15-looserbands-volpen2p0-persist5-tightcap-microstricter-v3",
+    "research_score": 4.160871326041208,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 5.828423434772745e-06,
-      "sharpe": 5.671112370727636,
-      "max_drawdown": 1.2996361633543785e-06,
-      "average_turnover": 3.115788554545141e-06,
+      "total_return": 1.0341534992797108e-06,
+      "sharpe": 4.16087034682606,
+      "max_drawdown": 6.891656567642457e-07,
+      "average_turnover": 1.4348897221091836e-06,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 9
+      "nonzero_turnover_steps": 8
     },
     "train_config": {
       "gross_target": 0.4,
@@ -183,13 +183,13 @@
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
       "volatility_scale_alpha": 0.6,
-      "persistence": 4,
-      "per_symbol_cap_fraction": 0.05,
-      "weak_signal_microcap_fraction": 0.006,
+      "persistence": 5,
+      "per_symbol_cap_fraction": 0.045,
+      "weak_signal_microcap_fraction": 0.004,
       "weak_rsi_support_min": 0.76,
       "market_scale_floor": 0.48,
-      "rsi_relax_max": 0.6,
-      "volatility_penalty_exponent": 2.2
+      "rsi_relax_max": 0.55,
+      "volatility_penalty_exponent": 2.0
     },
     "gate_failures": [],
     "provider_name": "llm",
