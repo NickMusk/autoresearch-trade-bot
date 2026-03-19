@@ -41,6 +41,46 @@
       ]
     },
     {
+      "strategy_name": "llm-a05640a0",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 1.015334,
+      "metrics": {
+        "total_return": 1.0,
+        "sharpe": 0.000954,
+        "max_drawdown": 12.789793,
+        "average_turnover": 0.000236
+      },
+      "rejection_reasons": [
+        "[]"
+      ]
+    },
+    {
+      "strategy_name": "llm-a05640a0",
+      "params": {
+        "decision": "keep",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": true,
+      "score": 1.015334,
+      "metrics": {
+        "total_return": 1.0,
+        "sharpe": 0.000954,
+        "max_drawdown": 12.789793,
+        "average_turnover": 0.000236
+      },
+      "rejection_reasons": [
+        "[]"
+      ]
+    },
+    {
       "strategy_name": "llm-752f3675",
       "params": {
         "decision": "screen_pass",
@@ -58,46 +98,6 @@
       },
       "rejection_reasons": [
         "[]"
-      ]
-    },
-    {
-      "strategy_name": "llm-752f3675",
-      "params": {
-        "decision": "keep",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": true,
-      "score": 0.469576,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 0.000727,
-        "max_drawdown": 10.64272,
-        "average_turnover": 0.000358
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
-      "strategy_name": "llm-8bebc1fb",
-      "params": {
-        "decision": "discard_error",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "validation"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 1.0
-      },
-      "rejection_reasons": [
-        "[\"candidate_too_large\"]"
       ]
     }
   ]
