@@ -46,7 +46,7 @@ ALLOWED_IMPORTS = {
     "autoresearch_trade_bot.strategy",
 }
 FORBIDDEN_CALLS = {"open", "exec", "eval", "compile", "__import__", "input"}
-MAX_CANDIDATE_BYTES = 24_000
+MAX_CANDIDATE_BYTES = 32_000
 
 
 @dataclass(frozen=True)
