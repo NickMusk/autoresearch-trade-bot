@@ -3,6 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
+    "Latest LLM candidate underperformed the baseline on the screen window.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate."
@@ -16,11 +17,11 @@
   },
   "baseline_metrics": {
     "total_return": -0.0,
-    "sharpe": -0.5556,
+    "sharpe": -0.4544,
     "max_drawdown": 0.0,
     "average_turnover": 0.0,
     "bars_processed": 2015,
-    "score": -0.5557
+    "score": -0.4544
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -30,20 +31,20 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T14:23:42.389276+00:00",
-  "last_processed_bar": "2026-03-19T14:20:00+00:00",
+  "latest_cycle_completed_at": "2026-03-19T14:25:20.735496+00:00",
+  "last_processed_bar": "2026-03-19T14:25:00+00:00",
   "recent_acceptance_rate": 0.2,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "keep",
-      "stage": "full",
-      "mutation_label": "llm-dfaae459",
-      "baseline_score": -0.5556709562358881,
-      "candidate_score": -0.4544171354698567,
-      "kept_commit": "5e075978d7068017fc684db2471a040319e226ab",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-484d7721",
+      "baseline_score": -0.4544171354698567,
+      "candidate_score": -0.5926524659612169,
+      "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -54,7 +55,7 @@
       ]
     },
     "baseline_strategy_name": "vol-breakout-v15-adaptive-atrratio-v3",
-    "baseline_score": -0.5556709562358881,
+    "baseline_score": -0.4544171354698567,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
   },
@@ -151,12 +152,12 @@
     }
   ],
   "latest_decision": {
-    "decision": "keep",
-    "stage": "full",
-    "mutation_label": "llm-dfaae459",
-    "baseline_score": -0.5556709562358881,
-    "candidate_score": -0.4544171354698567,
-    "kept_commit": "5e075978d7068017fc684db2471a040319e226ab",
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-484d7721",
+    "baseline_score": -0.4544171354698567,
+    "candidate_score": -0.5926524659612169,
+    "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
@@ -167,14 +168,14 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v15-adaptive-atrratio-v3",
-    "research_score": -0.4544171354698567,
+    "strategy_name": "vol-breakout-v15-adaptive-atrratio-v3-sidebalance",
+    "research_score": -0.5926524659612169,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -8.303217731153723e-07,
-      "sharpe": -0.45435469874533074,
-      "max_drawdown": 9.738350585042355e-06,
-      "average_turnover": 1.9331713320183264e-05,
+      "total_return": -5.923214604353078e-07,
+      "sharpe": -0.592617232201204,
+      "max_drawdown": 5.392071949605892e-06,
+      "average_turnover": 1.070386491225911e-05,
       "bars_processed": 2015,
       "nonzero_turnover_steps": 2
     },
@@ -188,7 +189,7 @@
       "min_breakout_score": 0.05,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.015,
+      "fallback_scale": 0.012,
       "crowding_min_scale": 0.18,
       "min_atr_fraction": 0.0015
     },
@@ -202,16 +203,5 @@
     "failure_reason": ""
   },
   "current_best_strategy_name": "vol-breakout-v15-adaptive-atrratio-v3",
-  "latest_kept_summary": {
-    "strategy_name": "vol-breakout-v15-adaptive-atrratio-v3",
-    "baseline_strategy_name": "vol-breakout-v15-adaptive-atrratio-v3",
-    "score_delta": 0.101254,
-    "config_diff": [
-      {
-        "key": "fallback_scale",
-        "before": 0.02,
-        "after": 0.015
-      }
-    ]
-  }
+  "latest_kept_summary": {}
 }
