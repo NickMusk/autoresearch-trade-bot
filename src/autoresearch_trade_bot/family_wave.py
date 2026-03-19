@@ -33,30 +33,37 @@ def ensure_family_branch_seeded(
     resolved_repo_root = Path(repo_root).resolve()
     family_branch = branch_name or default_family_branch_name(strategy_family)
     existing_branch = _run_git(resolved_repo_root, "branch", "--list", family_branch).strip()
-    if existing_branch:
-        _run_git(resolved_repo_root, "checkout", family_branch)
-    else:
+    if not existing_branch:
         _run_git(resolved_repo_root, "checkout", "-b", family_branch, base_ref)
+        train_path = resolved_repo_root / "train.py"
+        current_family = (
+            extract_strategy_family(train_path.read_text(encoding="utf-8"))
+            if train_path.exists()
+            else ""
+        )
+        if current_family != strategy_family:
+            profile = get_strategy_family_profile(strategy_family)
+            train_path.write_text(
+                render_train_file(
+                    profile.default_train_config,
+                    strategy_family=strategy_family,
+                ),
+                encoding="utf-8",
+            )
+            _run_git(resolved_repo_root, "add", "train.py")
+            _run_git(resolved_repo_root, "commit", "-m", f"Seed {strategy_family} baseline")
+        _run_git(resolved_repo_root, "checkout", base_ref)
+        return family_branch
 
-    train_path = resolved_repo_root / "train.py"
-    profile = get_strategy_family_profile(strategy_family)
-    current_family = (
-        extract_strategy_family(train_path.read_text(encoding="utf-8"))
-        if train_path.exists()
-        else ""
+    current_family = _read_branch_strategy_family(
+        repo_root=resolved_repo_root,
+        branch_name=family_branch,
     )
     if current_family != strategy_family:
-        train_path.write_text(
-            render_train_file(
-                profile.default_train_config,
-                strategy_family=strategy_family,
-            ),
-            encoding="utf-8",
+        raise RuntimeError(
+            f"existing branch {family_branch!r} is pinned to strategy family {current_family!r}, "
+            f"expected {strategy_family!r}"
         )
-        _run_git(resolved_repo_root, "add", "train.py")
-        _run_git(resolved_repo_root, "commit", "-m", f"Seed {strategy_family} baseline")
-
-    _run_git(resolved_repo_root, "checkout", base_ref)
     return family_branch
 
 
@@ -173,3 +180,14 @@ def _run_git(repo_root: Path | None, *args: str) -> str:
         text=True,
     )
     return completed.stdout.strip()
+
+
+def _read_branch_strategy_family(*, repo_root: Path, branch_name: str) -> str:
+    completed = subprocess.run(
+        ["git", "show", f"{branch_name}:train.py"],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return extract_strategy_family(completed.stdout)

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from autoresearch_trade_bot.family_wave import (
     default_family_branch_name,
+    ensure_family_branch_seeded,
     prepare_family_repo,
     run_llm_family_wave,
 )
@@ -115,6 +116,51 @@ class FamilyWaveTests(unittest.TestCase):
                 [Path(repo_root).name for repo_root, _, _ in calls],
                 [FAMILY_MEAN_REVERSION, FAMILY_EMA_TREND],
             )
+
+    def test_existing_family_branch_can_be_seed_checked_while_attached_to_worktree(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            workspace = Path(tempdir)
+            source_repo = workspace / "source"
+            source_repo.mkdir()
+            self._git(source_repo, "init")
+            self._git(source_repo, "config", "user.email", "bot@example.com")
+            self._git(source_repo, "config", "user.name", "Bot")
+            (source_repo / "train.py").write_text(
+                "\n".join(
+                    [
+                        "from __future__ import annotations",
+                        "TRAIN_CONFIG = {'lookback_bars': 24, 'top_k': 1, 'gross_target': 0.5}",
+                        'STRATEGY_NAME = "baseline"',
+                        'STRATEGY_FAMILY = "momentum"',
+                        "",
+                        "def build_strategy(_dataset_spec=None):",
+                        "    return None",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            self._git(source_repo, "add", "train.py")
+            self._git(source_repo, "commit", "-m", "Initial baseline")
+            self._git(source_repo, "branch", "-M", "main")
+
+            family_repo_root, family_branch = prepare_family_repo(
+                source_repo_root=source_repo,
+                family_repo_root=workspace / "family-repos" / FAMILY_MEAN_REVERSION,
+                strategy_family=FAMILY_MEAN_REVERSION,
+            )
+            family_repo = Path(family_repo_root)
+            worktree_root = workspace / "mean-reversion-worktree"
+            self._git(family_repo, "worktree", "add", str(worktree_root), family_branch)
+
+            resolved_branch = ensure_family_branch_seeded(
+                repo_root=family_repo,
+                strategy_family=FAMILY_MEAN_REVERSION,
+                branch_name=family_branch,
+            )
+
+            self.assertEqual(resolved_branch, family_branch)
+            self.assertEqual(self._git(family_repo, "branch", "--show-current"), "main")
 
     def _git(self, cwd: Path, *args: str) -> str:
         import subprocess
