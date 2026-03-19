@@ -32,7 +32,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T09:43:04.287376+00:00",
+  "latest_cycle_completed_at": "2026-03-19T09:43:48.257604+00:00",
   "last_processed_bar": "2026-03-19T09:40:00+00:00",
   "recent_acceptance_rate": 0.0,
   "consecutive_failures": 0,
@@ -42,7 +42,7 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-8b507b0b",
+      "mutation_label": "llm-5e1012fe",
       "baseline_score": -10.21037563208329,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -61,24 +61,6 @@
     "provider_name": "llm"
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-07c6566b",
-      "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-07c6566b",
       "params": {
@@ -150,12 +132,30 @@
         "average_turnover": 0.0
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-e088c05b",
+      "params": {
+        "decision": "discard_full",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-8b507b0b",
+    "mutation_label": "llm-5e1012fe",
     "baseline_score": -10.21037563208329,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -187,7 +187,7 @@
       "atr_multiplier": 1.15,
       "breakout_buffer": 0.03,
       "top_k": 1,
-      "min_breakout_score": 0.0,
+      "min_breakout_score": 0.5,
       "use_trend_filter": true,
       "trend_lookback_bars": 48
     },
