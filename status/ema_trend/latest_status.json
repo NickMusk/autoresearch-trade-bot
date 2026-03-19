@@ -28,11 +28,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T21:42:59.374876+00:00",
-  "last_processed_bar": "2026-03-19T21:40:00+00:00",
+  "latest_cycle_completed_at": "2026-03-19T21:45:18.434986+00:00",
+  "last_processed_bar": "2026-03-19T21:45:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.6,
+  "generation_validity_rate": 0.7,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-115d48ca",
+      "mutation_label": "llm-a5eca325",
       "baseline_score": 18.15769449048482,
-      "candidate_score": 16.406491461508953,
+      "candidate_score": 3.738098372346796,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -110,24 +110,6 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-b107ea44",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 15.236087,
-      "metrics": {
-        "total_return": 0.000235,
-        "sharpe": 15.235157,
-        "max_drawdown": 4.6e-05,
-        "average_turnover": 6.1e-05
-      },
-      "rejection_reasons": []
-    },
-    {
       "strategy_name": "llm-3ccfb44d",
       "params": {
         "decision": "discard_screen",
@@ -144,14 +126,32 @@
         "average_turnover": 9.8e-05
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-6b2ac3b2",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 14.723566,
+      "metrics": {
+        "total_return": 0.000248,
+        "sharpe": 14.722687,
+        "max_drawdown": 6.9e-05,
+        "average_turnover": 9e-05
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-115d48ca",
+    "mutation_label": "llm-a5eca325",
     "baseline_score": 18.15769449048482,
-    "candidate_score": 16.406491461508953,
+    "candidate_score": 3.738098372346796,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -160,15 +160,15 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "ema-trend-disp-v11",
-    "research_score": 16.406491461508953,
+    "research_score": 3.738098372346796,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.00029793068882311147,
-      "sharpe": 16.405243120584643,
-      "max_drawdown": 4.369654333380435e-05,
-      "average_turnover": 6.652634647024295e-05,
+      "total_return": 6.238155054316685e-05,
+      "sharpe": 3.7383477951224333,
+      "max_drawdown": 0.00011796049687617938,
+      "average_turnover": 8.9488540848504e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 613
+      "nonzero_turnover_steps": 838
     },
     "train_config": {
       "gross_target": 0.45,
@@ -178,9 +178,9 @@
       "top_k": 2,
       "min_signal_strength": 0.15,
       "use_trend_filter": true,
-      "volume_confirmation": 0.35,
+      "volume_confirmation": 0.3,
       "volatility_floor": 0.002,
-      "smoothing_alpha": 0.015,
+      "smoothing_alpha": 0.02,
       "per_symbol_cap_ratio": 0.28,
       "signal_exponent": 2.6,
       "max_weight_move": 0.12,
@@ -189,7 +189,7 @@
       "crowding_exponent": 1.9,
       "rel_threshold_mult": 1.2,
       "new_symbol_penalty": 0.7,
-      "disp_low_frac_block": 0.5
+      "disp_low_frac_block": 0.45
     },
     "gate_failures": [],
     "provider_name": "llm",
