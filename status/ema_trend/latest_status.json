@@ -3,10 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate underperformed the baseline on the screen window.",
-    "Latest kept candidate still fails gate: total_return_below_gate.",
-    "Latest kept candidate still fails gate: sharpe_below_gate.",
-    "Latest kept candidate still fails gate: acceptance_rate_below_gate."
+    "No kept LLM candidate is ready for rollout yet."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -31,30 +28,26 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-19T16:10:28.425429+00:00",
+  "latest_cycle_completed_at": "2026-03-19T16:12:36.468463+00:00",
   "last_processed_bar": "2026-03-19T16:10:00+00:00",
-  "recent_acceptance_rate": 0.0,
-  "evaluation_acceptance_rate": 0.0,
+  "recent_acceptance_rate": 0.2,
+  "evaluation_acceptance_rate": 0.2,
   "generation_validity_rate": 0.5,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_screen",
-      "stage": "screen",
-      "mutation_label": "llm-607d17f1",
+      "decision": "keep",
+      "stage": "full",
+      "mutation_label": "llm-6f15ae8e",
       "baseline_score": 17.24192901152775,
-      "candidate_score": -1.494859221037333,
-      "kept_commit": null,
+      "candidate_score": 18.15769449048482,
+      "kept_commit": "e858569718237a3c256bf95ba7b4ed8957095c13",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": [
-        "total_return_below_gate",
-        "sharpe_below_gate",
-        "acceptance_rate_below_gate"
-      ]
+      "gate_failures": []
     },
     "baseline_strategy_name": "ema-trend-disp-v9",
     "baseline_score": 17.24192901152775,
@@ -62,6 +55,42 @@
     "provider_name": "llm"
   },
   "leaderboard": [
+    {
+      "strategy_name": "llm-6f15ae8e",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 18.157694,
+      "metrics": {
+        "total_return": 0.000359,
+        "sharpe": 18.15624,
+        "max_drawdown": 6.3e-05,
+        "average_turnover": 9.2e-05
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-6f15ae8e",
+      "params": {
+        "decision": "keep",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": true,
+      "score": 18.157694,
+      "metrics": {
+        "total_return": 0.000359,
+        "sharpe": 18.15624,
+        "max_drawdown": 6.3e-05,
+        "average_turnover": 9.2e-05
+      },
+      "rejection_reasons": []
+    },
     {
       "strategy_name": "llm-e19e590e",
       "params": {
@@ -115,71 +144,31 @@
         "average_turnover": 9.3e-05
       },
       "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-9c1a7c7e",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 15.627519,
-      "metrics": {
-        "total_return": 0.000322,
-        "sharpe": 15.626353,
-        "max_drawdown": 8.5e-05,
-        "average_turnover": 0.000104
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-8fe4ec34",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 6.755478,
-      "metrics": {
-        "total_return": 0.000123,
-        "sharpe": 6.75533,
-        "max_drawdown": 9.7e-05,
-        "average_turnover": 8.2e-05
-      },
-      "rejection_reasons": []
     }
   ],
   "latest_decision": {
-    "decision": "discard_screen",
-    "stage": "screen",
-    "mutation_label": "llm-607d17f1",
+    "decision": "keep",
+    "stage": "full",
+    "mutation_label": "llm-6f15ae8e",
     "baseline_score": 17.24192901152775,
-    "candidate_score": -1.494859221037333,
-    "kept_commit": null,
+    "candidate_score": 18.15769449048482,
+    "kept_commit": "e858569718237a3c256bf95ba7b4ed8957095c13",
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "gate_failures": [
-      "total_return_below_gate",
-      "sharpe_below_gate",
-      "acceptance_rate_below_gate"
-    ]
+    "gate_failures": []
   },
   "latest_candidate_summary": {
     "strategy_name": "ema-trend-disp-v10",
-    "research_score": -1.494859221037333,
-    "ready_for_paper": false,
+    "research_score": 18.15769449048482,
+    "ready_for_paper": true,
     "average_metrics": {
-      "total_return": -1.2896525575345485e-05,
-      "sharpe": -1.494535140614289,
-      "max_drawdown": 5.685974655855741e-05,
-      "average_turnover": 3.215880893300248e-05,
+      "total_return": 0.0003594573838521242,
+      "sharpe": 18.15623987958565,
+      "max_drawdown": 6.263828322661258e-05,
+      "average_turnover": 9.212288718452835e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 219
+      "nonzero_turnover_steps": 845
     },
     "train_config": {
       "gross_target": 0.45,
@@ -191,26 +180,43 @@
       "use_trend_filter": true,
       "volume_confirmation": 0.35,
       "volatility_floor": 0.002,
-      "smoothing_alpha": 0.03,
-      "per_symbol_cap_ratio": 0.3,
+      "smoothing_alpha": 0.02,
+      "per_symbol_cap_ratio": 0.28,
       "signal_exponent": 2.6,
       "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
       "crowding_exponent": 1.9,
-      "rel_threshold_mult": 1.0,
+      "rel_threshold_mult": 1.2,
       "new_symbol_penalty": 0.7,
       "disp_low_frac_block": 0.5
     },
-    "gate_failures": [
-      "total_return_below_gate",
-      "sharpe_below_gate",
-      "acceptance_rate_below_gate"
-    ],
+    "gate_failures": [],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
   },
   "current_best_strategy_name": "ema-trend-disp-v9",
-  "latest_kept_summary": {}
+  "latest_kept_summary": {
+    "strategy_name": "ema-trend-disp-v10",
+    "baseline_strategy_name": "ema-trend-disp-v9",
+    "score_delta": 0.915765,
+    "config_diff": [
+      {
+        "key": "crowding_exponent",
+        "before": 1.8,
+        "after": 1.9
+      },
+      {
+        "key": "per_symbol_cap_ratio",
+        "before": 0.3,
+        "after": 0.28
+      },
+      {
+        "key": "smoothing_alpha",
+        "before": 0.03,
+        "after": 0.02
+      }
+    ]
+  }
 }
