@@ -28,11 +28,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-20T05:26:07.730701+00:00",
+  "latest_cycle_completed_at": "2026-03-20T05:27:46.293541+00:00",
   "last_processed_bar": "2026-03-20T05:25:00+00:00",
-  "recent_acceptance_rate": 0.16666666666666666,
-  "evaluation_acceptance_rate": 0.16666666666666666,
-  "generation_validity_rate": 0.6,
+  "recent_acceptance_rate": 0.14285714285714285,
+  "evaluation_acceptance_rate": 0.14285714285714285,
+  "generation_validity_rate": 0.7,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-42e06ddb",
+      "mutation_label": "llm-a982719b",
       "baseline_score": 18.344877571221684,
-      "candidate_score": 9.535026762234603,
+      "candidate_score": 8.975009767140557,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -128,7 +128,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-b7a70025",
+      "strategy_name": "llm-a982719b",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -136,12 +136,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": 2.371958,
+      "score": 8.97501,
       "metrics": {
-        "total_return": 3.9e-05,
-        "sharpe": 2.372113,
-        "max_drawdown": 7.1e-05,
-        "average_turnover": 6.5e-05
+        "total_return": 0.000126,
+        "sharpe": 8.97474,
+        "max_drawdown": 7.5e-05,
+        "average_turnover": 6.3e-05
       },
       "rejection_reasons": []
     }
@@ -149,9 +149,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-42e06ddb",
+    "mutation_label": "llm-a982719b",
     "baseline_score": 18.344877571221684,
-    "candidate_score": 9.535026762234603,
+    "candidate_score": 8.975009767140557,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -160,41 +160,42 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "ema-trend-disp-v12-hyst-turnover-v2",
-    "research_score": 9.535026762234603,
+    "research_score": 8.975009767140557,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.00011542117926355289,
-      "sharpe": 9.53464268460152,
-      "max_drawdown": 4.005952679264624e-05,
-      "average_turnover": 3.279015606453008e-05,
+      "total_return": 0.00012637652357638807,
+      "sharpe": 8.974740485860664,
+      "max_drawdown": 7.481435922174207e-05,
+      "average_turnover": 6.33439011016413e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 393
+      "nonzero_turnover_steps": 463
     },
     "train_config": {
       "gross_target": 0.45,
       "fast_ema_bars": 6,
-      "slow_ema_bars": 56,
-      "trend_ema_bars": 200,
+      "slow_ema_bars": 60,
+      "trend_ema_bars": 240,
       "top_k": 2,
       "min_signal_strength": 0.15,
       "use_trend_filter": true,
-      "volume_confirmation": 0.4,
+      "volume_confirmation": 0.35,
       "volatility_floor": 0.002,
       "smoothing_alpha": 0.015,
-      "per_symbol_cap_ratio": 0.26,
+      "per_symbol_cap_ratio": 0.28,
       "signal_exponent": 2.6,
       "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
-      "crowding_exponent": 2.1,
+      "crowding_exponent": 1.9,
       "rel_threshold_mult": 1.2,
       "new_symbol_penalty": 0.7,
       "disp_low_frac_block": 0.5,
       "retention_boost": 0.12,
-      "entry_hysteresis": 1.2,
-      "concentration_threshold": 0.48,
+      "entry_hysteresis": 1.25,
+      "concentration_threshold": 0.5,
       "concentration_tighten": 0.7,
-      "turnover_limit": 0.22
+      "turnover_limit": 0.2,
+      "trend_strength_min": 0.06
     },
     "gate_failures": [],
     "provider_name": "llm",
