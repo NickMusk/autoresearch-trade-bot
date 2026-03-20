@@ -31,7 +31,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-20T02:42:34.514441+00:00",
+  "latest_cycle_completed_at": "2026-03-20T02:43:55.453354+00:00",
   "last_processed_bar": "2026-03-20T02:40:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
@@ -43,7 +43,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-b32c1c34",
+      "mutation_label": "llm-d7a5ab72",
       "baseline_score": -0.15539281658130877,
       "candidate_score": -10.205625106519964,
       "kept_commit": null,
@@ -62,24 +62,6 @@
     "provider_name": "llm"
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-03532b71",
-      "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-03532b71",
       "params": {
@@ -151,12 +133,30 @@
         "average_turnover": 1e-06
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-59592738",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -0.155393,
+      "metrics": {
+        "total_return": -0.0,
+        "sharpe": -0.155389,
+        "max_drawdown": 1e-06,
+        "average_turnover": 1e-06
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-b32c1c34",
+    "mutation_label": "llm-d7a5ab72",
     "baseline_score": -0.15539281658130877,
     "candidate_score": -10.205625106519964,
     "kept_commit": null,
@@ -188,11 +188,11 @@
       "atr_multiplier": 1.9,
       "breakout_buffer": 0.025,
       "top_k": 2,
-      "min_breakout_score": 0.026,
+      "min_breakout_score": 0.03,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.016,
-      "crowding_min_scale": 0.2,
+      "fallback_scale": 0.006,
+      "crowding_min_scale": 0.18,
       "min_atr_fraction": 0.0012,
       "vol_dampening": 5.5
     },
