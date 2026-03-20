@@ -31,7 +31,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T12:02:17.761795+00:00",
+  "latest_cycle_completed_at": "2026-03-20T12:04:11.894239+00:00",
   "last_processed_bar": "2026-03-20T12:00:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
@@ -43,9 +43,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-7fadce01",
+      "mutation_label": "llm-4bb3bdde",
       "baseline_score": -0.1553925098323312,
-      "candidate_score": -10.205632741757807,
+      "candidate_score": -0.1553925098323312,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -62,24 +62,6 @@
     "provider_name": "llm"
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-a94ea25b",
-      "params": {
-        "decision": "discard_full",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-9685b384",
       "params": {
@@ -151,14 +133,32 @@
         "average_turnover": 1e-06
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-c01a8646",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -0.155393,
+      "metrics": {
+        "total_return": -0.0,
+        "sharpe": -0.155389,
+        "max_drawdown": 0.0,
+        "average_turnover": 1e-06
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-7fadce01",
+    "mutation_label": "llm-4bb3bdde",
     "baseline_score": -0.1553925098323312,
-    "candidate_score": -10.205632741757807,
+    "candidate_score": -0.1553925098323312,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -170,14 +170,14 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v26-accept-v4",
-    "research_score": -10.205632741757807,
+    "strategy_name": "vol-breakout-v26-herd-v1",
+    "research_score": -0.1553925098323312,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -2.850498642903432e-06,
-      "sharpe": -10.205604109602527,
-      "max_drawdown": 2.850498642903432e-06,
-      "average_turnover": 2.977667493796526e-06,
+      "total_return": -1.4986522578475103e-08,
+      "sharpe": -0.15538944234388719,
+      "max_drawdown": 4.999999999588667e-07,
+      "average_turnover": 9.925558312655086e-07,
       "bars_processed": 2015,
       "nonzero_turnover_steps": 2
     },
@@ -188,13 +188,13 @@
       "atr_multiplier": 1.9,
       "breakout_buffer": 0.025,
       "top_k": 2,
-      "min_breakout_score": 0.03,
+      "min_breakout_score": 0.032,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.035,
+      "fallback_scale": 0.045,
       "crowding_min_scale": 0.18,
       "min_atr_fraction": 0.0012,
-      "vol_dampening": 5.5
+      "vol_dampening": 6.0
     },
     "gate_failures": [
       "total_return_below_gate",
