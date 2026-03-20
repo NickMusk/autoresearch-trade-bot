@@ -31,7 +31,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T21:17:21.189025+00:00",
+  "latest_cycle_completed_at": "2026-03-20T21:19:22.898450+00:00",
   "last_processed_bar": "2026-03-20T21:15:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
@@ -43,9 +43,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-911c5a8e",
+      "mutation_label": "llm-d4f2a358",
       "baseline_score": 19.15087733237729,
-      "candidate_score": -10.978947595371281,
+      "candidate_score": -4.232948187932269,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -117,24 +117,6 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-4c9171a6",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 8.102403,
-      "metrics": {
-        "total_return": 0.000176,
-        "sharpe": 8.10232,
-        "max_drawdown": 0.000172,
-        "average_turnover": 0.000107
-      },
-      "rejection_reasons": []
-    },
-    {
       "strategy_name": "llm-d738ddd9",
       "params": {
         "decision": "discard_screen",
@@ -151,14 +133,32 @@
         "average_turnover": 7.1e-05
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-58b5f389",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.8037,
+      "metrics": {
+        "total_return": 1.8e-05,
+        "sharpe": 0.804485,
+        "max_drawdown": 0.000204,
+        "average_turnover": 5.7e-05
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-911c5a8e",
+    "mutation_label": "llm-d4f2a358",
     "baseline_score": 19.15087733237729,
-    "candidate_score": -10.978947595371281,
+    "candidate_score": -4.232948187932269,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -170,39 +170,39 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v16-exhaustion-hyst-turnover",
-    "research_score": -10.978947595371281,
+    "strategy_name": "ema-trend-disp-v15-exhaustion-hyst-turnover-v2",
+    "research_score": -4.232948187932269,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.00016049545250684805,
-      "sharpe": -10.977351152901697,
-      "max_drawdown": 0.00018524617368131935,
-      "average_turnover": 5.298051232604767e-05,
+      "total_return": -7.320962059165215e-05,
+      "sharpe": -4.231686999599981,
+      "max_drawdown": 0.00019999507187618004,
+      "average_turnover": 9.515994182526254e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 445
+      "nonzero_turnover_steps": 665
     },
     "train_config": {
       "gross_target": 0.45,
       "fast_ema_bars": 6,
-      "slow_ema_bars": 96,
-      "trend_ema_bars": 300,
+      "slow_ema_bars": 84,
+      "trend_ema_bars": 240,
       "top_k": 2,
       "min_signal_strength": 0.13,
       "use_trend_filter": true,
-      "volume_confirmation": 0.33,
+      "volume_confirmation": 0.4,
       "volatility_floor": 0.002,
-      "smoothing_alpha": 0.008,
-      "per_symbol_cap_ratio": 0.28,
-      "signal_exponent": 3.5,
-      "max_weight_move": 0.1,
+      "smoothing_alpha": 0.005,
+      "per_symbol_cap_ratio": 0.24,
+      "signal_exponent": 4.0,
+      "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
       "crowding_exponent": 2.2,
       "rel_threshold_mult": 1.0,
-      "new_symbol_penalty": 0.7,
+      "new_symbol_penalty": 0.75,
       "disp_low_frac_block": 0.5,
-      "retention_boost": 0.22,
-      "entry_hysteresis": 1.5,
+      "retention_boost": 0.18,
+      "entry_hysteresis": 1.6,
       "concentration_threshold": 0.5,
       "concentration_tighten": 0.7,
       "turnover_limit": 0.18
