@@ -3,8 +3,8 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate failed validation or execution: no_op_train_config.",
-    "Latest kept candidate still fails gate: no_op_train_config."
+    "Latest LLM candidate failed validation or execution: top_k_exceeds_cross_sectional_capacity.",
+    "Latest kept candidate still fails gate: top_k_exceeds_cross_sectional_capacity."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -29,8 +29,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-20T00:46:45.156373+00:00",
-  "last_processed_bar": "2026-03-20T00:45:00+00:00",
+  "latest_cycle_completed_at": "2026-03-20T00:53:00.905714+00:00",
+  "last_processed_bar": "2026-03-20T00:50:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.2,
@@ -41,15 +41,15 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-e056730e",
+      "mutation_label": "llm-b930b03d",
       "baseline_score": 18.15769449048482,
       "candidate_score": -Infinity,
       "kept_commit": null,
-      "failure_reason": "no_op_train_config",
+      "failure_reason": "top_k_exceeds_cross_sectional_capacity",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
-        "no_op_train_config"
+        "top_k_exceeds_cross_sectional_capacity"
       ]
     },
     "baseline_strategy_name": "ema-trend-disp-v10",
@@ -131,7 +131,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-a761139d",
+      "strategy_name": "llm-a366b1aa",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -139,12 +139,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": 5.802385,
+      "score": 3.867776,
       "metrics": {
-        "total_return": 8.1e-05,
-        "sharpe": 5.802344,
-        "max_drawdown": 7.1e-05,
-        "average_turnover": 8.2e-05
+        "total_return": 7.4e-05,
+        "sharpe": 3.867783,
+        "max_drawdown": 7.9e-05,
+        "average_turnover": 6.1e-05
       },
       "rejection_reasons": []
     }
@@ -152,15 +152,15 @@
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-e056730e",
+    "mutation_label": "llm-b930b03d",
     "baseline_score": 18.15769449048482,
     "candidate_score": -Infinity,
     "kept_commit": null,
-    "failure_reason": "no_op_train_config",
+    "failure_reason": "top_k_exceeds_cross_sectional_capacity",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
-      "no_op_train_config"
+      "top_k_exceeds_cross_sectional_capacity"
     ]
   },
   "latest_candidate_summary": {
@@ -177,11 +177,11 @@
     },
     "train_config": {},
     "gate_failures": [
-      "no_op_train_config"
+      "top_k_exceeds_cross_sectional_capacity"
     ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "failure_reason": "no_op_train_config"
+    "failure_reason": "top_k_exceeds_cross_sectional_capacity"
   },
   "current_best_strategy_name": "ema-trend-disp-v10",
   "latest_kept_summary": {}
