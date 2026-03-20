@@ -32,8 +32,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T17:23:41.499334+00:00",
-  "last_processed_bar": "2026-03-20T17:20:00+00:00",
+  "latest_cycle_completed_at": "2026-03-20T17:27:32.953377+00:00",
+  "last_processed_bar": "2026-03-20T17:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -44,7 +44,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-3f24d795",
+      "mutation_label": "llm-944df6be",
       "baseline_score": 6.107371547317714,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -118,7 +118,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-8311267c",
+      "strategy_name": "llm-005e1da8",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -136,7 +136,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-005e1da8",
+      "strategy_name": "llm-1b878bbc",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -144,10 +144,10 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": 5.691452,
+      "score": 5.521681,
       "metrics": {
         "total_return": 0.0,
-        "sharpe": 5.691451,
+        "sharpe": 5.521681,
         "max_drawdown": 0.0,
         "average_turnover": 0.0
       },
@@ -157,7 +157,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-3f24d795",
+    "mutation_label": "llm-944df6be",
     "baseline_score": 6.107371547317714,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -171,7 +171,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v17-pairedrsi-weakboost-v4f-liquidity-focused-v6c-attenuated-v2c",
+    "strategy_name": "mean-reversion-bbands-rsi-v18-pairedrsi-weakboost-v4f-liquidity-focused-v6c-attenuated-v2c",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -188,17 +188,17 @@
       "rsi_period": 14,
       "rsi_lower": 34.0,
       "rsi_upper": 66.0,
-      "band_std_mult": 1.78,
+      "band_std_mult": 1.74,
       "top_k": 1,
       "min_reversion_score": 0.25,
       "volatility_floor": 0.005,
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
-      "volatility_scale_alpha": 0.55,
+      "volatility_scale_alpha": 0.6,
       "persistence": 9,
-      "per_symbol_cap_fraction": 0.0045,
+      "per_symbol_cap_fraction": 0.0058,
       "weak_signal_microcap_fraction": 0.0006,
-      "weak_rsi_support_min": 0.86,
+      "weak_rsi_support_min": 0.82,
       "market_scale_floor": 0.5,
       "rsi_relax_max": 0.82,
       "volatility_penalty_exponent": 3.2,
