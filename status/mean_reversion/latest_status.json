@@ -28,11 +28,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-20T03:50:27.515021+00:00",
+  "latest_cycle_completed_at": "2026-03-20T03:52:20.957996+00:00",
   "last_processed_bar": "2026-03-20T03:50:00+00:00",
-  "recent_acceptance_rate": 0.2,
-  "evaluation_acceptance_rate": 0.2,
-  "generation_validity_rate": 0.5,
+  "recent_acceptance_rate": 0.16666666666666666,
+  "evaluation_acceptance_rate": 0.16666666666666666,
+  "generation_validity_rate": 0.6,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/mean_reversion/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-6b5b6d59",
+      "mutation_label": "llm-b8d94123",
       "baseline_score": 6.066285621988551,
-      "candidate_score": 5.939740480499585,
+      "candidate_score": 6.062973331695352,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -92,6 +92,24 @@
       "rejection_reasons": []
     },
     {
+      "strategy_name": "llm-b8d94123",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 6.062973,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 6.062972,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-275303b9",
       "params": {
         "decision": "discard_screen",
@@ -126,32 +144,14 @@
         "average_turnover": 0.0
       },
       "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-bf4e74ad",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 5.947842,
-      "metrics": {
-        "total_return": 1e-06,
-        "sharpe": 5.94784,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-6b5b6d59",
+    "mutation_label": "llm-b8d94123",
     "baseline_score": 6.066285621988551,
-    "candidate_score": 5.939740480499585,
+    "candidate_score": 6.062973331695352,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -159,40 +159,40 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v4c-liquidity-focused-v4e",
-    "research_score": 5.939740480499585,
+    "strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v4c-liquidity-focused-v4d2",
+    "research_score": 6.062973331695352,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 2.832836221156043e-07,
-      "sharpe": 5.939739374167565,
-      "max_drawdown": 4.9651297406860806e-08,
-      "average_turnover": 1.1148090191978677e-07,
+      "total_return": 3.1971125524776767e-07,
+      "sharpe": 6.06297207666206,
+      "max_drawdown": 5.492644572502314e-08,
+      "average_turnover": 1.2381720153441491e-07,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 4
+      "nonzero_turnover_steps": 6
     },
     "train_config": {
-      "gross_target": 0.33,
-      "lookback_bars": 40,
+      "gross_target": 0.325,
+      "lookback_bars": 34,
       "rsi_period": 14,
       "rsi_lower": 34.0,
       "rsi_upper": 66.0,
-      "band_std_mult": 1.7,
+      "band_std_mult": 1.65,
       "top_k": 1,
       "min_reversion_score": 0.275,
-      "volatility_floor": 0.005,
+      "volatility_floor": 0.006,
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
       "volatility_scale_alpha": 0.6,
-      "persistence": 5,
-      "per_symbol_cap_fraction": 0.015,
-      "weak_signal_microcap_fraction": 0.0012,
-      "weak_rsi_support_min": 0.82,
+      "persistence": 4,
+      "per_symbol_cap_fraction": 0.02,
+      "weak_signal_microcap_fraction": 0.0009,
+      "weak_rsi_support_min": 0.78,
       "market_scale_floor": 0.5,
       "rsi_relax_max": 0.7,
       "volatility_penalty_exponent": 3.2,
-      "damping_exponent": 4.2,
-      "liquidity_strict_mult": 1.15,
-      "liquidity_promote_min": 0.9
+      "damping_exponent": 4.0,
+      "liquidity_strict_mult": 1.1,
+      "liquidity_promote_min": 0.85
     },
     "gate_failures": [],
     "provider_name": "llm",
