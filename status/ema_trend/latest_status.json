@@ -3,7 +3,7 @@
   "phase": "LLM autoresearch worker degraded",
   "research_rollout_ready": false,
   "research_blockers": [
-    "openai_http_error:520:error code: 520"
+    "OpenAI request timed out"
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -31,7 +31,7 @@
   "recent_acceptance_rate": 0.16666666666666666,
   "evaluation_acceptance_rate": 0.16666666666666666,
   "generation_validity_rate": 0.6,
-  "consecutive_failures": 1,
+  "consecutive_failures": 2,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260320t062000z.json",
     "campaign_refreshed_this_cycle": false,
