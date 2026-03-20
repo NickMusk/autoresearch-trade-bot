@@ -39,24 +39,6 @@
     {
       "strategy_name": "llm-4a3c8f71",
       "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 6.121665,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 6.121664,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-4a3c8f71",
-      "params": {
         "decision": "keep",
         "provider_name": "llm",
         "model_name": "gpt-5-mini-2025-08-07",
@@ -74,6 +56,26 @@
     },
     {
       "strategy_name": "llm-2b748a24",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": -Infinity,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 1.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": [
+        "candidate_too_large"
+      ]
+    },
+    {
+      "strategy_name": "llm-b794a013",
       "params": {
         "decision": "discard_error",
         "provider_name": "llm",
