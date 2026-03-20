@@ -28,11 +28,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T15:08:08.648156+00:00",
-  "last_processed_bar": "2026-03-20T15:05:00+00:00",
+  "latest_cycle_completed_at": "2026-03-20T15:10:10.976033+00:00",
+  "last_processed_bar": "2026-03-20T15:10:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.6,
+  "generation_validity_rate": 0.7,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260320t062000z.json",
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-bb48b084",
+      "mutation_label": "llm-e4e1d81d",
       "baseline_score": 19.15087733237729,
-      "candidate_score": 18.08151926956112,
+      "candidate_score": 1.6945786215569967,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -128,7 +128,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-bf42d533",
+      "strategy_name": "llm-e4e1d81d",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -136,12 +136,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": 1.432668,
+      "score": 1.694579,
       "metrics": {
-        "total_return": 2.9e-05,
-        "sharpe": 1.433673,
-        "max_drawdown": 0.00027,
-        "average_turnover": 7.3e-05
+        "total_return": 4.1e-05,
+        "sharpe": 1.695728,
+        "max_drawdown": 0.000317,
+        "average_turnover": 8.7e-05
       },
       "rejection_reasons": []
     }
@@ -149,9 +149,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-bb48b084",
+    "mutation_label": "llm-e4e1d81d",
     "baseline_score": 19.15087733237729,
-    "candidate_score": 18.08151926956112,
+    "candidate_score": 1.6945786215569967,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -160,15 +160,15 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "ema-trend-disp-v15-exhaustion-hyst-turnover-v2",
-    "research_score": 18.08151926956112,
+    "research_score": 1.6945786215569967,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.00037038474191675164,
-      "sharpe": 18.08001035944833,
-      "max_drawdown": 6.187248334932338e-05,
-      "average_turnover": 9.552366339862842e-05,
+      "total_return": 4.0968496975990476e-05,
+      "sharpe": 1.6957283938519738,
+      "max_drawdown": 0.0003168420686008311,
+      "average_turnover": 8.724650545381655e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 870
+      "nonzero_turnover_steps": 815
     },
     "train_config": {
       "gross_target": 0.45,
@@ -179,8 +179,8 @@
       "min_signal_strength": 0.13,
       "use_trend_filter": true,
       "volume_confirmation": 0.33,
-      "volatility_floor": 0.002,
-      "smoothing_alpha": 0.02,
+      "volatility_floor": 0.003,
+      "smoothing_alpha": 0.01,
       "per_symbol_cap_ratio": 0.28,
       "signal_exponent": 3.2,
       "max_weight_move": 0.12,
@@ -188,10 +188,10 @@
       "disp_floor": 0.12,
       "crowding_exponent": 2.2,
       "rel_threshold_mult": 1.0,
-      "new_symbol_penalty": 0.7,
+      "new_symbol_penalty": 0.55,
       "disp_low_frac_block": 0.5,
-      "retention_boost": 0.18,
-      "entry_hysteresis": 1.35,
+      "retention_boost": 0.28,
+      "entry_hysteresis": 1.55,
       "concentration_threshold": 0.5,
       "concentration_tighten": 0.7,
       "turnover_limit": 0.2
