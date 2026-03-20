@@ -29,7 +29,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T23:32:33.937488+00:00",
+  "latest_cycle_completed_at": "2026-03-20T23:34:05.702567+00:00",
   "last_processed_bar": "2026-03-20T23:30:00+00:00",
   "recent_acceptance_rate": 1.0,
   "evaluation_acceptance_rate": 1.0,
@@ -41,7 +41,7 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-b819f96f",
+      "mutation_label": "llm-37f68c0b",
       "baseline_score": 6.121686846380642,
       "candidate_score": -Infinity,
       "kept_commit": null,
@@ -95,26 +95,6 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-2b748a24",
-      "params": {
-        "decision": "discard_error",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "validation"
-      },
-      "accepted": false,
-      "score": -Infinity,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 1.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": [
-        "candidate_too_large"
-      ]
-    },
-    {
       "strategy_name": "llm-b794a013",
       "params": {
         "decision": "discard_error",
@@ -153,12 +133,32 @@
       "rejection_reasons": [
         "candidate_too_large"
       ]
+    },
+    {
+      "strategy_name": "llm-54e03c8e",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": -Infinity,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 1.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": [
+        "candidate_too_large"
+      ]
     }
   ],
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-b819f96f",
+    "mutation_label": "llm-37f68c0b",
     "baseline_score": 6.121686846380642,
     "candidate_score": -Infinity,
     "kept_commit": null,
