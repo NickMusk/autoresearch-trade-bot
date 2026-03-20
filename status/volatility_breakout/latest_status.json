@@ -31,11 +31,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T08:24:21.161305+00:00",
-  "last_processed_bar": "2026-03-20T08:20:00+00:00",
+  "latest_cycle_completed_at": "2026-03-20T08:25:28.135955+00:00",
+  "last_processed_bar": "2026-03-20T08:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.7,
+  "generation_validity_rate": 0.8,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260320t062000z.json",
@@ -43,9 +43,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-4dbd331d",
+      "mutation_label": "llm-0aaec47c",
       "baseline_score": -0.1553925098323312,
-      "candidate_score": -0.1553925098323312,
+      "candidate_score": -9.81960721586038,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -135,7 +135,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-14af9de9",
+      "strategy_name": "llm-0aaec47c",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -143,11 +143,11 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -10.205623,
+      "score": -9.819607,
       "metrics": {
-        "total_return": -2e-06,
-        "sharpe": -10.205604,
-        "max_drawdown": 2e-06,
+        "total_return": -1e-06,
+        "sharpe": -9.819595,
+        "max_drawdown": 1e-06,
         "average_turnover": 2e-06
       },
       "rejection_reasons": []
@@ -156,9 +156,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-4dbd331d",
+    "mutation_label": "llm-0aaec47c",
     "baseline_score": -0.1553925098323312,
-    "candidate_score": -0.1553925098323312,
+    "candidate_score": -9.81960721586038,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -170,14 +170,14 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v26-accept-v3",
-    "research_score": -0.1553925098323312,
+    "strategy_name": "vol-breakout-v26-accept-v4",
+    "research_score": -9.81960721586038,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -1.4986522578475103e-08,
-      "sharpe": -0.15538944234388719,
-      "max_drawdown": 4.999999999588667e-07,
-      "average_turnover": 9.925558312655086e-07,
+      "total_return": -1.1782233567680933e-06,
+      "sharpe": -9.819595105365597,
+      "max_drawdown": 1.1782233567680933e-06,
+      "average_turnover": 1.5064845720011202e-06,
       "bars_processed": 2015,
       "nonzero_turnover_steps": 2
     },
@@ -192,7 +192,7 @@
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
       "fallback_scale": 0.06,
-      "crowding_min_scale": 0.2,
+      "crowding_min_scale": 0.18,
       "min_atr_fraction": 0.0012,
       "vol_dampening": 5.5
     },
