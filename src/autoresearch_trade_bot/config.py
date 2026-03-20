@@ -52,11 +52,20 @@ class ExperimentConfig:
 
 
 @dataclass(frozen=True)
+class ScoringWeights:
+    sharpe_weight: float = 1.0
+    return_weight: float = 5.0
+    drawdown_weight: float = 4.0
+    turnover_weight: float = 0.5
+
+
+@dataclass(frozen=True)
 class ResearchTargetGate:
     min_total_return: float = 0.00
     min_sharpe: float = 1.00
     max_drawdown: float = 0.20
     min_acceptance_rate: float = 0.60
+    scoring_weights: ScoringWeights = field(default_factory=ScoringWeights)
 
 
 @dataclass(frozen=True)

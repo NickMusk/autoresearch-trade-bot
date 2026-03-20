@@ -17,6 +17,25 @@ WAVE1_FAMILIES = (
     FAMILY_VOLATILITY_BREAKOUT,
 )
 
+# Semantic validation thresholds for no-trade detection.
+# These cap how restrictive filters can be before the strategy likely stops trading.
+MAX_BAND_STD_MULT = 4.0
+LIKELY_NO_TRADE_BAND_STD = 2.5
+LIKELY_NO_TRADE_RSI_LOWER = 25.0
+LIKELY_NO_TRADE_RSI_UPPER = 75.0
+MAX_GROSS_TARGET = 1.5
+MAX_VOLUME_CONFIRMATION = 3.0
+MAX_EMA_SIGNAL_STRENGTH = 0.15
+MAX_ATR_MULTIPLIER = 4.0
+MAX_BREAKOUT_BUFFER = 1.5
+LIKELY_NO_TRADE_BREAKOUT_CHANNEL = 60
+LIKELY_NO_TRADE_BREAKOUT_BUFFER = 0.5
+MAX_MOMENTUM_SIGNAL_STRENGTH = 0.12
+MAX_MOMENTUM_SPREAD = 0.15
+LIKELY_NO_TRADE_SIGNAL_STRENGTH = 0.10
+LIKELY_NO_TRADE_SPREAD = 0.10
+MAX_REGIME_THRESHOLD = 0.06
+
 
 @dataclass(frozen=True)
 class StrategyFamilyProfile:
@@ -317,17 +336,17 @@ def validate_train_candidate_semantics(
         return False, "invalid_top_k"
     if int(candidate.get("top_k", 1)) * 2 > symbol_count:
         return False, "top_k_exceeds_cross_sectional_capacity"
-    if float(candidate.get("gross_target", 0.5)) <= 0.0 or float(candidate.get("gross_target", 0.5)) > 1.5:
+    if float(candidate.get("gross_target", 0.5)) <= 0.0 or float(candidate.get("gross_target", 0.5)) > MAX_GROSS_TARGET:
         return False, "invalid_gross_target"
     if strategy_family == FAMILY_MEAN_REVERSION:
         if not (0.0 < float(candidate["rsi_lower"]) < 50.0 < float(candidate["rsi_upper"]) < 100.0):
             return False, "invalid_rsi_thresholds"
-        if float(candidate["band_std_mult"]) <= 0.0 or float(candidate["band_std_mult"]) > 4.0:
+        if float(candidate["band_std_mult"]) <= 0.0 or float(candidate["band_std_mult"]) > MAX_BAND_STD_MULT:
             return False, "invalid_band_std_mult"
         if (
-            float(candidate["band_std_mult"]) > 2.5
-            and float(candidate["rsi_lower"]) < 25.0
-            and float(candidate["rsi_upper"]) > 75.0
+            float(candidate["band_std_mult"]) > LIKELY_NO_TRADE_BAND_STD
+            and float(candidate["rsi_lower"]) < LIKELY_NO_TRADE_RSI_LOWER
+            and float(candidate["rsi_upper"]) > LIKELY_NO_TRADE_RSI_UPPER
         ):
             return False, "likely_no_trade_reversion_stack"
         return True, ""
@@ -336,33 +355,33 @@ def validate_train_candidate_semantics(
             int(candidate["fast_ema_bars"]) < int(candidate["slow_ema_bars"]) < int(candidate["trend_ema_bars"])
         ):
             return False, "invalid_ema_ordering"
-        if float(candidate["volume_confirmation"]) > 3.0:
+        if float(candidate["volume_confirmation"]) > MAX_VOLUME_CONFIRMATION:
             return False, "likely_no_trade_volume_confirmation"
-        if float(candidate["min_signal_strength"]) > 0.15:
+        if float(candidate["min_signal_strength"]) > MAX_EMA_SIGNAL_STRENGTH:
             return False, "likely_no_trade_signal_threshold"
         return True, ""
     if strategy_family == FAMILY_VOLATILITY_BREAKOUT:
         if int(candidate["channel_bars"]) <= int(candidate["atr_lookback_bars"]):
             return False, "invalid_breakout_window_order"
-        if float(candidate["atr_multiplier"]) <= 0.0 or float(candidate["atr_multiplier"]) > 4.0:
+        if float(candidate["atr_multiplier"]) <= 0.0 or float(candidate["atr_multiplier"]) > MAX_ATR_MULTIPLIER:
             return False, "invalid_atr_multiplier"
-        if float(candidate["breakout_buffer"]) > 1.5:
+        if float(candidate["breakout_buffer"]) > MAX_BREAKOUT_BUFFER:
             return False, "likely_no_trade_breakout_buffer"
-        if int(candidate["channel_bars"]) > 60 and float(candidate["breakout_buffer"]) > 0.5:
+        if int(candidate["channel_bars"]) > LIKELY_NO_TRADE_BREAKOUT_CHANNEL and float(candidate["breakout_buffer"]) > LIKELY_NO_TRADE_BREAKOUT_BUFFER:
             return False, "likely_no_trade_breakout_stack"
         return True, ""
     if str(candidate["ranking_mode"]) not in {"raw_return", "risk_adjusted"}:
         return False, "invalid_ranking_mode"
     if (
-        float(candidate["min_signal_strength"]) > 0.10
-        and float(candidate["min_cross_sectional_spread"]) > 0.10
+        float(candidate["min_signal_strength"]) > LIKELY_NO_TRADE_SIGNAL_STRENGTH
+        and float(candidate["min_cross_sectional_spread"]) > LIKELY_NO_TRADE_SPREAD
     ):
         return False, "likely_no_trade_filter_stack"
-    if float(candidate["min_signal_strength"]) > 0.12:
+    if float(candidate["min_signal_strength"]) > MAX_MOMENTUM_SIGNAL_STRENGTH:
         return False, "likely_no_trade_signal_threshold"
-    if float(candidate["min_cross_sectional_spread"]) > 0.15:
+    if float(candidate["min_cross_sectional_spread"]) > MAX_MOMENTUM_SPREAD:
         return False, "likely_no_trade_spread_threshold"
-    if bool(candidate["use_regime_filter"]) and float(candidate["regime_threshold"]) > 0.06:
+    if bool(candidate["use_regime_filter"]) and float(candidate["regime_threshold"]) > MAX_REGIME_THRESHOLD:
         return False, "likely_no_trade_regime_threshold"
     return True, ""
 

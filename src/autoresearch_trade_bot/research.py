@@ -1,17 +1,22 @@
 from __future__ import annotations
 
-from .config import ExperimentConfig
+from .config import ExperimentConfig, ScoringWeights
 from .models import ExperimentResult
 from .simulator import BacktestEngine
 from .strategy import Strategy
 
+DEFAULT_SCORING_WEIGHTS = ScoringWeights()
 
-def compute_research_score(metrics) -> float:
+
+def compute_research_score(
+    metrics,
+    weights: ScoringWeights = DEFAULT_SCORING_WEIGHTS,
+) -> float:
     return (
-        metrics.sharpe
-        + (metrics.total_return * 5.0)
-        - (metrics.max_drawdown * 4.0)
-        - metrics.average_turnover
+        metrics.sharpe * weights.sharpe_weight
+        + metrics.total_return * weights.return_weight
+        - metrics.max_drawdown * weights.drawdown_weight
+        - metrics.average_turnover * weights.turnover_weight
     )
 
 

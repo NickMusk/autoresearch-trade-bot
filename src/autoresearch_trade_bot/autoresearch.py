@@ -647,6 +647,7 @@ class GitAutoresearchRunner:
         self.worktrees_root = Path(worktrees_root)
         self.screen_window_count = screen_window_count
         self._baseline_cache: dict[tuple[str, str, str, int | None], AutoresearchRunReport] = {}
+        self._baseline_cache_max_size = 32
         self._seen_candidate_sha1s: set[str] | None = None
 
     @property
@@ -986,6 +987,9 @@ class GitAutoresearchRunner:
             proposal_artifact_path="",
             window_limit=window_limit,
         )
+        if len(self._baseline_cache) >= self._baseline_cache_max_size:
+            oldest_key = next(iter(self._baseline_cache))
+            del self._baseline_cache[oldest_key]
         self._baseline_cache[cache_key] = report
         return report
 
@@ -1183,6 +1187,9 @@ def _aggregate_reports(window_reports: Sequence[WindowEvaluationReport]) -> dict
     }
 
 
+_GATE_EPSILON = 1e-9
+
+
 def _gate_failures(
     gate: ResearchTargetGate,
     aggregated: Mapping[str, Any],
@@ -1191,13 +1198,13 @@ def _gate_failures(
     metrics = aggregated["average_metrics"]
     if int(metrics.get("nonzero_turnover_steps", 0)) == 0:
         failures.append("no_trades_executed")
-    if metrics["total_return"] < gate.min_total_return:
+    if metrics["total_return"] < gate.min_total_return - _GATE_EPSILON:
         failures.append("total_return_below_gate")
-    if metrics["sharpe"] < gate.min_sharpe:
+    if metrics["sharpe"] < gate.min_sharpe - _GATE_EPSILON:
         failures.append("sharpe_below_gate")
-    if aggregated["worst_max_drawdown"] > gate.max_drawdown:
+    if aggregated["worst_max_drawdown"] > gate.max_drawdown + _GATE_EPSILON:
         failures.append("drawdown_above_gate")
-    if aggregated["acceptance_rate"] < gate.min_acceptance_rate:
+    if aggregated["acceptance_rate"] < gate.min_acceptance_rate - _GATE_EPSILON:
         failures.append("acceptance_rate_below_gate")
     return failures
 

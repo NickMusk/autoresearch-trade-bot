@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import concurrent.futures
 import json
 import os
+import random
 import subprocess
 import time
 import uuid
@@ -109,17 +111,8 @@ class LLMAutoresearchWorker:
             latest_closed_bar=latest_closed_bar,
             checkpoint=checkpoint,
         )
-        decisions = self.llm_runner(
+        decisions = self._run_llm_with_timeout(
             campaign_path=campaign_path,
-            repo_root=self.config.repo_root,
-            branch_name=self.config.branch_name,
-            model_name=self.config.model_name,
-            max_mutations=self.config.max_mutations_per_cycle,
-            worktrees_root=self.config.worktrees_root,
-            recent_results_limit=self.config.recent_results_limit,
-            openai_timeout_seconds=self.config.openai_timeout_seconds,
-            openai_max_retries=self.config.openai_max_retries,
-            openai_retry_backoff_seconds=self.config.openai_retry_backoff_seconds,
         )
         latest_decision = decisions[-1]
         cycle_result = self._record_cycle(
@@ -157,6 +150,8 @@ class LLMAutoresearchWorker:
         elapsed = now - checkpoint.last_cycle_completed_at
         return elapsed.total_seconds() >= self.config.cycle_interval_seconds
 
+    _MAX_SLEEP_SECONDS = 300.0  # 5-minute cap to stay responsive
+
     def _seconds_until_next_cycle(self, now: datetime, checkpoint: LLMWorkerCheckpoint) -> float:
         if self.config.cycle_interval_seconds <= 0:
             return 0.0
@@ -165,7 +160,29 @@ class LLMAutoresearchWorker:
         next_due = checkpoint.last_cycle_completed_at + timedelta(
             seconds=self.config.cycle_interval_seconds
         )
-        return max((next_due - now).total_seconds(), 1.0)
+        base = max((next_due - now).total_seconds(), 1.0)
+        capped = min(base, self._MAX_SLEEP_SECONDS)
+        jitter = random.uniform(0, capped * 0.1)  # noqa: S311
+        return capped + jitter
+
+    _LLM_CYCLE_TIMEOUT_SECONDS = 600  # 10-minute hard timeout per LLM mutation cycle
+
+    def _run_llm_with_timeout(self, *, campaign_path: Path) -> list:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(
+                self.llm_runner,
+                campaign_path=campaign_path,
+                repo_root=self.config.repo_root,
+                branch_name=self.config.branch_name,
+                model_name=self.config.model_name,
+                max_mutations=self.config.max_mutations_per_cycle,
+                worktrees_root=self.config.worktrees_root,
+                recent_results_limit=self.config.recent_results_limit,
+                openai_timeout_seconds=self.config.openai_timeout_seconds,
+                openai_max_retries=self.config.openai_max_retries,
+                openai_retry_backoff_seconds=self.config.openai_retry_backoff_seconds,
+            )
+            return future.result(timeout=self._LLM_CYCLE_TIMEOUT_SECONDS)
 
     def _ensure_active_campaign(
         self,
