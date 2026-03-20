@@ -3,7 +3,10 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "No kept LLM candidate is ready for rollout yet."
+    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest kept candidate still fails gate: total_return_below_gate.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -14,11 +17,11 @@
   },
   "baseline_metrics": {
     "total_return": 0.0004,
-    "sharpe": 19.0381,
-    "max_drawdown": 0.0001,
+    "sharpe": 19.1492,
+    "max_drawdown": 0.0,
     "average_turnover": 0.0001,
     "bars_processed": 2015,
-    "score": 19.0397
+    "score": 19.1509
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -28,29 +31,33 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T13:43:10.836538+00:00",
-  "last_processed_bar": "2026-03-20T13:40:00+00:00",
-  "recent_acceptance_rate": 0.5,
-  "evaluation_acceptance_rate": 0.5,
-  "generation_validity_rate": 0.2,
+  "latest_cycle_completed_at": "2026-03-20T13:45:11.201288+00:00",
+  "last_processed_bar": "2026-03-20T13:45:00+00:00",
+  "recent_acceptance_rate": 0.3333333333333333,
+  "evaluation_acceptance_rate": 0.3333333333333333,
+  "generation_validity_rate": 0.3,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260320t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "keep",
-      "stage": "full",
-      "mutation_label": "llm-8368ca7a",
-      "baseline_score": 19.039679793648308,
-      "candidate_score": 19.15087733237729,
-      "kept_commit": "f6a0a0a54e15ad7a0fc8252c53c6451259645508",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-3b57881a",
+      "baseline_score": 19.15087733237729,
+      "candidate_score": -13.161324297966708,
+      "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": []
+      "gate_failures": [
+        "total_return_below_gate",
+        "sharpe_below_gate",
+        "acceptance_rate_below_gate"
+      ]
     },
-    "baseline_strategy_name": "ema-trend-disp-v14-adaptrel-hyst-turnover-v2",
-    "baseline_score": 19.039679793648308,
+    "baseline_strategy_name": "ema-trend-disp-v15-exhaustion-hyst-turnover",
+    "baseline_score": 19.15087733237729,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
   },
@@ -147,81 +154,68 @@
     }
   ],
   "latest_decision": {
-    "decision": "keep",
-    "stage": "full",
-    "mutation_label": "llm-8368ca7a",
-    "baseline_score": 19.039679793648308,
-    "candidate_score": 19.15087733237729,
-    "kept_commit": "f6a0a0a54e15ad7a0fc8252c53c6451259645508",
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-3b57881a",
+    "baseline_score": 19.15087733237729,
+    "candidate_score": -13.161324297966708,
+    "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "gate_failures": []
+    "gate_failures": [
+      "total_return_below_gate",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v15-exhaustion-hyst-turnover",
-    "research_score": 19.15087733237729,
-    "ready_for_paper": true,
+    "strategy_name": "ema-trend-disp-v15-exhaustion-hyst-turnover-v2",
+    "research_score": -13.161324297966708,
+    "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 0.0003876766787849206,
-      "sharpe": 19.14922724477265,
-      "max_drawdown": 4.9799656810511905e-05,
-      "average_turnover": 8.909716203932279e-05,
+      "total_return": -0.0001689998512862667,
+      "sharpe": -13.159710452429014,
+      "max_drawdown": 0.00018459237495327407,
+      "average_turnover": 3.0476781451116633e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 830
+      "nonzero_turnover_steps": 212
     },
     "train_config": {
       "gross_target": 0.45,
-      "fast_ema_bars": 6,
-      "slow_ema_bars": 72,
-      "trend_ema_bars": 180,
+      "fast_ema_bars": 4,
+      "slow_ema_bars": 54,
+      "trend_ema_bars": 216,
       "top_k": 2,
       "min_signal_strength": 0.13,
       "use_trend_filter": true,
-      "volume_confirmation": 0.33,
+      "volume_confirmation": 0.35,
       "volatility_floor": 0.002,
-      "smoothing_alpha": 0.01,
+      "smoothing_alpha": 0.008,
       "per_symbol_cap_ratio": 0.28,
-      "signal_exponent": 3.2,
+      "signal_exponent": 3.4,
       "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
-      "crowding_exponent": 2.2,
+      "crowding_exponent": 2.4,
       "rel_threshold_mult": 1.0,
-      "new_symbol_penalty": 0.65,
+      "new_symbol_penalty": 0.7,
       "disp_low_frac_block": 0.5,
       "retention_boost": 0.18,
-      "entry_hysteresis": 1.35,
+      "entry_hysteresis": 1.45,
       "concentration_threshold": 0.5,
       "concentration_tighten": 0.7,
       "turnover_limit": 0.2
     },
-    "gate_failures": [],
+    "gate_failures": [
+      "total_return_below_gate",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
   },
-  "current_best_strategy_name": "ema-trend-disp-v14-adaptrel-hyst-turnover-v2",
-  "latest_kept_summary": {
-    "strategy_name": "ema-trend-disp-v15-exhaustion-hyst-turnover",
-    "baseline_strategy_name": "ema-trend-disp-v14-adaptrel-hyst-turnover-v2",
-    "score_delta": 0.111198,
-    "config_diff": [
-      {
-        "key": "entry_hysteresis",
-        "before": 1.25,
-        "after": 1.35
-      },
-      {
-        "key": "new_symbol_penalty",
-        "before": 0.75,
-        "after": 0.65
-      },
-      {
-        "key": "signal_exponent",
-        "before": 3.0,
-        "after": 3.2
-      }
-    ]
-  }
+  "current_best_strategy_name": "ema-trend-disp-v15-exhaustion-hyst-turnover",
+  "latest_kept_summary": {}
 }
