@@ -31,8 +31,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T09:13:48.593605+00:00",
-  "last_processed_bar": "2026-03-20T09:10:00+00:00",
+  "latest_cycle_completed_at": "2026-03-20T09:15:32.224418+00:00",
+  "last_processed_bar": "2026-03-20T09:15:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.8,
@@ -43,9 +43,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-406d4b2d",
+      "mutation_label": "llm-b8a1b6a5",
       "baseline_score": -0.1553925098323312,
-      "candidate_score": -41.33499641934833,
+      "candidate_score": -10.20562701532967,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -156,9 +156,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-406d4b2d",
+    "mutation_label": "llm-b8a1b6a5",
     "baseline_score": -0.1553925098323312,
-    "candidate_score": -41.33499641934833,
+    "candidate_score": -10.20562701532967,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -170,16 +170,16 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v26-accept-v4",
-    "research_score": -41.33499641934833,
+    "strategy_name": "vol-breakout-v26-accept-v3",
+    "research_score": -10.20562701532967,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.0002933424965333442,
-      "sharpe": -41.33211517939475,
-      "max_drawdown": 0.0002933424965333442,
-      "average_turnover": 0.00024115748477869894,
+      "total_return": -2.2803992384412552e-06,
+      "sharpe": -10.205604109602529,
+      "max_drawdown": 2.2803992384412552e-06,
+      "average_turnover": 2.3821339950372205e-06,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 341
+      "nonzero_turnover_steps": 2
     },
     "train_config": {
       "gross_target": 0.12,
@@ -188,10 +188,10 @@
       "atr_multiplier": 1.9,
       "breakout_buffer": 0.025,
       "top_k": 2,
-      "min_breakout_score": 0.028,
+      "min_breakout_score": 0.03,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.02,
+      "fallback_scale": 0.035,
       "crowding_min_scale": 0.18,
       "min_atr_fraction": 0.0012,
       "vol_dampening": 5.5
