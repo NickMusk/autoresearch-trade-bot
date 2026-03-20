@@ -3,8 +3,8 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate failed validation or execution: no_op_train_config.",
-    "Latest kept candidate still fails gate: no_op_train_config."
+    "Latest LLM candidate failed validation or execution: top_k_exceeds_cross_sectional_capacity.",
+    "Latest kept candidate still fails gate: top_k_exceeds_cross_sectional_capacity."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -29,11 +29,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T22:31:30.154136+00:00",
+  "latest_cycle_completed_at": "2026-03-20T22:32:48.312032+00:00",
   "last_processed_bar": "2026-03-20T22:30:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.8,
+  "generation_validity_rate": 0.7,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260320t062000z.json",
@@ -41,15 +41,15 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-37e0d4c1",
+      "mutation_label": "llm-b7bd5a15",
       "baseline_score": -0.15539220308337906,
       "candidate_score": -Infinity,
       "kept_commit": null,
-      "failure_reason": "no_op_train_config",
+      "failure_reason": "top_k_exceeds_cross_sectional_capacity",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
-        "no_op_train_config"
+        "top_k_exceeds_cross_sectional_capacity"
       ]
     },
     "baseline_strategy_name": "vol-breakout-v26-accept-v4",
@@ -58,24 +58,6 @@
     "provider_name": "llm"
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-8b290915",
-      "params": {
-        "decision": "discard_full",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-4d873118",
       "params": {
@@ -147,20 +129,38 @@
         "average_turnover": 1e-06
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-84eb88a3",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -9.382183,
+      "metrics": {
+        "total_return": -1e-06,
+        "sharpe": -9.382175,
+        "max_drawdown": 1e-06,
+        "average_turnover": 1e-06
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-37e0d4c1",
+    "mutation_label": "llm-b7bd5a15",
     "baseline_score": -0.15539220308337906,
     "candidate_score": -Infinity,
     "kept_commit": null,
-    "failure_reason": "no_op_train_config",
+    "failure_reason": "top_k_exceeds_cross_sectional_capacity",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
-      "no_op_train_config"
+      "top_k_exceeds_cross_sectional_capacity"
     ]
   },
   "latest_candidate_summary": {
@@ -177,11 +177,11 @@
     },
     "train_config": {},
     "gate_failures": [
-      "no_op_train_config"
+      "top_k_exceeds_cross_sectional_capacity"
     ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "failure_reason": "no_op_train_config"
+    "failure_reason": "top_k_exceeds_cross_sectional_capacity"
   },
   "current_best_strategy_name": "vol-breakout-v26-accept-v4",
   "latest_kept_summary": {}
