@@ -29,8 +29,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-20T01:53:23.935510+00:00",
-  "last_processed_bar": "2026-03-20T01:50:00+00:00",
+  "latest_cycle_completed_at": "2026-03-20T01:55:07.897489+00:00",
+  "last_processed_bar": "2026-03-20T01:55:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.2,
@@ -41,7 +41,7 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-5397e61c",
+      "mutation_label": "llm-9601acb3",
       "baseline_score": 6.06275586782741,
       "candidate_score": -Infinity,
       "kept_commit": null,
@@ -113,25 +113,27 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-a4b75432",
+      "strategy_name": "llm-02e8bd0e",
       "params": {
-        "decision": "discard_screen",
+        "decision": "discard_error",
         "provider_name": "llm",
         "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
+        "stage": "validation"
       },
       "accepted": false,
-      "score": 5.957699,
+      "score": -Infinity,
       "metrics": {
-        "total_return": 1e-06,
-        "sharpe": 5.957696,
-        "max_drawdown": 0.0,
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 1.0,
         "average_turnover": 0.0
       },
-      "rejection_reasons": []
+      "rejection_reasons": [
+        "candidate_too_large"
+      ]
     },
     {
-      "strategy_name": "llm-02e8bd0e",
+      "strategy_name": "llm-e8912e28",
       "params": {
         "decision": "discard_error",
         "provider_name": "llm",
@@ -154,7 +156,7 @@
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-5397e61c",
+    "mutation_label": "llm-9601acb3",
     "baseline_score": 6.06275586782741,
     "candidate_score": -Infinity,
     "kept_commit": null,
