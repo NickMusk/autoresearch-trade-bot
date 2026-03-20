@@ -29,11 +29,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-20T03:32:48.418014+00:00",
+  "latest_cycle_completed_at": "2026-03-20T03:34:44.283520+00:00",
   "last_processed_bar": "2026-03-20T03:30:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.5,
+  "generation_validity_rate": 0.4,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -41,7 +41,7 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-eaa3ea70",
+      "mutation_label": "llm-2da9cb50",
       "baseline_score": 18.295045404461455,
       "candidate_score": -Infinity,
       "kept_commit": null,
@@ -113,24 +113,6 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-1876456f",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 7.557002,
-      "metrics": {
-        "total_return": 0.000168,
-        "sharpe": 7.55702,
-        "max_drawdown": 0.000192,
-        "average_turnover": 9.1e-05
-      },
-      "rejection_reasons": []
-    },
-    {
       "strategy_name": "llm-a295e10f",
       "params": {
         "decision": "discard_screen",
@@ -147,12 +129,30 @@
         "average_turnover": 6.3e-05
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-b668455c",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-eaa3ea70",
+    "mutation_label": "llm-2da9cb50",
     "baseline_score": 18.295045404461455,
     "candidate_score": -Infinity,
     "kept_commit": null,
