@@ -31,10 +31,10 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T12:21:45.034834+00:00",
+  "latest_cycle_completed_at": "2026-03-20T12:24:00.260279+00:00",
   "last_processed_bar": "2026-03-20T12:20:00+00:00",
-  "recent_acceptance_rate": 0.2,
-  "evaluation_acceptance_rate": 0.2,
+  "recent_acceptance_rate": 0.0,
+  "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.5,
   "consecutive_failures": 0,
   "multi_window_summary": {
@@ -43,9 +43,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-288aa447",
+      "mutation_label": "llm-64f0a829",
       "baseline_score": 19.039679793648308,
-      "candidate_score": -0.15020371531247073,
+      "candidate_score": -7.341700319011816,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -156,9 +156,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-288aa447",
+    "mutation_label": "llm-64f0a829",
     "baseline_score": 19.039679793648308,
-    "candidate_score": -0.15020371531247073,
+    "candidate_score": -7.341700319011816,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -170,16 +170,16 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v14-adaptrel-hyst-turnover-v3",
-    "research_score": -0.15020371531247073,
+    "strategy_name": "ema-trend-disp-v15-quietfilter-v1",
+    "research_score": -7.341700319011816,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -3.887250007217347e-06,
-      "sharpe": -0.1494183206191874,
-      "max_drawdown": 0.00015933906421539135,
-      "average_turnover": 0.00012860218638569392,
+      "total_return": -0.0001506694342908732,
+      "sharpe": -7.339583019054165,
+      "max_drawdown": 0.000326599929781346,
+      "average_turnover": 5.755306707216427e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 1298
+      "nonzero_turnover_steps": 607
     },
     "train_config": {
       "gross_target": 0.45,
@@ -189,11 +189,11 @@
       "top_k": 2,
       "min_signal_strength": 0.13,
       "use_trend_filter": true,
-      "volume_confirmation": 0.33,
-      "volatility_floor": 0.002,
-      "smoothing_alpha": 0.02,
+      "volume_confirmation": 0.36,
+      "volatility_floor": 0.0025,
+      "smoothing_alpha": 0.01,
       "per_symbol_cap_ratio": 0.28,
-      "signal_exponent": 3.0,
+      "signal_exponent": 3.2,
       "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
@@ -205,7 +205,7 @@
       "entry_hysteresis": 1.25,
       "concentration_threshold": 0.5,
       "concentration_tighten": 0.7,
-      "turnover_limit": 0.2
+      "turnover_limit": 0.18
     },
     "gate_failures": [
       "total_return_below_gate",
