@@ -29,7 +29,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-20T01:26:22.153105+00:00",
+  "latest_cycle_completed_at": "2026-03-20T01:27:44.296679+00:00",
   "last_processed_bar": "2026-03-20T01:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
@@ -41,7 +41,7 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-e8912e28",
+      "mutation_label": "llm-007430fd",
       "baseline_score": 6.06275586782741,
       "candidate_score": -Infinity,
       "kept_commit": null,
@@ -58,24 +58,6 @@
     "provider_name": "llm"
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-949f366a",
-      "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 6.062756,
-      "metrics": {
-        "total_return": 1e-06,
-        "sharpe": 6.06275,
-        "max_drawdown": 0.0,
-        "average_turnover": 1e-06
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-949f366a",
       "params": {
@@ -147,12 +129,30 @@
         "average_turnover": 0.0
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-4b432488",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 5.944707,
+      "metrics": {
+        "total_return": 1e-06,
+        "sharpe": 5.944704,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-e8912e28",
+    "mutation_label": "llm-007430fd",
     "baseline_score": 6.06275586782741,
     "candidate_score": -Infinity,
     "kept_commit": null,
