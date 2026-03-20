@@ -32,7 +32,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T18:25:43.901335+00:00",
+  "latest_cycle_completed_at": "2026-03-20T18:27:56.631278+00:00",
   "last_processed_bar": "2026-03-20T18:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
@@ -44,7 +44,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-938c87b0",
+      "mutation_label": "llm-9614dbb6",
       "baseline_score": 6.107371547317714,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -136,7 +136,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-eab97ff4",
+      "strategy_name": "llm-82b4cd97",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -144,10 +144,10 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": 5.645368,
+      "score": 5.637897,
       "metrics": {
         "total_return": 0.0,
-        "sharpe": 5.645367,
+        "sharpe": 5.637896,
         "max_drawdown": 0.0,
         "average_turnover": 0.0
       },
@@ -157,7 +157,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-938c87b0",
+    "mutation_label": "llm-9614dbb6",
     "baseline_score": 6.107371547317714,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -171,7 +171,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v17-pairedrsi-weakboost-v4f-liquidity-focused-v6c-attenuated-v2c-topk2-balanced",
+    "strategy_name": "mean-reversion-bbands-rsi-v18-pairedrsi-promote-eased-liq-focused-v2",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -186,25 +186,25 @@
       "gross_target": 0.235,
       "lookback_bars": 34,
       "rsi_period": 14,
-      "rsi_lower": 32.0,
-      "rsi_upper": 68.0,
-      "band_std_mult": 1.8,
-      "top_k": 2,
-      "min_reversion_score": 0.2,
+      "rsi_lower": 34.0,
+      "rsi_upper": 66.0,
+      "band_std_mult": 1.74,
+      "top_k": 1,
+      "min_reversion_score": 0.25,
       "volatility_floor": 0.005,
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
       "volatility_scale_alpha": 0.6,
-      "persistence": 7,
-      "per_symbol_cap_fraction": 0.0048,
-      "weak_signal_microcap_fraction": 0.0005,
+      "persistence": 9,
+      "per_symbol_cap_fraction": 0.0045,
+      "weak_signal_microcap_fraction": 0.0006,
       "weak_rsi_support_min": 0.8,
       "market_scale_floor": 0.5,
-      "rsi_relax_max": 0.82,
+      "rsi_relax_max": 0.9,
       "volatility_penalty_exponent": 3.2,
       "damping_exponent": 10.0,
-      "liquidity_strict_mult": 1.1,
-      "liquidity_promote_min": 0.9
+      "liquidity_strict_mult": 1.02,
+      "liquidity_promote_min": 0.82
     },
     "gate_failures": [
       "no_trades_executed",
