@@ -28,11 +28,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-20T01:56:08.464831+00:00",
+  "latest_cycle_completed_at": "2026-03-20T01:57:56.209655+00:00",
   "last_processed_bar": "2026-03-20T01:55:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.7,
+  "generation_validity_rate": 0.8,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -40,9 +40,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-811c10cf",
+      "mutation_label": "llm-5c2f3cea",
       "baseline_score": 18.22058526668502,
-      "candidate_score": 13.219997814459788,
+      "candidate_score": 17.773824132598214,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -55,24 +55,6 @@
     "provider_name": "llm"
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-2719bb54",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 18.220585,
-      "metrics": {
-        "total_return": 0.000361,
-        "sharpe": 18.21912,
-        "max_drawdown": 6.2e-05,
-        "average_turnover": 9.2e-05
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-b8732e43",
       "params": {
@@ -106,6 +88,24 @@
         "sharpe": 17.79562,
         "max_drawdown": 6.1e-05,
         "average_turnover": 9.8e-05
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-5c2f3cea",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 17.773824,
+      "metrics": {
+        "total_return": 0.000349,
+        "sharpe": 17.772431,
+        "max_drawdown": 6.5e-05,
+        "average_turnover": 9.2e-05
       },
       "rejection_reasons": []
     },
@@ -149,9 +149,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-811c10cf",
+    "mutation_label": "llm-5c2f3cea",
     "baseline_score": 18.22058526668502,
-    "candidate_score": 13.219997814459788,
+    "candidate_score": 17.773824132598214,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -159,16 +159,16 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v11",
-    "research_score": 13.219997814459788,
+    "strategy_name": "ema-trend-disp-v12",
+    "research_score": 17.773824132598214,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.0001992888045616592,
-      "sharpe": 13.219257798096121,
-      "max_drawdown": 4.8418102444269806e-05,
-      "average_turnover": 6.275524936588455e-05,
+      "total_return": 0.00034886040297021914,
+      "sharpe": 17.77243063960007,
+      "max_drawdown": 6.462852470234814e-05,
+      "average_turnover": 9.229491789766484e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 627
+      "nonzero_turnover_steps": 844
     },
     "train_config": {
       "gross_target": 0.45,
@@ -182,15 +182,16 @@
       "volatility_floor": 0.002,
       "smoothing_alpha": 0.02,
       "per_symbol_cap_ratio": 0.28,
-      "signal_exponent": 2.8,
+      "signal_exponent": 2.6,
       "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
-      "crowding_exponent": 2.1,
+      "crowding_exponent": 1.9,
       "rel_threshold_mult": 1.2,
       "new_symbol_penalty": 0.7,
       "disp_low_frac_block": 0.5,
-      "retention_boost": 0.12
+      "retention_boost": 0.12,
+      "flip_penalty": 0.6
     },
     "gate_failures": [],
     "provider_name": "llm",
