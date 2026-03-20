@@ -31,11 +31,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-20T06:16:23.531380+00:00",
+  "latest_cycle_completed_at": "2026-03-20T06:17:22.626080+00:00",
   "last_processed_bar": "2026-03-20T06:15:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.8,
+  "generation_validity_rate": 0.9,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/volatility_breakout/campaigns/render-bybit-linear-5m-20260319t062000z.json",
@@ -43,9 +43,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-9f6b2a24",
+      "mutation_label": "llm-fdb85c21",
       "baseline_score": -0.15539281658130877,
-      "candidate_score": -28.75894582017183,
+      "candidate_score": -10.205625106519964,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -156,9 +156,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-9f6b2a24",
+    "mutation_label": "llm-fdb85c21",
     "baseline_score": -0.15539281658130877,
-    "candidate_score": -28.75894582017183,
+    "candidate_score": -10.205625106519964,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -170,16 +170,16 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v26-accept-v2-micro",
-    "research_score": -28.75894582017183,
+    "strategy_name": "vol-breakout-v26-accept-v3",
+    "research_score": -10.205625106519964,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.00023325103562399363,
-      "sharpe": -28.75652185741157,
-      "max_drawdown": 0.000255987628448584,
-      "average_turnover": 0.000233757068346444,
+      "total_return": -2.090366067575289e-06,
+      "sharpe": -10.205604109602527,
+      "max_drawdown": 2.090366067575289e-06,
+      "average_turnover": 2.183622828784119e-06,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 320
+      "nonzero_turnover_steps": 2
     },
     "train_config": {
       "gross_target": 0.12,
@@ -188,11 +188,10 @@
       "atr_multiplier": 1.9,
       "breakout_buffer": 0.025,
       "top_k": 2,
-      "min_breakout_score": 0.032,
+      "min_breakout_score": 0.028,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.0045,
-      "micro_fallback_scale": 0.0012,
+      "fallback_scale": 0.005,
       "crowding_min_scale": 0.18,
       "min_atr_fraction": 0.0012,
       "vol_dampening": 5.5
