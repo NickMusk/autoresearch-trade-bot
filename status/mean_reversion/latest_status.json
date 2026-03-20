@@ -3,7 +3,8 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "No kept LLM candidate is ready for rollout yet."
+    "Latest LLM candidate failed validation or execution: candidate_too_large.",
+    "Latest kept candidate still fails gate: candidate_too_large."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -14,11 +15,11 @@
   },
   "baseline_metrics": {
     "total_return": 0.0,
-    "sharpe": 6.0339,
+    "sharpe": 6.0628,
     "max_drawdown": 0.0,
     "average_turnover": 0.0,
     "bars_processed": 2015,
-    "score": 6.0339
+    "score": 6.0628
   },
   "accepted_for_paper": false,
   "next_milestones": [
@@ -28,8 +29,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260319t062000z",
-  "latest_cycle_completed_at": "2026-03-20T00:33:42.715995+00:00",
-  "last_processed_bar": "2026-03-20T00:30:00+00:00",
+  "latest_cycle_completed_at": "2026-03-20T00:35:16.799993+00:00",
+  "last_processed_bar": "2026-03-20T00:35:00+00:00",
   "recent_acceptance_rate": 0.2,
   "evaluation_acceptance_rate": 0.2,
   "generation_validity_rate": 0.5,
@@ -38,19 +39,21 @@
     "campaign_path": "/var/data/autoresearch/mean_reversion/campaigns/render-bybit-linear-5m-20260319t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "keep",
-      "stage": "full",
-      "mutation_label": "llm-949f366a",
-      "baseline_score": 6.033923347709334,
-      "candidate_score": 6.06275586782741,
-      "kept_commit": "414aa7f9e8c5aa1ab8b8388f1656b573f5ff2434",
-      "failure_reason": "",
+      "decision": "discard_error",
+      "stage": "validation",
+      "mutation_label": "llm-17bcc7a8",
+      "baseline_score": 6.06275586782741,
+      "candidate_score": -Infinity,
+      "kept_commit": null,
+      "failure_reason": "candidate_too_large",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": []
+      "gate_failures": [
+        "candidate_too_large"
+      ]
     },
-    "baseline_strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v4b-liquidity-focused-v2",
-    "baseline_score": 6.033923347709334,
+    "baseline_strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v4c-liquidity-focused-v3",
+    "baseline_score": 6.06275586782741,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm"
   },
@@ -147,94 +150,39 @@
     }
   ],
   "latest_decision": {
-    "decision": "keep",
-    "stage": "full",
-    "mutation_label": "llm-949f366a",
-    "baseline_score": 6.033923347709334,
-    "candidate_score": 6.06275586782741,
-    "kept_commit": "414aa7f9e8c5aa1ab8b8388f1656b573f5ff2434",
-    "failure_reason": "",
+    "decision": "discard_error",
+    "stage": "validation",
+    "mutation_label": "llm-17bcc7a8",
+    "baseline_score": 6.06275586782741,
+    "candidate_score": -Infinity,
+    "kept_commit": null,
+    "failure_reason": "candidate_too_large",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "gate_failures": []
+    "gate_failures": [
+      "candidate_too_large"
+    ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v4c-liquidity-focused-v3",
-    "research_score": 6.06275586782741,
-    "ready_for_paper": true,
+    "strategy_name": "invalid-candidate",
+    "research_score": -Infinity,
+    "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 1.4541977524373806e-06,
-      "sharpe": 6.062750150765728,
-      "max_drawdown": 2.4970239265176275e-07,
-      "average_turnover": 5.551175100401605e-07,
-      "bars_processed": 2015,
-      "nonzero_turnover_steps": 6
+      "total_return": 0.0,
+      "sharpe": 0.0,
+      "max_drawdown": 1.0,
+      "average_turnover": 0.0,
+      "bars_processed": 0,
+      "nonzero_turnover_steps": 0
     },
-    "train_config": {
-      "gross_target": 0.4,
-      "lookback_bars": 34,
-      "rsi_period": 14,
-      "rsi_lower": 34.0,
-      "rsi_upper": 66.0,
-      "band_std_mult": 1.7,
-      "top_k": 1,
-      "min_reversion_score": 0.275,
-      "volatility_floor": 0.005,
-      "use_trend_filter": true,
-      "trend_lookback_bars": 56,
-      "volatility_scale_alpha": 0.6,
-      "persistence": 4,
-      "per_symbol_cap_fraction": 0.028,
-      "weak_signal_microcap_fraction": 0.0025,
-      "weak_rsi_support_min": 0.78,
-      "market_scale_floor": 0.5,
-      "rsi_relax_max": 0.7,
-      "volatility_penalty_exponent": 3.2,
-      "damping_exponent": 2.7,
-      "liquidity_strict_mult": 1.1,
-      "liquidity_promote_min": 0.85
-    },
-    "gate_failures": [],
+    "train_config": {},
+    "gate_failures": [
+      "candidate_too_large"
+    ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "failure_reason": ""
+    "failure_reason": "candidate_too_large"
   },
-  "current_best_strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v4b-liquidity-focused-v2",
-  "latest_kept_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v4c-liquidity-focused-v3",
-    "baseline_strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v4b-liquidity-focused-v2",
-    "score_delta": 0.028833,
-    "config_diff": [
-      {
-        "key": "damping_exponent",
-        "before": 2.4,
-        "after": 2.7
-      },
-      {
-        "key": "liquidity_strict_mult",
-        "before": 1.05,
-        "after": 1.1
-      },
-      {
-        "key": "min_reversion_score",
-        "before": 0.282,
-        "after": 0.275
-      },
-      {
-        "key": "per_symbol_cap_fraction",
-        "before": 0.031,
-        "after": 0.028
-      },
-      {
-        "key": "rsi_relax_max",
-        "before": 0.66,
-        "after": 0.7
-      },
-      {
-        "key": "weak_signal_microcap_fraction",
-        "before": 0.0035,
-        "after": 0.0025
-      }
-    ]
-  }
+  "current_best_strategy_name": "mean-reversion-bbands-rsi-v16-pairedrsi-weakboost-v4c-liquidity-focused-v3",
+  "latest_kept_summary": {}
 }
