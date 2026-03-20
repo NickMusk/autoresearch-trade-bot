@@ -30,7 +30,9 @@ from .strategy_families import (
     config_traits as family_config_traits,
     extract_strategy_family,
     family_attempt_role_specs,
+    family_mutation_bounds,
     family_prompt_directions,
+    render_family_mutation_bounds,
     normalize_train_config as normalize_family_train_config,
     render_train_file as render_family_train_file,
     validate_train_candidate_semantics as validate_family_candidate_semantics,
@@ -46,7 +48,7 @@ ALLOWED_IMPORTS = {
     "autoresearch_trade_bot.strategy",
 }
 FORBIDDEN_CALLS = {"open", "exec", "eval", "compile", "__import__", "input"}
-MAX_CANDIDATE_BYTES = 32_000
+MAX_CANDIDATE_BYTES = 48_000
 
 
 @dataclass(frozen=True)
@@ -539,6 +541,10 @@ def build_llm_mutation_prompt(
     context: MutationContext,
     max_mutations: int,
 ) -> tuple[str, str]:
+    bounds = family_mutation_bounds(
+        context.strategy_family,
+        symbol_count=context.symbol_count,
+    )
     recent_result_lines = "\n".join(
         [
             f"- mutation={row.get('mutation_label','')} stage={row.get('stage','')} "
@@ -566,6 +572,11 @@ def build_llm_mutation_prompt(
     user_prompt = "\n\n".join(
         [
             f"Program rules:\n{context.program_text}",
+            "Hard mutation bounds:\n"
+            + render_family_mutation_bounds(
+                context.strategy_family,
+                symbol_count=context.symbol_count,
+            ),
             f"Research memory:\n{context.experiment_memory_summary}",
             "Recent raw results:\n" + recent_result_lines,
             "Current train.py to mutate:\n" + context.current_train_text,
@@ -574,6 +585,7 @@ def build_llm_mutation_prompt(
                 "Return a single best full train.py candidate as raw Python only.\n"
                 f"- The harness will evaluate up to {max_mutations} mutation attempt(s) this cycle, but this response should contain one candidate only.\n"
                 f"- Stay inside the {context.strategy_family} strategy family.\n"
+                f"- Do not set top_k above {bounds['top_k_max']} for the current {bounds['symbol_count']}-symbol paired engine.\n"
                 "- Make a meaningful change to strategy behavior.\n"
                 "- Prefer changes that improve selectivity, reduce weak-signal trades, or reduce crowding/overextension risk.\n"
                 "- Use the promising directions from research memory and avoid repeated dead zones.\n"

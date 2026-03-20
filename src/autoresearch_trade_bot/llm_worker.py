@@ -42,7 +42,9 @@ class LLMCycleResult:
     decisions: list[dict[str, object]]
     recent_acceptance_rate: float
     generation_validity_rate: float
-    rollout_ready: bool
+    latest_cycle_rollout_ready: bool
+    current_best_ready_for_paper: bool
+    research_rollout_ready: bool
     baseline_report: dict[str, object]
     latest_report: dict[str, object]
 
@@ -286,9 +288,14 @@ class LLMAutoresearchWorker:
 
         report = latest_decision.report
         baseline_report = latest_decision.baseline_report
-        rollout_ready = (
+        latest_cycle_rollout_ready = (
             latest_decision.decision == "keep"
             and report.ready_for_paper
+            and recent_acceptance_rate >= self.config.target_gate.min_acceptance_rate
+        )
+        current_best_ready_for_paper = bool(baseline_report.ready_for_paper)
+        research_rollout_ready = (
+            current_best_ready_for_paper
             and recent_acceptance_rate >= self.config.target_gate.min_acceptance_rate
         )
         leaderboard = self._build_leaderboard(recent_results)
@@ -318,7 +325,9 @@ class LLMAutoresearchWorker:
             ],
             recent_acceptance_rate=recent_acceptance_rate,
             generation_validity_rate=generation_validity_rate,
-            rollout_ready=rollout_ready,
+            latest_cycle_rollout_ready=latest_cycle_rollout_ready,
+            current_best_ready_for_paper=current_best_ready_for_paper,
+            research_rollout_ready=research_rollout_ready,
             baseline_report={
                 "strategy_name": baseline_report.strategy_name,
                 "research_score": baseline_report.research_score,
@@ -383,13 +392,26 @@ class LLMAutoresearchWorker:
                 f"Latest kept candidate still fails gate: {failure}."
                 for failure in latest_decision["gate_failures"]
             )
-        if not blockers and not cycle_result.rollout_ready:
-            blockers.append("No kept LLM candidate is ready for rollout yet.")
+        baseline_gate_failures = list(baseline_report.get("gate_failures", []))
+        if baseline_gate_failures:
+            blockers.extend(
+                f"Current best strategy still fails gate: {failure}."
+                for failure in baseline_gate_failures
+            )
+        if (
+            cycle_result.current_best_ready_for_paper
+            and not cycle_result.research_rollout_ready
+        ):
+            blockers.append(
+                "Current best strategy passes paper metrics, but evaluation_acceptance_rate is still below the rollout gate."
+            )
+        if not blockers and not cycle_result.research_rollout_ready:
+            blockers.append("Current best strategy is not ready for rollout yet.")
 
         return ResearchStatusSnapshot(
             mission="Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
             phase="LLM autoresearch worker active",
-            research_rollout_ready=cycle_result.rollout_ready,
+            research_rollout_ready=cycle_result.research_rollout_ready,
             research_blockers=blockers,
             baseline_strategy="Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
             promotion_gate={
@@ -406,13 +428,15 @@ class LLMAutoresearchWorker:
                 "bars_processed": int(baseline_metrics.get("bars_processed", 0)),
                 "score": round(float(baseline_report["research_score"]), 4),
             },
-            accepted_for_paper=cycle_result.rollout_ready,
+            accepted_for_paper=cycle_result.current_best_ready_for_paper,
+            current_best_ready_for_paper=cycle_result.current_best_ready_for_paper,
+            latest_cycle_rollout_ready=cycle_result.latest_cycle_rollout_ready,
             next_milestones=[
                 "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
                 "Accumulate multiple kept improvements in the research branch.",
                 "Promote only candidates that satisfy the hard rollout gates.",
             ],
-            loop_state="holding" if cycle_result.rollout_ready else "searching",
+            loop_state="holding" if cycle_result.research_rollout_ready else "searching",
             latest_dataset_id=cycle_result.campaign_id,
             latest_cycle_completed_at=cycle_result.completed_at.isoformat(),
             last_processed_bar=cycle_result.latest_closed_bar.isoformat(),
@@ -428,6 +452,8 @@ class LLMAutoresearchWorker:
                 "baseline_score": baseline_report["research_score"],
                 "model_name": report["model_name"],
                 "provider_name": report["provider_name"],
+                "current_best_ready_for_paper": cycle_result.current_best_ready_for_paper,
+                "latest_cycle_rollout_ready": cycle_result.latest_cycle_rollout_ready,
             },
             latest_decision=dict(latest_decision),
             latest_candidate_summary={
@@ -528,6 +554,11 @@ class LLMAutoresearchWorker:
             if previous_snapshot is not None
             else {}
         )
+        current_best_ready_for_paper = (
+            previous_snapshot.current_best_ready_for_paper
+            if previous_snapshot is not None
+            else False
+        )
         return ResearchStatusSnapshot(
             mission="Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
             phase="LLM autoresearch worker degraded",
@@ -541,7 +572,9 @@ class LLMAutoresearchWorker:
                 "min_acceptance_rate": self.config.target_gate.min_acceptance_rate,
             },
             baseline_metrics=baseline_metrics,
-            accepted_for_paper=False,
+            accepted_for_paper=current_best_ready_for_paper,
+            current_best_ready_for_paper=current_best_ready_for_paper,
+            latest_cycle_rollout_ready=False,
             next_milestones=[
                 "Recover the worker from the latest API, repo, or campaign failure.",
             ],

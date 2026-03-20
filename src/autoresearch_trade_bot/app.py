@@ -91,12 +91,13 @@ def render_dashboard(payload: dict) -> str:
         for key, value in snapshot["promotion_gate"].items()
     )
 
-    accepted_label = "YES" if snapshot["accepted_for_paper"] else "NO"
-    ready_label = "READY" if snapshot["research_rollout_ready"] else "NOT READY"
+    current_best_ready_label = "YES" if snapshot.get("current_best_ready_for_paper", snapshot["accepted_for_paper"]) else "NO"
+    latest_cycle_ready_label = "YES" if snapshot.get("latest_cycle_rollout_ready", snapshot["research_rollout_ready"]) else "NO"
+    rollout_ready_label = "READY" if snapshot["research_rollout_ready"] else "NOT READY"
     cycle_completed_label = snapshot.get("latest_cycle_completed_at") or "n/a"
     processed_bar_label = snapshot.get("last_processed_bar") or "n/a"
     loop_state_label = snapshot.get("loop_state", "idle")
-    acceptance_rate_label = snapshot.get("recent_acceptance_rate", 0.0)
+    evaluation_acceptance_rate_label = snapshot.get("evaluation_acceptance_rate", snapshot.get("recent_acceptance_rate", 0.0))
     current_best_strategy_name = snapshot.get("current_best_strategy_name") or "n/a"
     latest_decision = snapshot.get("latest_decision") or {}
     latest_candidate_summary = snapshot.get("latest_candidate_summary") or {}
@@ -285,8 +286,9 @@ def render_dashboard(payload: dict) -> str:
       <p>{html.escape(snapshot["mission"])}</p>
       <div class="badge-row">
         <span class="badge">Phase: {html.escape(snapshot["phase"])}</span>
-        <span class="badge">Paper Gate: {accepted_label}</span>
-        <span class="badge">Research Rollout: {ready_label}</span>
+        <span class="badge">Current Best Paper Ready: {current_best_ready_label}</span>
+        <span class="badge">Latest Cycle Rollout Ready: {latest_cycle_ready_label}</span>
+        <span class="badge">Research Rollout: {rollout_ready_label}</span>
         <span class="badge">Loop State: {html.escape(str(loop_state_label))}</span>
       </div>
     </section>
@@ -333,8 +335,10 @@ def render_dashboard(payload: dict) -> str:
         <ul>
           <li><code>latest_cycle_completed_at</code>: {html.escape(str(cycle_completed_label))}</li>
           <li><code>last_processed_bar</code>: {html.escape(str(processed_bar_label))}</li>
-          <li><code>recent_acceptance_rate</code>: {html.escape(str(acceptance_rate_label))}</li>
+          <li><code>evaluation_acceptance_rate</code>: {html.escape(str(evaluation_acceptance_rate_label))}</li>
           <li><code>generation_validity_rate</code>: {html.escape(str(snapshot.get("generation_validity_rate", 0.0)))}</li>
+          <li><code>current_best_ready_for_paper</code>: {html.escape(str(snapshot.get("current_best_ready_for_paper", snapshot.get("accepted_for_paper", False))))}</li>
+          <li><code>latest_cycle_rollout_ready</code>: {html.escape(str(snapshot.get("latest_cycle_rollout_ready", snapshot.get("research_rollout_ready", False))))}</li>
           <li><code>consecutive_failures</code>: {html.escape(str(snapshot.get("consecutive_failures", 0)))}</li>
           <li><code>latest_decision</code>: {html.escape(str(latest_decision.get("decision", "n/a")))}</li>
           <li><code>latest_candidate_score</code>: {html.escape(str(latest_decision.get("candidate_score", "n/a")))}</li>
@@ -408,6 +412,7 @@ def _render_family_tab_panel(item: dict, *, is_active: bool) -> str:
           <div class="family-chip"><span class="label">Loop State</span><strong>{html.escape(str(snapshot.get("loop_state", "n/a")))}</strong></div>
           <div class="family-chip"><span class="label">Best Strategy</span><strong>{html.escape(str(snapshot.get("current_best_strategy_name") or "n/a"))}</strong></div>
           <div class="family-chip"><span class="label">Baseline Score</span><strong>{html.escape(str(snapshot.get("baseline_metrics", {}).get("score", "n/a")))}</strong></div>
+          <div class="family-chip"><span class="label">Current Best Paper Ready</span><strong>{html.escape(str(snapshot.get("current_best_ready_for_paper", snapshot.get("accepted_for_paper", False))))}</strong></div>
           <div class="family-chip"><span class="label">Latest Decision</span><strong>{html.escape(str(latest_decision.get("decision", "n/a")))}</strong></div>
           <div class="family-chip"><span class="label">Cycle Completed</span><strong>{html.escape(str(snapshot.get("latest_cycle_completed_at") or "n/a"))}</strong></div>
         </div>

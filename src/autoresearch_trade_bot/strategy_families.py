@@ -230,6 +230,77 @@ def family_prompt_directions(strategy_family: str) -> tuple[str, ...]:
     return get_strategy_family_profile(strategy_family).prompt_directions
 
 
+def family_mutation_bounds(
+    strategy_family: str,
+    *,
+    symbol_count: int,
+) -> dict[str, Any]:
+    max_top_k = max(1, symbol_count // 2)
+    bounds: dict[str, Any] = {
+        "symbol_count": symbol_count,
+        "top_k_min": 1,
+        "top_k_max": max_top_k,
+        "gross_target_min_exclusive": 0.0,
+        "gross_target_max": 1.5,
+        "family_rules": [],
+    }
+    family_rules: list[str] = bounds["family_rules"]
+    if strategy_family == FAMILY_MEAN_REVERSION:
+        family_rules.extend(
+            [
+                "rsi_lower must satisfy 0 < rsi_lower < 50",
+                "rsi_upper must satisfy 50 < rsi_upper < 100",
+                "band_std_mult must satisfy 0 < band_std_mult <= 4.0",
+            ]
+        )
+    elif strategy_family == FAMILY_EMA_TREND:
+        family_rules.extend(
+            [
+                "EMA ordering must satisfy fast_ema_bars < slow_ema_bars < trend_ema_bars",
+                "volume_confirmation must stay <= 3.0",
+                "min_signal_strength must stay <= 0.15",
+            ]
+        )
+    elif strategy_family == FAMILY_VOLATILITY_BREAKOUT:
+        family_rules.extend(
+            [
+                "channel_bars must be greater than atr_lookback_bars",
+                "atr_multiplier must satisfy 0 < atr_multiplier <= 4.0",
+                "breakout_buffer must stay <= 1.5",
+            ]
+        )
+    else:
+        family_rules.extend(
+            [
+                "ranking_mode must be one of raw_return or risk_adjusted",
+                "min_signal_strength must stay <= 0.12",
+                "min_cross_sectional_spread must stay <= 0.15",
+            ]
+        )
+    return bounds
+
+
+def render_family_mutation_bounds(
+    strategy_family: str,
+    *,
+    symbol_count: int,
+) -> str:
+    bounds = family_mutation_bounds(strategy_family, symbol_count=symbol_count)
+    lines = [
+        f"- symbol_count={bounds['symbol_count']}",
+        (
+            f"- paired long/short engine requires top_k between "
+            f"{bounds['top_k_min']} and {bounds['top_k_max']} inclusive"
+        ),
+        (
+            f"- gross_target must be > {bounds['gross_target_min_exclusive']} "
+            f"and <= {bounds['gross_target_max']}"
+        ),
+    ]
+    lines.extend(f"- {rule}" for rule in bounds["family_rules"])
+    return "\n".join(lines)
+
+
 def render_train_file(
     train_config: Mapping[str, Any],
     *,
@@ -311,13 +382,19 @@ def validate_train_candidate_semantics(
 ) -> tuple[bool, str]:
     candidate = normalize_train_config(candidate_config, strategy_family=strategy_family)
     current = normalize_train_config(current_config, strategy_family=strategy_family)
+    bounds = family_mutation_bounds(strategy_family, symbol_count=symbol_count)
     if candidate == current:
         return False, "no_op_train_config"
-    if int(candidate.get("top_k", 1)) < 1:
+    top_k = int(candidate.get("top_k", 1))
+    if top_k < bounds["top_k_min"]:
         return False, "invalid_top_k"
-    if int(candidate.get("top_k", 1)) * 2 > symbol_count:
+    if top_k > bounds["top_k_max"]:
         return False, "top_k_exceeds_cross_sectional_capacity"
-    if float(candidate.get("gross_target", 0.5)) <= 0.0 or float(candidate.get("gross_target", 0.5)) > 1.5:
+    gross_target = float(candidate.get("gross_target", 0.5))
+    if (
+        gross_target <= float(bounds["gross_target_min_exclusive"])
+        or gross_target > float(bounds["gross_target_max"])
+    ):
         return False, "invalid_gross_target"
     if strategy_family == FAMILY_MEAN_REVERSION:
         if not (0.0 < float(candidate["rsi_lower"]) < 50.0 < float(candidate["rsi_upper"]) < 100.0):

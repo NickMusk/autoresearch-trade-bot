@@ -18,6 +18,8 @@ class AppRenderTests(unittest.TestCase):
                     "promotion_gate": {"min_sharpe": 1.0},
                     "baseline_metrics": {"score": 1.2},
                     "accepted_for_paper": False,
+                    "current_best_ready_for_paper": True,
+                    "latest_cycle_rollout_ready": False,
                     "next_milestones": ["milestone"],
                     "loop_state": "searching",
                     "latest_dataset_id": "dataset",
@@ -43,6 +45,7 @@ class AppRenderTests(unittest.TestCase):
                             "loop_state": "searching",
                             "current_best_strategy_name": "mr-v1",
                             "baseline_metrics": {"score": 3.2},
+                            "current_best_ready_for_paper": False,
                             "latest_decision": {"decision": "keep"},
                             "latest_cycle_completed_at": "2026-03-19T09:00:00+00:00",
                             "leaderboard": [{"strategy_name": "mr-v1", "score": 3.2, "accepted": False}],
@@ -63,6 +66,8 @@ class AppRenderTests(unittest.TestCase):
         self.assertIn("Mean Reversion Leaderboard", html)
         self.assertIn("No snapshot published for this family yet.", html)
         self.assertIn("generation_validity_rate", html)
+        self.assertIn("Current Best Paper Ready", html)
+        self.assertIn("latest_cycle_rollout_ready", html)
 
 
 if __name__ == "__main__":

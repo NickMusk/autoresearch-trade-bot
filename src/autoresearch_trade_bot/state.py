@@ -182,6 +182,8 @@ class ResearchStatusSnapshot:
     consecutive_failures: int
     evaluation_acceptance_rate: float = 0.0
     generation_validity_rate: float = 0.0
+    current_best_ready_for_paper: bool = False
+    latest_cycle_rollout_ready: bool = False
     multi_window_summary: dict[str, Any] = field(default_factory=dict)
     leaderboard: list[dict[str, Any]] = field(default_factory=list)
     latest_decision: dict[str, Any] | None = None
@@ -199,6 +201,8 @@ class ResearchStatusSnapshot:
             "promotion_gate": dict(self.promotion_gate),
             "baseline_metrics": dict(self.baseline_metrics),
             "accepted_for_paper": self.accepted_for_paper,
+            "current_best_ready_for_paper": self.current_best_ready_for_paper,
+            "latest_cycle_rollout_ready": self.latest_cycle_rollout_ready,
             "next_milestones": list(self.next_milestones),
             "loop_state": self.loop_state,
             "latest_dataset_id": self.latest_dataset_id,
@@ -229,6 +233,12 @@ class ResearchStatusSnapshot:
             promotion_gate=dict(payload["promotion_gate"]),
             baseline_metrics=dict(payload["baseline_metrics"]),
             accepted_for_paper=bool(payload["accepted_for_paper"]),
+            current_best_ready_for_paper=bool(
+                payload.get("current_best_ready_for_paper", payload.get("accepted_for_paper", False))
+            ),
+            latest_cycle_rollout_ready=bool(
+                payload.get("latest_cycle_rollout_ready", payload.get("research_rollout_ready", False))
+            ),
             next_milestones=[str(item) for item in payload["next_milestones"]],
             loop_state=str(payload.get("loop_state", "idle")),
             latest_dataset_id=str(payload.get("latest_dataset_id", "")),

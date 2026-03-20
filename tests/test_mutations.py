@@ -27,6 +27,7 @@ from autoresearch_trade_bot.strategy_families import (
     FAMILY_EMA_TREND,
     FAMILY_MEAN_REVERSION,
     extract_strategy_family,
+    family_mutation_bounds,
     render_train_file as render_family_train_file,
 )
 
@@ -272,12 +273,24 @@ class MutationTests(unittest.TestCase):
         )
         system_prompt, user_prompt = build_llm_mutation_prompt(context=context, max_mutations=1)
         self.assertIn("Prefer one substantial research hypothesis", system_prompt)
-        self.assertIn("Keep the candidate under 32000 bytes", system_prompt)
+        self.assertIn("Keep the candidate under 48000 bytes", system_prompt)
         self.assertIn("Preserve the existing file structure whenever possible", system_prompt)
+        self.assertIn("Hard mutation bounds:", user_prompt)
+        self.assertIn("paired long/short engine requires top_k between 1 and 2 inclusive", user_prompt)
+        self.assertIn("Do not set top_k above 2", user_prompt)
         self.assertIn("Research memory:", user_prompt)
         self.assertIn("Promising directions:", user_prompt)
         self.assertIn("Recent raw results:", user_prompt)
         self.assertIn("Make the smallest full-file edit that expresses the hypothesis", user_prompt)
+
+    def test_family_mutation_bounds_cap_top_k_from_symbol_count(self) -> None:
+        bounds = family_mutation_bounds(FAMILY_MEAN_REVERSION, symbol_count=5)
+        self.assertEqual(bounds["top_k_min"], 1)
+        self.assertEqual(bounds["top_k_max"], 2)
+        self.assertIn(
+            "rsi_lower must satisfy 0 < rsi_lower < 50",
+            bounds["family_rules"],
+        )
 
     def test_mean_reversion_family_is_extracted_and_validated_with_family_rules(self) -> None:
         current_train = render_family_train_file(

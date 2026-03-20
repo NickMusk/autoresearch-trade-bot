@@ -11,7 +11,7 @@ from types import SimpleNamespace
 
 from autoresearch_trade_bot.config import DataConfig, LLMWorkerConfig, ResearchTargetGate
 from autoresearch_trade_bot.llm_worker import LLMAutoresearchWorker, publisher_from_env
-from autoresearch_trade_bot.state import FilesystemResearchStateStore
+from autoresearch_trade_bot.state import CycleSummary, FilesystemResearchStateStore
 
 
 def make_fake_decision(
@@ -19,10 +19,12 @@ def make_fake_decision(
     decision: str = "discard_screen",
     score: float = -10.0,
     ready_for_paper: bool = False,
+    baseline_ready_for_paper: bool = False,
     failure_reason: str = "",
     candidate_metrics: dict | None = None,
     baseline_metrics: dict | None = None,
     candidate_gate_failures: list[str] | None = None,
+    baseline_gate_failures: list[str] | None = None,
     baseline_train_config: dict | None = None,
     candidate_train_config: dict | None = None,
 ):
@@ -43,10 +45,14 @@ def make_fake_decision(
     baseline_report = SimpleNamespace(
         provider_name="baseline",
         model_name="",
-        ready_for_paper=False,
+        ready_for_paper=baseline_ready_for_paper,
         average_metrics=resolved_baseline_metrics,
         research_score=4.5,
-        gate_failures=["sharpe_below_gate"],
+        gate_failures=(
+            []
+            if baseline_ready_for_paper
+            else list(baseline_gate_failures or ["sharpe_below_gate"])
+        ),
         failure_reason="",
         strategy_name="baseline-train-head",
         train_config=baseline_train_config or {
@@ -197,12 +203,102 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertEqual(snapshot.loop_state, "searching")
             self.assertEqual(snapshot.evaluation_acceptance_rate, 0.0)
             self.assertEqual(snapshot.generation_validity_rate, 1.0)
+            self.assertFalse(snapshot.current_best_ready_for_paper)
+            self.assertFalse(snapshot.latest_cycle_rollout_ready)
             self.assertEqual(snapshot.latest_dataset_id, campaign_calls[0])
             self.assertEqual(snapshot.multi_window_summary["latest_decision"]["decision"], "discard_screen")
             self.assertEqual(snapshot.latest_decision["decision"], "discard_screen")
             self.assertEqual(snapshot.current_best_strategy_name, "baseline-train-head")
             history = FilesystemResearchStateStore(config.state_root).load_history()
             self.assertEqual(len(history), 1)
+
+    def test_success_snapshot_distinguishes_current_best_readiness_from_latest_cycle_rollout(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+
+            def fake_prepare_campaign(**kwargs):
+                campaign_path = Path(kwargs["campaigns_root"]) / "campaign.json"
+                campaign_path.parent.mkdir(parents=True, exist_ok=True)
+                campaign_path.write_text("{}", encoding="utf-8")
+                Path(kwargs["active_pointer_path"]).write_text(
+                    str(campaign_path.resolve()),
+                    encoding="utf-8",
+                )
+                return campaign_path
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                recent_results_limit=5,
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            store = FilesystemResearchStateStore(config.state_root)
+            store.save_history(
+                [
+                    CycleSummary(
+                        cycle_id="old-1",
+                        dataset_id="campaign",
+                        completed_at=datetime(2026, 3, 17, 11, 0, tzinfo=timezone.utc),
+                        last_processed_bar=datetime(2026, 3, 17, 10, 55, tzinfo=timezone.utc),
+                        accepted=False,
+                        score=1.0,
+                        strategy_name="older",
+                        params={"decision": "discard_screen"},
+                        metrics={},
+                    ),
+                    CycleSummary(
+                        cycle_id="old-2",
+                        dataset_id="campaign",
+                        completed_at=datetime(2026, 3, 17, 11, 10, tzinfo=timezone.utc),
+                        last_processed_bar=datetime(2026, 3, 17, 11, 5, tzinfo=timezone.utc),
+                        accepted=False,
+                        score=1.0,
+                        strategy_name="older",
+                        params={"decision": "discard_full"},
+                        metrics={},
+                    ),
+                ]
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=store,
+                llm_runner=lambda **_kwargs: [
+                    make_fake_decision(
+                        decision="discard_screen",
+                        ready_for_paper=True,
+                        baseline_ready_for_paper=True,
+                        score=4.0,
+                    )
+                ],
+                campaign_preparer=fake_prepare_campaign,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+
+            worker.run_cycle()
+
+            snapshot = store.load_snapshot()
+            self.assertIsNotNone(snapshot)
+            assert snapshot is not None
+            self.assertTrue(snapshot.current_best_ready_for_paper)
+            self.assertFalse(snapshot.latest_cycle_rollout_ready)
+            self.assertFalse(snapshot.research_rollout_ready)
+            self.assertIn(
+                "evaluation_acceptance_rate is still below the rollout gate",
+                " ".join(snapshot.research_blockers),
+            )
 
     def test_acceptance_rate_ignores_validation_errors_but_tracks_generation_validity(self) -> None:
         history = [
