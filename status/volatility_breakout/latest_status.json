@@ -31,7 +31,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-20T22:16:24.436529+00:00",
+  "latest_cycle_completed_at": "2026-03-20T22:17:24.405051+00:00",
   "last_processed_bar": "2026-03-20T22:15:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
@@ -43,7 +43,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-40f4126b",
+      "mutation_label": "llm-f0d2a53e",
       "baseline_score": -0.15539220308337906,
       "candidate_score": -10.205621288900069,
       "kept_commit": null,
@@ -156,7 +156,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-40f4126b",
+    "mutation_label": "llm-f0d2a53e",
     "baseline_score": -0.15539220308337906,
     "candidate_score": -10.205621288900069,
     "kept_commit": null,
@@ -170,7 +170,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v26-accept-v5",
+    "strategy_name": "vol-breakout-v26-accept-v4b",
     "research_score": -10.205621288900069,
     "ready_for_paper": false,
     "average_metrics": {
@@ -182,19 +182,19 @@
       "nonzero_turnover_steps": 2
     },
     "train_config": {
-      "gross_target": 0.12,
+      "gross_target": 0.11,
       "channel_bars": 26,
       "atr_lookback_bars": 14,
-      "atr_multiplier": 1.9,
+      "atr_multiplier": 2.0,
       "breakout_buffer": 0.022,
       "top_k": 2,
       "min_breakout_score": 0.024,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.06,
+      "fallback_scale": 0.035,
       "crowding_min_scale": 0.22,
       "min_atr_fraction": 0.0012,
-      "vol_dampening": 5.5
+      "vol_dampening": 6.0
     },
     "gate_failures": [
       "total_return_below_gate",
