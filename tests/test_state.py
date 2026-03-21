@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import io
 import json
+import tempfile
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError
 
-from autoresearch_trade_bot.state import GitHubStatusPublisher
+from autoresearch_trade_bot.state import FilesystemResearchStateStore, GitHubStatusPublisher
 
 
 class GitHubStatusPublisherTests(unittest.TestCase):
@@ -76,6 +77,25 @@ class GitHubStatusPublisherTests(unittest.TestCase):
                             {"phase": "active"},
                             message="Publish status",
                         )
+
+
+class FilesystemResearchStateStoreTests(unittest.TestCase):
+    def test_candidate_registry_round_trips(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            store = FilesystemResearchStateStore(tempdir)
+            registry = {
+                "candidate-1": {
+                    "strategy_name": "stable-rollout",
+                    "research_score": 5.0,
+                    "latest_validation_summary": {
+                        "validation_pass_rate": 0.9,
+                        "validated_for_rollout": True,
+                    },
+                }
+            }
+            store.save_candidate_registry(registry)
+
+            self.assertEqual(store.load_candidate_registry(), registry)
 
 
 if __name__ == "__main__":

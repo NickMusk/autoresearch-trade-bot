@@ -11,7 +11,9 @@ from pathlib import Path
 from typing import Callable, Sequence
 
 from .autoresearch import (
+    AutoresearchRunReport,
     diff_train_configs,
+    evaluate_train_file,
     ensure_git_identity,
     prepare_campaign,
     resolve_campaign_path,
@@ -21,6 +23,17 @@ from .config import DataConfig, LLMWorkerConfig, ResearchTargetGate
 from .datasets import timeframe_to_timedelta
 from .family_wave import ensure_family_branch_seeded
 from .mutations import load_recent_results, run_llm_mutation_campaign
+from .rollout import (
+    build_research_champion_summary,
+    build_rollout_champion_summary,
+    build_rollout_shortlist_summary,
+    candidate_key,
+    paper_gate_failures,
+    record_candidate_validation,
+    select_rollout_champion,
+    shortlist_candidate_ids,
+    upsert_candidate_record,
+)
 from .state import (
     CycleSummary,
     FilesystemResearchStateStore,
@@ -42,8 +55,15 @@ class LLMCycleResult:
     decisions: list[dict[str, object]]
     recent_acceptance_rate: float
     generation_validity_rate: float
+    mutation_win_rate: float
     latest_cycle_rollout_ready: bool
     current_best_ready_for_paper: bool
+    current_best_validation_pass_rate: float
+    current_best_validated_for_rollout: bool
+    current_best_validation_summary: dict[str, object]
+    research_champion_summary: dict[str, object]
+    rollout_champion_summary: dict[str, object]
+    rollout_candidate_shortlist: list[dict[str, object]]
     research_rollout_ready: bool
     baseline_report: dict[str, object]
     latest_report: dict[str, object]
@@ -59,6 +79,7 @@ class LLMAutoresearchWorker:
         sleep_fn: Callable[[float], None] | None = None,
         llm_runner: Callable[..., list] = run_llm_mutation_campaign,
         campaign_preparer: Callable[..., Path] = prepare_campaign,
+        current_best_validator: Callable[..., AutoresearchRunReport] = evaluate_train_file,
     ) -> None:
         self.config = config
         self.state_store = state_store
@@ -67,6 +88,7 @@ class LLMAutoresearchWorker:
         self.sleep_fn = sleep_fn or time.sleep
         self.llm_runner = llm_runner
         self.campaign_preparer = campaign_preparer
+        self.current_best_validator = current_best_validator
 
     def run_forever(self) -> None:
         cycle_attempts = 0
@@ -84,6 +106,8 @@ class LLMAutoresearchWorker:
                 failed_checkpoint = LLMWorkerCheckpoint(
                     last_cycle_completed_at=checkpoint.last_cycle_completed_at,
                     last_campaign_refreshed_at=checkpoint.last_campaign_refreshed_at,
+                    last_validation_completed_at=checkpoint.last_validation_completed_at,
+                    last_validation_campaign_refreshed_at=checkpoint.last_validation_campaign_refreshed_at,
                     consecutive_failures=checkpoint.consecutive_failures + 1,
                 )
                 self.state_store.save_llm_checkpoint(failed_checkpoint)
@@ -111,6 +135,10 @@ class LLMAutoresearchWorker:
             latest_closed_bar=latest_closed_bar,
             checkpoint=checkpoint,
         )
+        validation_campaign_path, refreshed_validation_campaign = self._ensure_validation_campaign(
+            latest_closed_bar=latest_closed_bar,
+            checkpoint=checkpoint,
+        )
         decisions = self.llm_runner(
             campaign_path=campaign_path,
             repo_root=self.config.repo_root,
@@ -126,15 +154,28 @@ class LLMAutoresearchWorker:
         latest_decision = decisions[-1]
         cycle_result = self._record_cycle(
             campaign_path=campaign_path,
+            validation_campaign_path=validation_campaign_path,
             latest_closed_bar=latest_closed_bar,
             cycle_now=cycle_now,
             refreshed_campaign=refreshed_campaign,
+            refreshed_validation_campaign=refreshed_validation_campaign,
+            checkpoint=checkpoint,
             latest_decision=latest_decision,
         )
         updated_checkpoint = LLMWorkerCheckpoint(
             last_cycle_completed_at=cycle_now,
             last_campaign_refreshed_at=(
                 latest_closed_bar if refreshed_campaign else checkpoint.last_campaign_refreshed_at
+            ),
+            last_validation_completed_at=(
+                latest_closed_bar
+                if cycle_result.current_best_validation_summary
+                else checkpoint.last_validation_completed_at
+            ),
+            last_validation_campaign_refreshed_at=(
+                latest_closed_bar
+                if refreshed_validation_campaign
+                else checkpoint.last_validation_campaign_refreshed_at
             ),
             consecutive_failures=0,
         )
@@ -209,6 +250,49 @@ class LLMAutoresearchWorker:
         )
         return campaign_path, True
 
+    def _ensure_validation_campaign(
+        self,
+        *,
+        latest_closed_bar: datetime,
+        checkpoint: LLMWorkerCheckpoint,
+    ) -> tuple[Path, bool]:
+        active_pointer = Path(self.config.validation_active_campaign_path)
+        refresh_due = (
+            checkpoint.last_validation_campaign_refreshed_at is None
+            or (latest_closed_bar - checkpoint.last_validation_campaign_refreshed_at).total_seconds()
+            >= self.config.validation_refresh_interval_seconds
+            or not active_pointer.exists()
+        )
+        if not refresh_due:
+            resolved_path = resolve_campaign_path(pointer_path=active_pointer)
+            if not resolved_path.exists():
+                refresh_due = True
+        if not refresh_due:
+            return (resolved_path, False)
+
+        validation_anchor_end = latest_closed_bar - timedelta(
+            days=self.config.history_window_days * max(self.config.campaign_window_count, 1)
+        )
+        campaign_name = (
+            f"render-{self.config.data_config.exchange}-{self.config.data_config.market}-"
+            f"{self.config.data_config.timeframe}-holdout-{validation_anchor_end.strftime('%Y%m%dT%H%M%SZ')}"
+        )
+        campaign_path = self.campaign_preparer(
+            campaign_name=campaign_name,
+            exchange=self.config.data_config.exchange,
+            market=self.config.data_config.market,
+            timeframe=self.config.data_config.timeframe,
+            symbols=self.config.symbols,
+            anchor_end=validation_anchor_end,
+            window_days=self.config.history_window_days,
+            window_count=self.config.validation_window_count,
+            storage_root=self.config.data_config.storage_root,
+            campaigns_root=self.config.validation_campaigns_root,
+            active_pointer_path=self.config.validation_active_campaign_path,
+            target_gate=self.config.target_gate,
+        )
+        return campaign_path, True
+
     def _ensure_repo_ready(self) -> None:
         repo_root = Path(self.config.repo_root)
         repo_root.parent.mkdir(parents=True, exist_ok=True)
@@ -255,9 +339,12 @@ class LLMAutoresearchWorker:
         self,
         *,
         campaign_path: Path,
+        validation_campaign_path: Path,
         latest_closed_bar: datetime,
         cycle_now: datetime,
         refreshed_campaign: bool,
+        refreshed_validation_campaign: bool,
+        checkpoint: LLMWorkerCheckpoint,
         latest_decision,
     ) -> LLMCycleResult:
         recent_results = self._load_recent_results(limit=50)
@@ -285,19 +372,61 @@ class LLMAutoresearchWorker:
         self.state_store.save_history(recent_history)
         recent_acceptance_rate = self._evaluation_acceptance_rate(recent_history)
         generation_validity_rate = self._generation_validity_rate(recent_history)
+        mutation_win_rate = recent_acceptance_rate
 
         report = latest_decision.report
         baseline_report = latest_decision.baseline_report
+        current_best_report = report if latest_decision.decision == "keep" else baseline_report
+        candidate_registry = self.state_store.load_candidate_registry()
+        candidate_registry, current_best_candidate_id = upsert_candidate_record(
+            candidate_registry,
+            current_best_report,
+            observed_at=cycle_now,
+            mutation_label=str(latest_decision.mutation_label),
+            source_decision=str(latest_decision.decision),
+        )
+        shortlist_ids = shortlist_candidate_ids(
+            candidate_registry,
+            limit=self.config.rollout_candidate_shortlist_size,
+        )
+        force_refresh_ids = {current_best_candidate_id} if latest_decision.decision == "keep" else set()
+        for candidate_id in shortlist_ids:
+            entry = candidate_registry.get(candidate_id)
+            if entry is None:
+                continue
+            validation_summary = self._candidate_validation_summary(
+                validation_campaign_path=validation_campaign_path,
+                candidate=entry,
+                latest_closed_bar=latest_closed_bar,
+                refreshed_validation_campaign=refreshed_validation_campaign,
+                checkpoint=checkpoint,
+                force_refresh=candidate_id in force_refresh_ids,
+            )
+            candidate_registry = record_candidate_validation(
+                candidate_registry,
+                candidate_id=candidate_id,
+                validation_summary=validation_summary,
+            )
+        self.state_store.save_candidate_registry(candidate_registry)
+        current_best_entry = candidate_registry.get(current_best_candidate_id, {})
+        validation_summary = dict(current_best_entry.get("latest_validation_summary", {}))
+        rollout_champion = select_rollout_champion(candidate_registry)
+        research_champion_summary = build_research_champion_summary(
+            current_best_report,
+            validation_summary=validation_summary,
+        )
+        rollout_champion_summary = build_rollout_champion_summary(rollout_champion)
+        rollout_candidate_shortlist = build_rollout_shortlist_summary(
+            candidate_registry,
+            candidate_ids=shortlist_ids,
+        )
+        current_best_ready_for_paper = bool(research_champion_summary.get("paper_gate_ready", False))
+        current_best_validation_pass_rate = float(validation_summary.get("validation_pass_rate", 0.0))
+        current_best_validated_for_rollout = bool(validation_summary.get("validated_for_rollout", False))
         latest_cycle_rollout_ready = (
-            latest_decision.decision == "keep"
-            and report.ready_for_paper
-            and recent_acceptance_rate >= self.config.target_gate.min_acceptance_rate
+            latest_decision.decision == "keep" and current_best_validated_for_rollout
         )
-        current_best_ready_for_paper = bool(baseline_report.ready_for_paper)
-        research_rollout_ready = (
-            current_best_ready_for_paper
-            and recent_acceptance_rate >= self.config.target_gate.min_acceptance_rate
-        )
+        research_rollout_ready = bool(rollout_champion_summary)
         leaderboard = self._build_leaderboard(recent_results)
         self.state_store.save_leaderboard(
             [LeaderboardEntry.from_dict(item) for item in leaderboard]
@@ -325,8 +454,15 @@ class LLMAutoresearchWorker:
             ],
             recent_acceptance_rate=recent_acceptance_rate,
             generation_validity_rate=generation_validity_rate,
+            mutation_win_rate=mutation_win_rate,
             latest_cycle_rollout_ready=latest_cycle_rollout_ready,
             current_best_ready_for_paper=current_best_ready_for_paper,
+            current_best_validation_pass_rate=current_best_validation_pass_rate,
+            current_best_validated_for_rollout=current_best_validated_for_rollout,
+            current_best_validation_summary=validation_summary,
+            research_champion_summary=research_champion_summary,
+            rollout_champion_summary=rollout_champion_summary,
+            rollout_candidate_shortlist=rollout_candidate_shortlist,
             research_rollout_ready=research_rollout_ready,
             baseline_report={
                 "strategy_name": baseline_report.strategy_name,
@@ -377,36 +513,39 @@ class LLMAutoresearchWorker:
                 "config_diff": config_diff,
             }
         blockers = []
-        if latest_decision["decision"] == "discard_screen":
-            blockers.append("Latest LLM candidate underperformed the baseline on the screen window.")
-        elif latest_decision["decision"] == "discard_full":
-            blockers.append("Latest LLM candidate passed screen but underperformed on the full campaign.")
-        elif latest_decision["decision"] == "discard_error":
-            blockers.append(f"Latest LLM candidate failed validation or execution: {report['failure_reason']}.")
-        elif latest_decision["decision"] == "skip_duplicate":
-            blockers.append("Latest LLM candidate was skipped because it duplicated an existing train.py state.")
-        if "no_trades_executed" in latest_decision["gate_failures"]:
-            blockers.append("Latest LLM candidate produced no trades on the evaluation window.")
-        if latest_decision["gate_failures"]:
-            blockers.extend(
-                f"Latest kept candidate still fails gate: {failure}."
-                for failure in latest_decision["gate_failures"]
-            )
-        baseline_gate_failures = list(baseline_report.get("gate_failures", []))
-        if baseline_gate_failures:
-            blockers.extend(
-                f"Current best strategy still fails gate: {failure}."
-                for failure in baseline_gate_failures
-            )
-        if (
-            cycle_result.current_best_ready_for_paper
-            and not cycle_result.research_rollout_ready
-        ):
-            blockers.append(
-                "Current best strategy passes paper metrics, but evaluation_acceptance_rate is still below the rollout gate."
-            )
+        if not cycle_result.research_rollout_ready:
+            if latest_decision["decision"] == "discard_screen":
+                blockers.append("Latest LLM candidate underperformed the baseline on the screen window.")
+            elif latest_decision["decision"] == "discard_full":
+                blockers.append("Latest LLM candidate passed screen but underperformed on the full campaign.")
+            elif latest_decision["decision"] == "discard_error":
+                blockers.append(f"Latest LLM candidate failed validation or execution: {report['failure_reason']}.")
+            elif latest_decision["decision"] == "skip_duplicate":
+                blockers.append("Latest LLM candidate was skipped because it duplicated an existing train.py state.")
+            if "no_trades_executed" in latest_decision["gate_failures"]:
+                blockers.append("Latest LLM candidate produced no trades on the evaluation window.")
+            if latest_decision["gate_failures"]:
+                blockers.extend(
+                    f"Latest kept candidate still fails gate: {failure}."
+                    for failure in latest_decision["gate_failures"]
+                )
+            baseline_gate_failures = paper_gate_failures(list(baseline_report.get("gate_failures", [])))
+            if baseline_gate_failures:
+                blockers.extend(
+                    f"Research champion still fails paper gate: {failure}."
+                    for failure in baseline_gate_failures
+                )
+            if (
+                cycle_result.current_best_ready_for_paper
+                and not cycle_result.current_best_validated_for_rollout
+            ):
+                blockers.append(
+                    "Research champion passes paper metrics, but its holdout validation pass rate is still below the rollout gate."
+                )
+            if not cycle_result.rollout_champion_summary:
+                blockers.append("No rollout champion has cleared holdout validation yet.")
         if not blockers and not cycle_result.research_rollout_ready:
-            blockers.append("Current best strategy is not ready for rollout yet.")
+            blockers.append("No rollout champion is ready yet.")
 
         return ResearchStatusSnapshot(
             mission="Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
@@ -428,8 +567,10 @@ class LLMAutoresearchWorker:
                 "bars_processed": int(baseline_metrics.get("bars_processed", 0)),
                 "score": round(float(baseline_report["research_score"]), 4),
             },
-            accepted_for_paper=cycle_result.current_best_ready_for_paper,
+            accepted_for_paper=cycle_result.research_rollout_ready,
             current_best_ready_for_paper=cycle_result.current_best_ready_for_paper,
+            current_best_validation_pass_rate=cycle_result.current_best_validation_pass_rate,
+            current_best_validated_for_rollout=cycle_result.current_best_validated_for_rollout,
             latest_cycle_rollout_ready=cycle_result.latest_cycle_rollout_ready,
             next_milestones=[
                 "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
@@ -443,7 +584,12 @@ class LLMAutoresearchWorker:
             recent_acceptance_rate=cycle_result.recent_acceptance_rate,
             evaluation_acceptance_rate=cycle_result.recent_acceptance_rate,
             generation_validity_rate=cycle_result.generation_validity_rate,
+            mutation_win_rate=cycle_result.mutation_win_rate,
             consecutive_failures=checkpoint.consecutive_failures,
+            current_best_validation_summary=cycle_result.current_best_validation_summary,
+            research_champion_summary=cycle_result.research_champion_summary,
+            rollout_champion_summary=cycle_result.rollout_champion_summary,
+            rollout_candidate_shortlist=cycle_result.rollout_candidate_shortlist,
             multi_window_summary={
                 "campaign_path": cycle_result.campaign_path,
                 "campaign_refreshed_this_cycle": cycle_result.refreshed_campaign,
@@ -453,7 +599,11 @@ class LLMAutoresearchWorker:
                 "model_name": report["model_name"],
                 "provider_name": report["provider_name"],
                 "current_best_ready_for_paper": cycle_result.current_best_ready_for_paper,
+                "current_best_validation_pass_rate": cycle_result.current_best_validation_pass_rate,
+                "current_best_validated_for_rollout": cycle_result.current_best_validated_for_rollout,
                 "latest_cycle_rollout_ready": cycle_result.latest_cycle_rollout_ready,
+                "research_champion_strategy_name": cycle_result.research_champion_summary.get("strategy_name", ""),
+                "rollout_champion_strategy_name": cycle_result.rollout_champion_summary.get("strategy_name", ""),
             },
             latest_decision=dict(latest_decision),
             latest_candidate_summary={
@@ -530,6 +680,9 @@ class LLMAutoresearchWorker:
         generation_validity_rate = (
             previous_snapshot.generation_validity_rate if previous_snapshot is not None else 0.0
         )
+        mutation_win_rate = (
+            previous_snapshot.mutation_win_rate if previous_snapshot is not None else evaluation_acceptance_rate
+        )
         multi_window_summary = (
             dict(previous_snapshot.multi_window_summary)
             if previous_snapshot is not None
@@ -559,10 +712,28 @@ class LLMAutoresearchWorker:
             if previous_snapshot is not None
             else False
         )
+        current_best_validation_pass_rate = (
+            previous_snapshot.current_best_validation_pass_rate
+            if previous_snapshot is not None
+            else 0.0
+        )
+        current_best_validated_for_rollout = (
+            previous_snapshot.current_best_validated_for_rollout
+            if previous_snapshot is not None
+            else False
+        )
+        current_best_validation_summary = (
+            dict(previous_snapshot.current_best_validation_summary)
+            if previous_snapshot is not None
+            else {}
+        )
+        preserved_rollout_ready = (
+            previous_snapshot.research_rollout_ready if previous_snapshot is not None else False
+        )
         return ResearchStatusSnapshot(
             mission="Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
             phase="LLM autoresearch worker degraded",
-            research_rollout_ready=False,
+            research_rollout_ready=preserved_rollout_ready,
             research_blockers=[failure_message],
             baseline_strategy=baseline_strategy,
             promotion_gate={
@@ -572,8 +743,14 @@ class LLMAutoresearchWorker:
                 "min_acceptance_rate": self.config.target_gate.min_acceptance_rate,
             },
             baseline_metrics=baseline_metrics,
-            accepted_for_paper=current_best_ready_for_paper,
+            accepted_for_paper=(
+                bool(previous_snapshot.accepted_for_paper)
+                if previous_snapshot is not None
+                else current_best_validated_for_rollout
+            ),
             current_best_ready_for_paper=current_best_ready_for_paper,
+            current_best_validation_pass_rate=current_best_validation_pass_rate,
+            current_best_validated_for_rollout=current_best_validated_for_rollout,
             latest_cycle_rollout_ready=False,
             next_milestones=[
                 "Recover the worker from the latest API, repo, or campaign failure.",
@@ -585,7 +762,24 @@ class LLMAutoresearchWorker:
             recent_acceptance_rate=recent_acceptance_rate,
             evaluation_acceptance_rate=evaluation_acceptance_rate,
             generation_validity_rate=generation_validity_rate,
+            mutation_win_rate=mutation_win_rate,
             consecutive_failures=checkpoint.consecutive_failures,
+            current_best_validation_summary=current_best_validation_summary,
+            research_champion_summary=(
+                dict(previous_snapshot.research_champion_summary)
+                if previous_snapshot is not None
+                else {}
+            ),
+            rollout_champion_summary=(
+                dict(previous_snapshot.rollout_champion_summary)
+                if previous_snapshot is not None
+                else {}
+            ),
+            rollout_candidate_shortlist=(
+                list(previous_snapshot.rollout_candidate_shortlist)
+                if previous_snapshot is not None
+                else []
+            ),
             multi_window_summary=multi_window_summary,
             leaderboard=leaderboard,
             latest_decision=latest_decision,
@@ -688,6 +882,93 @@ class LLMAutoresearchWorker:
         )
         return valid / len(history)
 
+    def _candidate_train_path(self, *, candidate: dict[str, object]) -> Path:
+        train_sha1 = str(candidate.get("train_sha1", ""))
+        git_commit = str(candidate.get("git_commit", ""))
+        materialized_root = Path(self.config.artifact_root) / "validation" / "candidate_sources"
+        materialized_root.mkdir(parents=True, exist_ok=True)
+        candidate_file = materialized_root / f"{train_sha1 or git_commit or 'candidate'}.py"
+        if candidate_file.exists():
+            return candidate_file
+        worktree_root = Path(self.config.worktrees_root) / slugify(self.config.branch_name)
+        current_train_path = worktree_root / "train.py"
+        if not (worktree_root / ".git").exists():
+            return current_train_path
+        if git_commit:
+            completed = subprocess.run(
+                ["git", "show", f"{git_commit}:train.py"],
+                cwd=worktree_root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            candidate_file.write_text(completed.stdout, encoding="utf-8")
+            return candidate_file
+        return current_train_path
+
+    def _candidate_validation_summary(
+        self,
+        *,
+        validation_campaign_path: str | Path,
+        candidate: dict[str, object],
+        latest_closed_bar: datetime,
+        refreshed_validation_campaign: bool,
+        checkpoint: LLMWorkerCheckpoint,
+        force_refresh: bool,
+    ) -> dict[str, object]:
+        candidate_train_sha1 = str(candidate.get("train_sha1", ""))
+        candidate_git_commit = str(candidate.get("git_commit", ""))
+        cache_key = f"{candidate_key(train_sha1=candidate_train_sha1, git_commit=candidate_git_commit, strategy_name=str(candidate.get('strategy_name', '')))}:{Path(validation_campaign_path).stem}"
+        cache = self.state_store.load_validation_cache()
+        refresh_due = (
+            force_refresh
+            or refreshed_validation_campaign
+            or checkpoint.last_validation_completed_at is None
+            or (latest_closed_bar - checkpoint.last_validation_completed_at).total_seconds()
+            >= self.config.validation_refresh_interval_seconds
+            or cache_key not in cache
+        )
+        if not refresh_due:
+            return dict(cache[cache_key])
+
+        validation_report = self.current_best_validator(
+            campaign_path=validation_campaign_path,
+            train_path=self._candidate_train_path(candidate=candidate),
+            artifact_root=Path(self.config.artifact_root) / "validation",
+            stage="validation_holdout",
+            mutation_label="current-best-validation",
+            provider_name="validation",
+            model_name="",
+            prompt_id="",
+            parent_commit=candidate_git_commit,
+            candidate_sha1=candidate_train_sha1,
+        )
+        validation_paper_gate_failures = paper_gate_failures(list(validation_report.gate_failures))
+        validation_pass_rate = float(validation_report.acceptance_rate)
+        summary = {
+            "validated_at": latest_closed_bar.isoformat(),
+            "campaign_id": validation_report.campaign_id,
+            "campaign_name": validation_report.campaign_name,
+            "strategy_name": validation_report.strategy_name,
+            "git_commit": validation_report.git_commit,
+            "train_sha1": validation_report.train_sha1,
+            "validation_pass_rate": validation_pass_rate,
+            "paper_ready": not validation_paper_gate_failures,
+            "validated_for_rollout": (
+                not validation_paper_gate_failures
+                and validation_pass_rate >= self.config.target_gate.min_acceptance_rate
+            ),
+            "windows_passed": int(validation_report.windows_passed),
+            "total_windows": int(validation_report.total_windows),
+            "gate_failures": list(validation_report.gate_failures),
+            "paper_gate_failures": validation_paper_gate_failures,
+            "average_metrics": dict(validation_report.average_metrics),
+            "artifact_path": validation_report.artifact_path,
+        }
+        cache[cache_key] = summary
+        self.state_store.save_validation_cache(cache)
+        return summary
+
     @staticmethod
     def _normalize_failure_message(exc: Exception) -> str:
         raw = str(exc).strip()
@@ -768,6 +1049,21 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
         campaign_window_count=int(os.environ.get("AUTORESEARCH_LLM_CAMPAIGN_WINDOW_COUNT", "1")),
         campaigns_root=campaigns_root,
         active_campaign_path=active_campaign_path,
+        validation_window_count=int(os.environ.get("AUTORESEARCH_LLM_VALIDATION_WINDOW_COUNT", "3")),
+        validation_refresh_interval_seconds=int(
+            os.environ.get("AUTORESEARCH_LLM_VALIDATION_REFRESH_INTERVAL_SECONDS", "14400")
+        ),
+        validation_campaigns_root=os.environ.get(
+            "AUTORESEARCH_LLM_VALIDATION_CAMPAIGNS_ROOT",
+            f"{campaigns_root.rstrip('/')}/validation",
+        ),
+        validation_active_campaign_path=os.environ.get(
+            "AUTORESEARCH_LLM_VALIDATION_ACTIVE_CAMPAIGN_PATH",
+            "/var/data/autoresearch/llm/validation_active_campaign.txt",
+        ),
+        rollout_candidate_shortlist_size=int(
+            os.environ.get("AUTORESEARCH_LLM_ROLLOUT_CANDIDATE_SHORTLIST_SIZE", "5")
+        ),
         worktrees_root=worktrees_root,
         state_root=state_root,
         artifact_root=artifact_root,

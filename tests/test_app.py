@@ -19,6 +19,8 @@ class AppRenderTests(unittest.TestCase):
                     "baseline_metrics": {"score": 1.2},
                     "accepted_for_paper": False,
                     "current_best_ready_for_paper": True,
+                    "current_best_validation_pass_rate": 0.75,
+                    "current_best_validated_for_rollout": True,
                     "latest_cycle_rollout_ready": False,
                     "next_milestones": ["milestone"],
                     "loop_state": "searching",
@@ -28,11 +30,38 @@ class AppRenderTests(unittest.TestCase):
                     "recent_acceptance_rate": 0.1,
                     "evaluation_acceptance_rate": 0.1,
                     "generation_validity_rate": 0.8,
+                    "mutation_win_rate": 0.1,
                     "consecutive_failures": 0,
-                    "multi_window_summary": {},
+                    "multi_window_summary": {
+                        "current_best_validation_pass_rate": 0.75,
+                        "current_best_validated_for_rollout": True,
+                    },
                     "leaderboard": [],
                     "latest_decision": {"decision": "discard_screen", "candidate_score": 1.0, "baseline_score": 2.0},
                     "latest_candidate_summary": {},
+                    "current_best_validation_summary": {
+                        "validation_pass_rate": 0.75,
+                        "validated_for_rollout": True,
+                    },
+                    "research_champion_summary": {
+                        "strategy_name": "winner",
+                        "research_score": 4.2,
+                    },
+                    "rollout_champion_summary": {
+                        "strategy_name": "stable-winner",
+                        "research_score": 3.8,
+                        "validation_summary": {
+                            "validation_pass_rate": 0.75,
+                            "validated_for_rollout": True,
+                        },
+                    },
+                    "rollout_candidate_shortlist": [
+                        {
+                            "strategy_name": "stable-winner",
+                            "validation_pass_rate": 0.75,
+                            "validated_for_rollout": True,
+                        }
+                    ],
                     "current_best_strategy_name": "winner",
                     "latest_kept_summary": {},
                 },
@@ -46,6 +75,9 @@ class AppRenderTests(unittest.TestCase):
                             "current_best_strategy_name": "mr-v1",
                             "baseline_metrics": {"score": 3.2},
                             "current_best_ready_for_paper": False,
+                            "current_best_validated_for_rollout": False,
+                            "research_champion_summary": {"strategy_name": "mr-v1"},
+                            "rollout_champion_summary": {},
                             "latest_decision": {"decision": "keep"},
                             "latest_cycle_completed_at": "2026-03-19T09:00:00+00:00",
                             "leaderboard": [{"strategy_name": "mr-v1", "score": 3.2, "accepted": False}],
@@ -66,7 +98,12 @@ class AppRenderTests(unittest.TestCase):
         self.assertIn("Mean Reversion Leaderboard", html)
         self.assertIn("No snapshot published for this family yet.", html)
         self.assertIn("generation_validity_rate", html)
-        self.assertIn("Current Best Paper Ready", html)
+        self.assertIn("Research Champion Paper Ready", html)
+        self.assertIn("Research Champion Validated", html)
+        self.assertIn("Rollout Champion", html)
+        self.assertIn("Rollout Shortlist", html)
+        self.assertIn("current_best_validation_pass_rate", html)
+        self.assertIn("mutation_win_rate", html)
         self.assertIn("latest_cycle_rollout_ready", html)
 
 

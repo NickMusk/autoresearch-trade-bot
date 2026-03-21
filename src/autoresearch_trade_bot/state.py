@@ -134,6 +134,8 @@ class WorkerCheckpoint:
 class LLMWorkerCheckpoint:
     last_cycle_completed_at: datetime | None = None
     last_campaign_refreshed_at: datetime | None = None
+    last_validation_completed_at: datetime | None = None
+    last_validation_campaign_refreshed_at: datetime | None = None
     consecutive_failures: int = 0
 
     def to_dict(self) -> dict[str, Any]:
@@ -144,6 +146,10 @@ class LLMWorkerCheckpoint:
             payload["last_cycle_completed_at"] = self.last_cycle_completed_at.isoformat()
         if self.last_campaign_refreshed_at is not None:
             payload["last_campaign_refreshed_at"] = self.last_campaign_refreshed_at.isoformat()
+        if self.last_validation_completed_at is not None:
+            payload["last_validation_completed_at"] = self.last_validation_completed_at.isoformat()
+        if self.last_validation_campaign_refreshed_at is not None:
+            payload["last_validation_campaign_refreshed_at"] = self.last_validation_campaign_refreshed_at.isoformat()
         return payload
 
     @classmethod
@@ -157,6 +163,16 @@ class LLMWorkerCheckpoint:
             last_campaign_refreshed_at=(
                 _ensure_utc(datetime.fromisoformat(payload["last_campaign_refreshed_at"]))
                 if payload.get("last_campaign_refreshed_at")
+                else None
+            ),
+            last_validation_completed_at=(
+                _ensure_utc(datetime.fromisoformat(payload["last_validation_completed_at"]))
+                if payload.get("last_validation_completed_at")
+                else None
+            ),
+            last_validation_campaign_refreshed_at=(
+                _ensure_utc(datetime.fromisoformat(payload["last_validation_campaign_refreshed_at"]))
+                if payload.get("last_validation_campaign_refreshed_at")
                 else None
             ),
             consecutive_failures=int(payload.get("consecutive_failures", 0)),
@@ -182,8 +198,15 @@ class ResearchStatusSnapshot:
     consecutive_failures: int
     evaluation_acceptance_rate: float = 0.0
     generation_validity_rate: float = 0.0
+    mutation_win_rate: float = 0.0
     current_best_ready_for_paper: bool = False
+    current_best_validation_pass_rate: float = 0.0
+    current_best_validated_for_rollout: bool = False
     latest_cycle_rollout_ready: bool = False
+    current_best_validation_summary: dict[str, Any] = field(default_factory=dict)
+    research_champion_summary: dict[str, Any] = field(default_factory=dict)
+    rollout_champion_summary: dict[str, Any] = field(default_factory=dict)
+    rollout_candidate_shortlist: list[dict[str, Any]] = field(default_factory=list)
     multi_window_summary: dict[str, Any] = field(default_factory=dict)
     leaderboard: list[dict[str, Any]] = field(default_factory=list)
     latest_decision: dict[str, Any] | None = None
@@ -211,7 +234,14 @@ class ResearchStatusSnapshot:
             "recent_acceptance_rate": self.recent_acceptance_rate,
             "evaluation_acceptance_rate": self.evaluation_acceptance_rate,
             "generation_validity_rate": self.generation_validity_rate,
+            "mutation_win_rate": self.mutation_win_rate,
             "consecutive_failures": self.consecutive_failures,
+            "current_best_validation_pass_rate": self.current_best_validation_pass_rate,
+            "current_best_validated_for_rollout": self.current_best_validated_for_rollout,
+            "current_best_validation_summary": dict(self.current_best_validation_summary),
+            "research_champion_summary": dict(self.research_champion_summary),
+            "rollout_champion_summary": dict(self.rollout_champion_summary),
+            "rollout_candidate_shortlist": list(self.rollout_candidate_shortlist),
             "multi_window_summary": dict(self.multi_window_summary),
             "leaderboard": list(self.leaderboard),
             "latest_decision": (
@@ -247,7 +277,14 @@ class ResearchStatusSnapshot:
             recent_acceptance_rate=float(payload.get("recent_acceptance_rate", 0.0)),
             evaluation_acceptance_rate=float(payload.get("evaluation_acceptance_rate", payload.get("recent_acceptance_rate", 0.0))),
             generation_validity_rate=float(payload.get("generation_validity_rate", 0.0)),
+            mutation_win_rate=float(payload.get("mutation_win_rate", payload.get("evaluation_acceptance_rate", payload.get("recent_acceptance_rate", 0.0)))),
             consecutive_failures=int(payload.get("consecutive_failures", 0)),
+            current_best_validation_pass_rate=float(payload.get("current_best_validation_pass_rate", 0.0)),
+            current_best_validated_for_rollout=bool(payload.get("current_best_validated_for_rollout", payload.get("accepted_for_paper", False))),
+            current_best_validation_summary=dict(payload.get("current_best_validation_summary", {})),
+            research_champion_summary=dict(payload.get("research_champion_summary", {})),
+            rollout_champion_summary=dict(payload.get("rollout_champion_summary", {})),
+            rollout_candidate_shortlist=[dict(item) for item in payload.get("rollout_candidate_shortlist", [])],
             multi_window_summary=dict(payload.get("multi_window_summary", {})),
             leaderboard=[dict(item) for item in payload.get("leaderboard", [])],
             latest_decision=(
@@ -289,6 +326,14 @@ class FilesystemResearchStateStore:
     def llm_checkpoint_path(self) -> Path:
         return self.root / "llm_checkpoint.json"
 
+    @property
+    def validation_cache_path(self) -> Path:
+        return self.root / "current_best_validation_cache.json"
+
+    @property
+    def candidate_registry_path(self) -> Path:
+        return self.root / "candidate_registry.json"
+
     def save_snapshot(self, snapshot: ResearchStatusSnapshot) -> Path:
         return self._write_json(self.latest_status_path, snapshot.to_dict())
 
@@ -329,6 +374,30 @@ class FilesystemResearchStateStore:
 
     def save_llm_checkpoint(self, checkpoint: LLMWorkerCheckpoint) -> Path:
         return self._write_json(self.llm_checkpoint_path, checkpoint.to_dict())
+
+    def load_validation_cache(self) -> dict[str, dict[str, Any]]:
+        if not self.validation_cache_path.exists():
+            return {}
+        payload = json.loads(self.validation_cache_path.read_text(encoding="utf-8"))
+        return {
+            str(key): dict(value)
+            for key, value in payload.get("entries", {}).items()
+        }
+
+    def save_validation_cache(self, entries: dict[str, dict[str, Any]]) -> Path:
+        return self._write_json(self.validation_cache_path, {"entries": entries})
+
+    def load_candidate_registry(self) -> dict[str, dict[str, Any]]:
+        if not self.candidate_registry_path.exists():
+            return {}
+        payload = json.loads(self.candidate_registry_path.read_text(encoding="utf-8"))
+        return {
+            str(key): dict(value)
+            for key, value in payload.get("candidates", {}).items()
+        }
+
+    def save_candidate_registry(self, entries: dict[str, dict[str, Any]]) -> Path:
+        return self._write_json(self.candidate_registry_path, {"candidates": entries})
 
     def _write_json(self, path: Path, payload: dict[str, Any]) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)

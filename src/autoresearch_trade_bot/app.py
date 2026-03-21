@@ -91,14 +91,19 @@ def render_dashboard(payload: dict) -> str:
         for key, value in snapshot["promotion_gate"].items()
     )
 
-    current_best_ready_label = "YES" if snapshot.get("current_best_ready_for_paper", snapshot["accepted_for_paper"]) else "NO"
+    current_best_ready_label = "YES" if snapshot.get("current_best_ready_for_paper", False) else "NO"
+    current_best_validated_label = "YES" if snapshot.get("current_best_validated_for_rollout", snapshot["accepted_for_paper"]) else "NO"
     latest_cycle_ready_label = "YES" if snapshot.get("latest_cycle_rollout_ready", snapshot["research_rollout_ready"]) else "NO"
     rollout_ready_label = "READY" if snapshot["research_rollout_ready"] else "NOT READY"
     cycle_completed_label = snapshot.get("latest_cycle_completed_at") or "n/a"
     processed_bar_label = snapshot.get("last_processed_bar") or "n/a"
     loop_state_label = snapshot.get("loop_state", "idle")
-    evaluation_acceptance_rate_label = snapshot.get("evaluation_acceptance_rate", snapshot.get("recent_acceptance_rate", 0.0))
+    mutation_win_rate_label = snapshot.get("mutation_win_rate", snapshot.get("evaluation_acceptance_rate", snapshot.get("recent_acceptance_rate", 0.0)))
+    current_best_validation_pass_rate_label = snapshot.get("current_best_validation_pass_rate", 0.0)
     current_best_strategy_name = snapshot.get("current_best_strategy_name") or "n/a"
+    research_champion = snapshot.get("research_champion_summary") or {}
+    rollout_champion = snapshot.get("rollout_champion_summary") or {}
+    rollout_candidate_shortlist = snapshot.get("rollout_candidate_shortlist") or []
     latest_decision = snapshot.get("latest_decision") or {}
     latest_candidate_summary = snapshot.get("latest_candidate_summary") or {}
     latest_kept_summary = snapshot.get("latest_kept_summary") or {}
@@ -286,7 +291,9 @@ def render_dashboard(payload: dict) -> str:
       <p>{html.escape(snapshot["mission"])}</p>
       <div class="badge-row">
         <span class="badge">Phase: {html.escape(snapshot["phase"])}</span>
-        <span class="badge">Current Best Paper Ready: {current_best_ready_label}</span>
+        <span class="badge">Research Champion Paper Ready: {current_best_ready_label}</span>
+        <span class="badge">Research Champion Validated: {current_best_validated_label}</span>
+        <span class="badge">Rollout Champion: {html.escape(str(rollout_champion.get("strategy_name") or "none"))}</span>
         <span class="badge">Latest Cycle Rollout Ready: {latest_cycle_ready_label}</span>
         <span class="badge">Research Rollout: {rollout_ready_label}</span>
         <span class="badge">Loop State: {html.escape(str(loop_state_label))}</span>
@@ -295,10 +302,11 @@ def render_dashboard(payload: dict) -> str:
 
     <section class="grid">
       <article class="panel">
-        <h2>Baseline Strategy</h2>
+        <h2>Research Champion</h2>
         <p>{html.escape(snapshot["baseline_strategy"])}</p>
         <ul>
-          <li><code>current_best_strategy_name</code>: {html.escape(str(current_best_strategy_name))}</li>
+          <li><code>strategy_name</code>: {html.escape(str(research_champion.get("strategy_name") or current_best_strategy_name))}</li>
+          <li><code>research_score</code>: {html.escape(str(research_champion.get("research_score", "n/a")))}</li>
         </ul>
       </article>
       <article class="panel">
@@ -335,9 +343,11 @@ def render_dashboard(payload: dict) -> str:
         <ul>
           <li><code>latest_cycle_completed_at</code>: {html.escape(str(cycle_completed_label))}</li>
           <li><code>last_processed_bar</code>: {html.escape(str(processed_bar_label))}</li>
-          <li><code>evaluation_acceptance_rate</code>: {html.escape(str(evaluation_acceptance_rate_label))}</li>
+          <li><code>mutation_win_rate</code>: {html.escape(str(mutation_win_rate_label))}</li>
+          <li><code>current_best_validation_pass_rate</code>: {html.escape(str(current_best_validation_pass_rate_label))}</li>
           <li><code>generation_validity_rate</code>: {html.escape(str(snapshot.get("generation_validity_rate", 0.0)))}</li>
           <li><code>current_best_ready_for_paper</code>: {html.escape(str(snapshot.get("current_best_ready_for_paper", snapshot.get("accepted_for_paper", False))))}</li>
+          <li><code>current_best_validated_for_rollout</code>: {html.escape(str(snapshot.get("current_best_validated_for_rollout", snapshot.get("accepted_for_paper", False))))}</li>
           <li><code>latest_cycle_rollout_ready</code>: {html.escape(str(snapshot.get("latest_cycle_rollout_ready", snapshot.get("research_rollout_ready", False))))}</li>
           <li><code>consecutive_failures</code>: {html.escape(str(snapshot.get("consecutive_failures", 0)))}</li>
           <li><code>latest_decision</code>: {html.escape(str(latest_decision.get("decision", "n/a")))}</li>
@@ -352,6 +362,39 @@ def render_dashboard(payload: dict) -> str:
       <article class="panel">
         <h2>Latest Candidate</h2>
         <ul>{latest_candidate_items or "<li>No latest candidate summary yet.</li>"}</ul>
+      </article>
+      <article class="panel">
+        <h2>Research Champion Validation</h2>
+        <ul>{''.join(
+            f"<li><code>{html.escape(str(key))}</code>: {html.escape(str(value))}</li>"
+            for key, value in (snapshot.get("current_best_validation_summary") or {}).items()
+            if key not in {"average_metrics", "artifact_path"} and value not in ({}, [], "", None)
+        ) or "<li>No current best validation summary yet.</li>"}</ul>
+      </article>
+      <article class="panel">
+        <h2>Rollout Champion</h2>
+        <ul>
+          <li><code>strategy_name</code>: {html.escape(str(rollout_champion.get("strategy_name") or "n/a"))}</li>
+          <li><code>research_score</code>: {html.escape(str(rollout_champion.get("research_score", "n/a")))}</li>
+          <li><code>validation_pass_rate</code>: {html.escape(str((rollout_champion.get("validation_summary") or {}).get("validation_pass_rate", "n/a")))}</li>
+          <li><code>validated_for_rollout</code>: {html.escape(str((rollout_champion.get("validation_summary") or {}).get("validated_for_rollout", False)))}</li>
+        </ul>
+      </article>
+      <article class="panel">
+        <h2>Rollout Shortlist</h2>
+        <ul>{
+            "".join(
+                "<li><strong>"
+                + html.escape(str(entry.get("strategy_name")))
+                + "</strong> (validation "
+                + html.escape(str(entry.get("validation_pass_rate", "n/a")))
+                + ", rollout "
+                + html.escape("yes" if entry.get("validated_for_rollout") else "no")
+                + ")</li>"
+                for entry in rollout_candidate_shortlist
+            )
+            or "<li>No rollout shortlist candidates yet.</li>"
+        }</ul>
       </article>
       <article class="panel">
         <h2>Latest Kept Change</h2>
@@ -410,9 +453,11 @@ def _render_family_tab_panel(item: dict, *, is_active: bool) -> str:
         <div class="family-summary">
           <div class="family-chip"><span class="label">Phase</span><strong>{html.escape(str(snapshot.get("phase", "n/a")))}</strong></div>
           <div class="family-chip"><span class="label">Loop State</span><strong>{html.escape(str(snapshot.get("loop_state", "n/a")))}</strong></div>
-          <div class="family-chip"><span class="label">Best Strategy</span><strong>{html.escape(str(snapshot.get("current_best_strategy_name") or "n/a"))}</strong></div>
+          <div class="family-chip"><span class="label">Research Champion</span><strong>{html.escape(str((snapshot.get("research_champion_summary") or {}).get("strategy_name") or snapshot.get("current_best_strategy_name") or "n/a"))}</strong></div>
+          <div class="family-chip"><span class="label">Rollout Champion</span><strong>{html.escape(str((snapshot.get("rollout_champion_summary") or {}).get("strategy_name") or "n/a"))}</strong></div>
           <div class="family-chip"><span class="label">Baseline Score</span><strong>{html.escape(str(snapshot.get("baseline_metrics", {}).get("score", "n/a")))}</strong></div>
-          <div class="family-chip"><span class="label">Current Best Paper Ready</span><strong>{html.escape(str(snapshot.get("current_best_ready_for_paper", snapshot.get("accepted_for_paper", False))))}</strong></div>
+          <div class="family-chip"><span class="label">Research Champion Paper Ready</span><strong>{html.escape(str(snapshot.get("current_best_ready_for_paper", snapshot.get("accepted_for_paper", False))))}</strong></div>
+          <div class="family-chip"><span class="label">Research Champion Validated</span><strong>{html.escape(str(snapshot.get("current_best_validated_for_rollout", snapshot.get("accepted_for_paper", False))))}</strong></div>
           <div class="family-chip"><span class="label">Latest Decision</span><strong>{html.escape(str(latest_decision.get("decision", "n/a")))}</strong></div>
           <div class="family-chip"><span class="label">Cycle Completed</span><strong>{html.escape(str(snapshot.get("latest_cycle_completed_at") or "n/a"))}</strong></div>
         </div>

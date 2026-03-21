@@ -27,6 +27,12 @@ def make_fake_decision(
     baseline_gate_failures: list[str] | None = None,
     baseline_train_config: dict | None = None,
     candidate_train_config: dict | None = None,
+    baseline_strategy_name: str = "baseline-train-head",
+    candidate_strategy_name: str = "configurable-momentum",
+    baseline_git_commit: str = "baseline123",
+    candidate_git_commit: str = "candidate123",
+    baseline_train_sha1: str = "baseline-train123",
+    candidate_train_sha1: str = "candidate-train123",
 ):
     resolved_candidate_metrics = candidate_metrics or {
         "total_return": -0.1,
@@ -54,7 +60,9 @@ def make_fake_decision(
             else list(baseline_gate_failures or ["sharpe_below_gate"])
         ),
         failure_reason="",
-        strategy_name="baseline-train-head",
+        strategy_name=baseline_strategy_name,
+        git_commit=baseline_git_commit,
+        train_sha1=baseline_train_sha1,
         train_config=baseline_train_config or {
             "lookback_bars": 24,
             "top_k": 1,
@@ -74,7 +82,9 @@ def make_fake_decision(
             else list(candidate_gate_failures or ["acceptance_rate_below_gate"])
         ),
         failure_reason=failure_reason,
-        strategy_name="configurable-momentum",
+        strategy_name=candidate_strategy_name,
+        git_commit=candidate_git_commit,
+        train_sha1=candidate_train_sha1,
         train_config=candidate_train_config or {
             "lookback_bars": 12,
             "top_k": 1,
@@ -92,6 +102,44 @@ def make_fake_decision(
         baseline_report=baseline_report,
         report=report,
     )
+
+
+def make_fake_validation_report(
+    *,
+    validation_pass_rate: float = 0.75,
+    paper_ready: bool = True,
+    gate_failures: list[str] | None = None,
+    average_metrics: dict | None = None,
+):
+    resolved_gate_failures = (
+        list(gate_failures or ["sharpe_below_gate"])
+        if not paper_ready
+        else list(gate_failures or [])
+    )
+    return SimpleNamespace(
+        campaign_id="validation-campaign",
+        campaign_name="validation-campaign",
+        strategy_name="validated-current-best",
+        git_commit="baseline123",
+        train_sha1="train123",
+        acceptance_rate=validation_pass_rate,
+        windows_passed=3,
+        total_windows=3,
+        gate_failures=resolved_gate_failures,
+        average_metrics=average_metrics
+        or {
+            "total_return": 0.08,
+            "sharpe": 1.5,
+            "max_drawdown": 0.09,
+            "average_turnover": 0.03,
+            "bars_processed": 100,
+        },
+        artifact_path="validation/report.json",
+    )
+
+
+def make_fake_current_best_validator(**report_kwargs):
+    return lambda **_kwargs: make_fake_validation_report(**report_kwargs)
 
 
 class LLMAutoresearchWorkerTests(unittest.TestCase):
@@ -130,6 +178,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 state_store=FilesystemResearchStateStore(config.state_root),
                 llm_runner=lambda **_kwargs: [make_fake_decision()],
                 campaign_preparer=lambda **kwargs: Path(kwargs["campaigns_root"]) / "campaign.json",
+                current_best_validator=make_fake_current_best_validator(),
                 now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
                 sleep_fn=lambda _seconds: None,
             )
@@ -187,6 +236,10 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 state_store=FilesystemResearchStateStore(config.state_root),
                 llm_runner=lambda **_kwargs: [make_fake_decision()],
                 campaign_preparer=fake_prepare_campaign,
+                current_best_validator=make_fake_current_best_validator(
+                    validation_pass_rate=0.4,
+                    paper_ready=True,
+                ),
                 now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
                 sleep_fn=lambda _seconds: None,
             )
@@ -194,7 +247,8 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
 
             result = worker.run_cycle()
 
-            self.assertEqual(len(campaign_calls), 1)
+            self.assertEqual(len(campaign_calls), 2)
+            self.assertIn("holdout", campaign_calls[1])
             self.assertEqual(result.campaign_id, campaign_calls[0])
             snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
             self.assertIsNotNone(snapshot)
@@ -282,6 +336,10 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                     )
                 ],
                 campaign_preparer=fake_prepare_campaign,
+                current_best_validator=make_fake_current_best_validator(
+                    validation_pass_rate=0.4,
+                    paper_ready=True,
+                ),
                 now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
                 sleep_fn=lambda _seconds: None,
             )
@@ -293,12 +351,289 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertIsNotNone(snapshot)
             assert snapshot is not None
             self.assertTrue(snapshot.current_best_ready_for_paper)
+            self.assertEqual(snapshot.current_best_validation_pass_rate, 0.4)
             self.assertFalse(snapshot.latest_cycle_rollout_ready)
             self.assertFalse(snapshot.research_rollout_ready)
             self.assertIn(
-                "evaluation_acceptance_rate is still below the rollout gate",
+                "holdout validation pass rate is still below the rollout gate",
                 " ".join(snapshot.research_blockers),
             )
+
+    def test_current_best_can_be_validated_for_rollout_without_recent_keep(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+
+            def fake_prepare_campaign(**kwargs):
+                campaign_path = Path(kwargs["campaigns_root"]) / "campaign.json"
+                campaign_path.parent.mkdir(parents=True, exist_ok=True)
+                campaign_path.write_text("{}", encoding="utf-8")
+                Path(kwargs["active_pointer_path"]).write_text(
+                    str(campaign_path.resolve()),
+                    encoding="utf-8",
+                )
+                return campaign_path
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                validation_campaigns_root=str(temp_path / "validation_campaigns"),
+                validation_active_campaign_path=str(temp_path / "validation_active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                recent_results_limit=5,
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            store = FilesystemResearchStateStore(config.state_root)
+            store.save_history(
+                [
+                    CycleSummary(
+                        cycle_id="old-1",
+                        dataset_id="campaign",
+                        completed_at=datetime(2026, 3, 17, 11, 0, tzinfo=timezone.utc),
+                        last_processed_bar=datetime(2026, 3, 17, 10, 55, tzinfo=timezone.utc),
+                        accepted=False,
+                        score=1.0,
+                        strategy_name="older",
+                        params={"decision": "discard_screen"},
+                        metrics={},
+                    ),
+                    CycleSummary(
+                        cycle_id="old-2",
+                        dataset_id="campaign",
+                        completed_at=datetime(2026, 3, 17, 11, 10, tzinfo=timezone.utc),
+                        last_processed_bar=datetime(2026, 3, 17, 11, 5, tzinfo=timezone.utc),
+                        accepted=False,
+                        score=1.0,
+                        strategy_name="older",
+                        params={"decision": "discard_full"},
+                        metrics={},
+                    ),
+                ]
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=store,
+                llm_runner=lambda **_kwargs: [
+                    make_fake_decision(
+                        decision="discard_screen",
+                        ready_for_paper=True,
+                        baseline_ready_for_paper=True,
+                        score=4.0,
+                    )
+                ],
+                campaign_preparer=fake_prepare_campaign,
+                current_best_validator=make_fake_current_best_validator(
+                    validation_pass_rate=0.75,
+                    paper_ready=True,
+                ),
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+
+            worker.run_cycle()
+
+            snapshot = store.load_snapshot()
+            self.assertIsNotNone(snapshot)
+            assert snapshot is not None
+            self.assertFalse(snapshot.latest_cycle_rollout_ready)
+            self.assertTrue(snapshot.current_best_ready_for_paper)
+            self.assertTrue(snapshot.current_best_validated_for_rollout)
+            self.assertTrue(snapshot.research_rollout_ready)
+            self.assertTrue(snapshot.accepted_for_paper)
+            self.assertEqual(snapshot.current_best_validation_pass_rate, 0.75)
+            self.assertEqual(snapshot.mutation_win_rate, 0.0)
+
+    def test_rollout_champion_can_differ_from_research_champion(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+
+            def fake_prepare_campaign(**kwargs):
+                campaign_path = Path(kwargs["campaigns_root"]) / f"{kwargs['campaign_name']}.json"
+                campaign_path.parent.mkdir(parents=True, exist_ok=True)
+                campaign_path.write_text("{}", encoding="utf-8")
+                Path(kwargs["active_pointer_path"]).write_text(
+                    str(campaign_path.resolve()),
+                    encoding="utf-8",
+                )
+                return campaign_path
+
+            def fake_current_best_validator(*, candidate_sha1: str, parent_commit: str, **_kwargs):
+                if candidate_sha1 == "stable-train":
+                    return make_fake_validation_report(validation_pass_rate=0.9, paper_ready=True)
+                if candidate_sha1 == "unstable-train":
+                    return make_fake_validation_report(validation_pass_rate=0.2, paper_ready=True)
+                return make_fake_validation_report(validation_pass_rate=0.0, paper_ready=False)
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                validation_campaigns_root=str(temp_path / "validation_campaigns"),
+                validation_active_campaign_path=str(temp_path / "validation_active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            worktree_root = Path(config.worktrees_root) / "codex-autoresearch-crypto"
+            worktree_root.mkdir(parents=True, exist_ok=True)
+            (worktree_root / "train.py").write_text("TRAIN_CONFIG = {}\n", encoding="utf-8")
+            store = FilesystemResearchStateStore(config.state_root)
+
+            stable_worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=store,
+                llm_runner=lambda **_kwargs: [
+                    make_fake_decision(
+                        decision="keep",
+                        score=5.0,
+                        ready_for_paper=True,
+                        baseline_ready_for_paper=True,
+                        candidate_strategy_name="stable-rollout",
+                        candidate_git_commit="stable-commit",
+                        candidate_train_sha1="stable-train",
+                    )
+                ],
+                campaign_preparer=fake_prepare_campaign,
+                current_best_validator=fake_current_best_validator,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            stable_worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+            stable_worker._candidate_train_path = lambda **_kwargs: worktree_root / "train.py"  # type: ignore[method-assign]
+            stable_worker.run_cycle()
+
+            unstable_worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=store,
+                llm_runner=lambda **_kwargs: [
+                    make_fake_decision(
+                        decision="keep",
+                        score=9.0,
+                        ready_for_paper=True,
+                        baseline_ready_for_paper=True,
+                        baseline_strategy_name="stable-rollout",
+                        baseline_git_commit="stable-commit",
+                        baseline_train_sha1="stable-train",
+                        candidate_strategy_name="high-score-unstable",
+                        candidate_git_commit="unstable-commit",
+                        candidate_train_sha1="unstable-train",
+                    )
+                ],
+                campaign_preparer=fake_prepare_campaign,
+                current_best_validator=fake_current_best_validator,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 30, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            unstable_worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+            unstable_worker._candidate_train_path = lambda **_kwargs: worktree_root / "train.py"  # type: ignore[method-assign]
+            unstable_worker.run_cycle()
+
+            snapshot = store.load_snapshot()
+            self.assertIsNotNone(snapshot)
+            assert snapshot is not None
+            self.assertEqual(snapshot.research_champion_summary["strategy_name"], "high-score-unstable")
+            self.assertEqual(snapshot.rollout_champion_summary["strategy_name"], "stable-rollout")
+            self.assertTrue(snapshot.research_rollout_ready)
+            self.assertTrue(snapshot.accepted_for_paper)
+            self.assertFalse(snapshot.latest_cycle_rollout_ready)
+
+    def test_current_best_validation_cache_reuses_same_strategy_and_campaign(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            validator_calls = {"count": 0}
+
+            def fake_prepare_campaign(**kwargs):
+                campaign_path = Path(kwargs["campaigns_root"]) / "campaign.json"
+                campaign_path.parent.mkdir(parents=True, exist_ok=True)
+                campaign_path.write_text("{}", encoding="utf-8")
+                Path(kwargs["active_pointer_path"]).write_text(
+                    str(campaign_path.resolve()),
+                    encoding="utf-8",
+                )
+                return campaign_path
+
+            def fake_current_best_validator(**_kwargs):
+                validator_calls["count"] += 1
+                return make_fake_validation_report(
+                    validation_pass_rate=0.8,
+                    paper_ready=True,
+                )
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                validation_campaigns_root=str(temp_path / "validation_campaigns"),
+                validation_active_campaign_path=str(temp_path / "validation_active_campaign.txt"),
+                validation_refresh_interval_seconds=86_400,
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            store = FilesystemResearchStateStore(config.state_root)
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=store,
+                llm_runner=lambda **_kwargs: [
+                    make_fake_decision(
+                        decision="discard_screen",
+                        ready_for_paper=True,
+                        baseline_ready_for_paper=True,
+                    )
+                ],
+                campaign_preparer=fake_prepare_campaign,
+                current_best_validator=fake_current_best_validator,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+            worker.run_cycle()
+
+            second_worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=store,
+                llm_runner=lambda **_kwargs: [
+                    make_fake_decision(
+                        decision="discard_full",
+                        ready_for_paper=True,
+                        baseline_ready_for_paper=True,
+                    )
+                ],
+                campaign_preparer=fake_prepare_campaign,
+                current_best_validator=fake_current_best_validator,
+                now_fn=lambda: datetime(2026, 3, 17, 12, 30, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            second_worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+            second_worker.run_cycle()
+
+            self.assertEqual(validator_calls["count"], 1)
 
     def test_acceptance_rate_ignores_validation_errors_but_tracks_generation_validity(self) -> None:
         history = [
@@ -355,6 +690,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 state_store=FilesystemResearchStateStore(config.state_root),
                 llm_runner=fake_runner,
                 campaign_preparer=fake_prepare_campaign,
+                current_best_validator=make_fake_current_best_validator(),
                 now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
                 sleep_fn=lambda seconds: sleep_calls.append(seconds),
             )
@@ -418,6 +754,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                     )
                 ],
                 campaign_preparer=fake_prepare_campaign,
+                current_best_validator=make_fake_current_best_validator(),
                 now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
                 sleep_fn=lambda _seconds: None,
             )
@@ -481,6 +818,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                     )
                 ],
                 campaign_preparer=fake_prepare_campaign,
+                current_best_validator=make_fake_current_best_validator(),
                 now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
                 sleep_fn=lambda _seconds: None,
             )
@@ -549,6 +887,10 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                     )
                 ],
                 campaign_preparer=fake_prepare_campaign,
+                current_best_validator=make_fake_current_best_validator(
+                    validation_pass_rate=0.8,
+                    paper_ready=True,
+                ),
                 now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
                 sleep_fn=lambda _seconds: None,
             )
@@ -688,6 +1030,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 state_store=FilesystemResearchStateStore(config.state_root),
                 llm_runner=lambda **_kwargs: [make_fake_decision()],
                 campaign_preparer=fake_prepare_campaign,
+                current_best_validator=make_fake_current_best_validator(),
                 now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
                 sleep_fn=lambda _seconds: None,
             )
@@ -741,24 +1084,26 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 state_store=store,
                 llm_runner=lambda **_kwargs: [make_fake_decision()],
                 campaign_preparer=fake_prepare_campaign,
+                current_best_validator=make_fake_current_best_validator(),
                 now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
                 sleep_fn=lambda _seconds: None,
             )
             worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
             worker.run_cycle()
-            self.assertEqual(len(campaign_calls), 1)
+            self.assertEqual(len(campaign_calls), 2)
 
             second_worker = LLMAutoresearchWorker(
                 config=config,
                 state_store=store,
                 llm_runner=lambda **_kwargs: [make_fake_decision(score=-9.0)],
                 campaign_preparer=fake_prepare_campaign,
+                current_best_validator=make_fake_current_best_validator(),
                 now_fn=lambda: datetime(2026, 3, 17, 13, 5, tzinfo=timezone.utc),
                 sleep_fn=lambda _seconds: None,
             )
             second_worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
             second_worker.run_cycle()
-            self.assertEqual(len(campaign_calls), 1)
+            self.assertEqual(len(campaign_calls), 2)
 
     def test_run_forever_persists_degraded_snapshot_on_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
@@ -898,6 +1243,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 state_store=store,
                 llm_runner=lambda **_kwargs: [make_fake_decision(score=1.25)],
                 campaign_preparer=fake_prepare_campaign,
+                current_best_validator=make_fake_current_best_validator(),
                 now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
                 sleep_fn=lambda _seconds: None,
             )
@@ -1026,6 +1372,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 state_store=FilesystemResearchStateStore(config.state_root),
                 llm_runner=lambda **_kwargs: [make_fake_decision()],
                 campaign_preparer=lambda **kwargs: Path(kwargs["campaigns_root"]) / "campaign.json",
+                current_best_validator=make_fake_current_best_validator(),
             )
 
             worker._ensure_repo_ready()

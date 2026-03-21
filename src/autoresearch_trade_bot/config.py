@@ -99,6 +99,11 @@ class LLMWorkerConfig:
     campaign_window_count: int = 1
     campaigns_root: str = "campaigns"
     active_campaign_path: str = "active_campaign.txt"
+    validation_window_count: int = 3
+    validation_refresh_interval_seconds: int = 14400
+    validation_campaigns_root: str = "validation_campaigns"
+    validation_active_campaign_path: str = "validation_active_campaign.txt"
+    rollout_candidate_shortlist_size: int = 5
     worktrees_root: str = "worktrees"
     state_root: str = "state"
     artifact_root: str = "artifacts"
