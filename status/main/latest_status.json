@@ -29,11 +29,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t111500z",
-  "latest_cycle_completed_at": "2026-03-21T11:48:50.135915+00:00",
-  "last_processed_bar": "2026-03-21T11:45:00+00:00",
+  "latest_cycle_completed_at": "2026-03-21T12:00:50.136346+00:00",
+  "last_processed_bar": "2026-03-21T12:00:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.1,
+  "generation_validity_rate": 0.0,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-bybit-linear-5m-20260321t111500z.json",
@@ -41,7 +41,7 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-5b52d2e3",
+      "mutation_label": "llm-2b3eb897",
       "baseline_score": 16.19917104016042,
       "candidate_score": -Infinity,
       "kept_commit": null,
@@ -58,26 +58,6 @@
     "provider_name": "llm"
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-f983141e",
-      "params": {
-        "decision": "discard_error",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "validation"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 1.0
-      },
-      "rejection_reasons": [
-        "[\"candidate_too_large\"]"
-      ]
-    },
     {
       "strategy_name": "llm-8536d7cc",
       "params": {
@@ -157,12 +137,32 @@
       "rejection_reasons": [
         "[\"candidate_too_large\"]"
       ]
+    },
+    {
+      "strategy_name": "llm-6953526b",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 1.0
+      },
+      "rejection_reasons": [
+        "[\"candidate_too_large\"]"
+      ]
     }
   ],
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-5b52d2e3",
+    "mutation_label": "llm-2b3eb897",
     "baseline_score": 16.19917104016042,
     "candidate_score": -Infinity,
     "kept_commit": null,
