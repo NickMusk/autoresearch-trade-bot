@@ -4,10 +4,6 @@
   "research_rollout_ready": false,
   "research_blockers": [
     "Latest LLM candidate underperformed the baseline on the screen window.",
-    "Latest LLM candidate produced no trades on the evaluation window.",
-    "Latest kept candidate still fails gate: no_trades_executed.",
-    "Latest kept candidate still fails gate: sharpe_below_gate.",
-    "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
     "Research champion passes paper metrics, but its holdout validation pass rate is still below the rollout gate.",
     "No rollout champion has cleared holdout validation yet."
   ],
@@ -36,8 +32,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t111500z",
-  "latest_cycle_completed_at": "2026-03-21T20:01:46.882246+00:00",
-  "last_processed_bar": "2026-03-21T20:00:00+00:00",
+  "latest_cycle_completed_at": "2026-03-21T20:13:46.882610+00:00",
+  "last_processed_bar": "2026-03-21T20:10:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -147,18 +143,14 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-c8188795",
+      "mutation_label": "llm-826af2af",
       "baseline_score": 16.385009685972403,
-      "candidate_score": 0.0,
+      "candidate_score": 11.543564495597808,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": [
-        "no_trades_executed",
-        "sharpe_below_gate",
-        "acceptance_rate_below_gate"
-      ]
+      "gate_failures": []
     },
     "baseline_strategy_name": "cs-demeaned-momentum-inertia-v5-selective-cap-persistence",
     "baseline_score": 16.385009685972403,
@@ -276,60 +268,52 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-c8188795",
+    "mutation_label": "llm-826af2af",
     "baseline_score": 16.385009685972403,
-    "candidate_score": 0.0,
+    "candidate_score": 11.543564495597808,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "gate_failures": [
-      "no_trades_executed",
-      "sharpe_below_gate",
-      "acceptance_rate_below_gate"
-    ]
+    "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v4-selective-cap-persistence-v3",
-    "research_score": 0.0,
-    "ready_for_paper": false,
+    "strategy_name": "cs-demeaned-momentum-inertia-v5-selective-cap-persistence-v2",
+    "research_score": 11.543564495597808,
+    "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 0.0,
-      "sharpe": 0.0,
-      "max_drawdown": 0.0,
-      "average_turnover": 0.0,
+      "total_return": 5.8031254745571914e-05,
+      "sharpe": 11.543365262405734,
+      "max_drawdown": 2.1837525092549548e-05,
+      "average_turnover": 3.5729812835519274e-06,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 0
+      "nonzero_turnover_steps": 19
     },
     "train_config": {
-      "gross_target": 0.055,
+      "gross_target": 0.06,
       "lookback_bars": 30,
-      "min_signal_strength": 0.065,
+      "min_signal_strength": 0.07,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 60,
       "regime_threshold": 0.02,
       "top_k": 2,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.0015,
-      "volatility_floor": 0.0018,
-      "reversal_bias_weight": 0.09,
+      "min_cross_sectional_spread": 0.006,
+      "volatility_floor": 0.0012,
+      "reversal_bias_weight": 0.085,
       "funding_penalty_weight": 0.0,
       "hold_bars": 160,
-      "turn_threshold": 0.025,
+      "turn_threshold": 0.03,
       "drawdown_reduce": 0.08,
       "drawdown_cut": 0.16,
       "max_vol_for_full": 0.02,
-      "initial_leg_fraction": 0.2,
-      "consistency_threshold": 0.5,
-      "relative_strength_threshold": 0.58,
-      "crowding_threshold": 1.9,
-      "crowding_penalty": 0.6
+      "initial_leg_fraction": 0.12,
+      "consistency_threshold": 0.45,
+      "relative_strength_threshold": 0.5,
+      "crowding_threshold": 2.2,
+      "crowding_penalty": 0.65
     },
-    "gate_failures": [
-      "no_trades_executed",
-      "sharpe_below_gate",
-      "acceptance_rate_below_gate"
-    ],
+    "gate_failures": [],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
