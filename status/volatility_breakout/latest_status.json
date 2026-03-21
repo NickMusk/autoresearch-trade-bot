@@ -31,7 +31,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260320t062000z",
-  "latest_cycle_completed_at": "2026-03-21T05:03:11.988280+00:00",
+  "latest_cycle_completed_at": "2026-03-21T05:04:39.449803+00:00",
   "last_processed_bar": "2026-03-21T05:00:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
@@ -43,9 +43,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-dbeab42e",
+      "mutation_label": "llm-de67a267",
       "baseline_score": -0.15539158958554325,
-      "candidate_score": -42.436172122790104,
+      "candidate_score": -10.205638468184487,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -156,9 +156,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-dbeab42e",
+    "mutation_label": "llm-de67a267",
     "baseline_score": -0.15539158958554325,
-    "candidate_score": -42.436172122790104,
+    "candidate_score": -10.205638468184487,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -170,16 +170,16 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v26-accept-v4c",
-    "research_score": -42.436172122790104,
+    "strategy_name": "vol-breakout-v26-accept-v5",
+    "research_score": -10.205638468184487,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.00021192787292889648,
-      "sharpe": -42.43409271937753,
-      "max_drawdown": 0.00021192787292889648,
-      "average_turnover": 0.0001720525562157066,
+      "total_return": -3.4205978852730468e-06,
+      "sharpe": -10.205604109602527,
+      "max_drawdown": 3.4205978852730468e-06,
+      "average_turnover": 3.5732009925558312e-06,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 345
+      "nonzero_turnover_steps": 2
     },
     "train_config": {
       "gross_target": 0.12,
@@ -188,10 +188,10 @@
       "atr_multiplier": 1.9,
       "breakout_buffer": 0.025,
       "top_k": 2,
-      "min_breakout_score": 0.024,
+      "min_breakout_score": 0.026,
       "use_trend_filter": true,
       "trend_lookback_bars": 42,
-      "fallback_scale": 0.05,
+      "fallback_scale": 0.06,
       "crowding_min_scale": 0.22,
       "min_atr_fraction": 0.0012,
       "vol_dampening": 5.5
