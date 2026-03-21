@@ -1,9 +1,11 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker degraded",
+  "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "OpenAI request timed out"
+    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Research champion passes paper metrics, but its holdout validation pass rate is still below the rollout gate.",
+    "No rollout champion has cleared holdout validation yet."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -24,17 +26,19 @@
   "current_best_ready_for_paper": true,
   "latest_cycle_rollout_ready": false,
   "next_milestones": [
-    "Recover the worker from repeated API, repo, or campaign failures."
+    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
+    "Accumulate multiple kept improvements in the research branch.",
+    "Promote only candidates that satisfy the hard rollout gates."
   ],
-  "loop_state": "degraded",
+  "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t062000z",
-  "latest_cycle_completed_at": "2026-03-21T20:23:43.157605+00:00",
-  "last_processed_bar": "2026-03-21T20:20:00+00:00",
+  "latest_cycle_completed_at": "2026-03-21T20:53:10.893302+00:00",
+  "last_processed_bar": "2026-03-21T20:50:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
   "mutation_win_rate": 0.0,
-  "consecutive_failures": 3,
+  "consecutive_failures": 0,
   "current_best_validation_pass_rate": 0.0,
   "current_best_validated_for_rollout": false,
   "current_best_validation_summary": {
@@ -139,9 +143,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-3145e2c8",
+      "mutation_label": "llm-d512c00e",
       "baseline_score": 6.122006000157365,
-      "candidate_score": 6.121779487246241,
+      "candidate_score": 6.122005561557179,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -233,7 +237,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-d4c02f1d",
+      "strategy_name": "llm-d512c00e",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -241,10 +245,10 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": 6.121789,
+      "score": 6.122006,
       "metrics": {
         "total_return": 0.0,
-        "sharpe": 6.121789,
+        "sharpe": 6.122005,
         "max_drawdown": 0.0,
         "average_turnover": 0.0
       },
@@ -254,9 +258,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-3145e2c8",
+    "mutation_label": "llm-d512c00e",
     "baseline_score": 6.122006000157365,
-    "candidate_score": 6.121779487246241,
+    "candidate_score": 6.122005561557179,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -264,14 +268,14 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v23-topk2-cap85e-5-damp3.8-capvol-v5-rsirelax-v95",
-    "research_score": 6.121779487246241,
+    "strategy_name": "mean-reversion-bbands-rsi-v23-topk2-cap9e-4-damp3.6-capvol-v5-rsirelax-v7",
+    "research_score": 6.122005561557179,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 1.61524362773946e-08,
-      "sharpe": 6.121779422728883,
-      "max_drawdown": 2.7142055269990806e-09,
-      "average_turnover": 5.388001066946351e-09,
+      "total_return": 1.6415290238214197e-08,
+      "sharpe": 6.122005495986128,
+      "max_drawdown": 2.757743144954361e-09,
+      "average_turnover": 5.474428049533464e-09,
       "bars_processed": 2015,
       "nonzero_turnover_steps": 2
     },
@@ -283,21 +287,21 @@
       "rsi_upper": 67.0,
       "band_std_mult": 1.95,
       "top_k": 2,
-      "min_reversion_score": 0.25,
-      "volatility_floor": 0.007,
+      "min_reversion_score": 0.22,
+      "volatility_floor": 0.006,
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
       "volatility_scale_alpha": 0.6,
       "persistence": 7,
-      "per_symbol_cap_fraction": 0.00085,
-      "weak_signal_microcap_fraction": 0.0004,
+      "per_symbol_cap_fraction": 0.0009,
+      "weak_signal_microcap_fraction": 0.0005,
       "weak_rsi_support_min": 0.8,
       "market_scale_floor": 0.5,
-      "rsi_relax_max": 0.95,
+      "rsi_relax_max": 0.97,
       "volatility_penalty_exponent": 5.0,
-      "damping_exponent": 3.8,
+      "damping_exponent": 3.6,
       "liquidity_strict_mult": 1.1,
-      "liquidity_promote_min": 0.9
+      "liquidity_promote_min": 0.88
     },
     "gate_failures": [],
     "provider_name": "llm",
