@@ -32,11 +32,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t062000z",
-  "latest_cycle_completed_at": "2026-03-21T22:13:05.417903+00:00",
+  "latest_cycle_completed_at": "2026-03-21T22:14:44.474902+00:00",
   "last_processed_bar": "2026-03-21T22:10:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.7,
+  "generation_validity_rate": 0.8,
   "mutation_win_rate": 0.0,
   "consecutive_failures": 0,
   "current_best_validation_pass_rate": 0.0,
@@ -143,9 +143,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-7b6e0ce6",
+      "mutation_label": "llm-a9f20b31",
       "baseline_score": 6.122006000157365,
-      "candidate_score": 6.116420353314065,
+      "candidate_score": 6.122005537611231,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -164,24 +164,6 @@
     "rollout_champion_strategy_name": ""
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-82e544c9",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 6.122006,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 6.122005,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-70b6923b",
       "params": {
@@ -202,6 +184,24 @@
     },
     {
       "strategy_name": "llm-813b9043",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 6.122006,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 6.122005,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-a9f20b31",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -258,9 +258,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-7b6e0ce6",
+    "mutation_label": "llm-a9f20b31",
     "baseline_score": 6.122006000157365,
-    "candidate_score": 6.116420353314065,
+    "candidate_score": 6.122005537611231,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -268,36 +268,36 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v22-topk2-cap9e-4-damp3.8-capvol-v5-rsirelax-v98-fallbackpair",
-    "research_score": 6.116420353314065,
+    "strategy_name": "mean-reversion-bbands-rsi-v23-topk2-cap9e-4-damp3.8-capvol-v5-rsirelax-v7",
+    "research_score": 6.122005537611231,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 3.292076766747698e-08,
-      "sharpe": 6.116420221867852,
-      "max_drawdown": 5.535683578195005e-09,
-      "average_turnover": 1.1014891211049837e-08,
+      "total_return": 1.0420576623815236e-08,
+      "sharpe": 6.122005495986127,
+      "max_drawdown": 1.7506406324585555e-09,
+      "average_turnover": 3.475217133762592e-09,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 4
+      "nonzero_turnover_steps": 2
     },
     "train_config": {
       "gross_target": 0.13,
       "lookback_bars": 38,
       "rsi_period": 14,
-      "rsi_lower": 34.0,
-      "rsi_upper": 66.0,
-      "band_std_mult": 2.05,
+      "rsi_lower": 33.0,
+      "rsi_upper": 67.0,
+      "band_std_mult": 1.9,
       "top_k": 2,
-      "min_reversion_score": 0.22,
+      "min_reversion_score": 0.25,
       "volatility_floor": 0.006,
       "use_trend_filter": true,
-      "trend_lookback_bars": 56,
+      "trend_lookback_bars": 48,
       "volatility_scale_alpha": 0.6,
       "persistence": 7,
       "per_symbol_cap_fraction": 0.0009,
       "weak_signal_microcap_fraction": 0.0005,
       "weak_rsi_support_min": 0.8,
       "market_scale_floor": 0.5,
-      "rsi_relax_max": 0.98,
+      "rsi_relax_max": 0.97,
       "volatility_penalty_exponent": 5.0,
       "damping_exponent": 3.8,
       "liquidity_strict_mult": 1.1,
