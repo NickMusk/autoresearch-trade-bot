@@ -36,7 +36,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t062000z",
-  "latest_cycle_completed_at": "2026-03-21T20:57:05.350616+00:00",
+  "latest_cycle_completed_at": "2026-03-21T20:58:57.680933+00:00",
   "last_processed_bar": "2026-03-21T20:55:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
@@ -147,7 +147,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-56643cf0",
+      "mutation_label": "llm-57588b6b",
       "baseline_score": 6.122006000157365,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -266,7 +266,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-56643cf0",
+    "mutation_label": "llm-57588b6b",
     "baseline_score": 6.122006000157365,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -280,7 +280,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v22-topk1-cap8e-4-damp3.8-persist9-volfloor7e-3",
+    "strategy_name": "mean-reversion-bbands-rsi-v23-topk2-persist9-damp4.2-nonlinear-rsi",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -298,9 +298,9 @@
       "rsi_lower": 33.0,
       "rsi_upper": 67.0,
       "band_std_mult": 1.95,
-      "top_k": 1,
+      "top_k": 2,
       "min_reversion_score": 0.25,
-      "volatility_floor": 0.007,
+      "volatility_floor": 0.006,
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
       "volatility_scale_alpha": 0.6,
@@ -309,9 +309,9 @@
       "weak_signal_microcap_fraction": 0.0005,
       "weak_rsi_support_min": 0.8,
       "market_scale_floor": 0.5,
-      "rsi_relax_max": 0.96,
+      "rsi_relax_max": 0.98,
       "volatility_penalty_exponent": 5.0,
-      "damping_exponent": 3.8,
+      "damping_exponent": 4.2,
       "liquidity_strict_mult": 1.1,
       "liquidity_promote_min": 0.9
     },
