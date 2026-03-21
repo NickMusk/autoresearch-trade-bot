@@ -1,46 +1,6 @@
 {
   "leaderboard": [
     {
-      "strategy_name": "llm-1d6757b0",
-      "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.185839,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 0.000106,
-        "max_drawdown": 16.384568,
-        "average_turnover": 2e-05
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
-      "strategy_name": "llm-1d6757b0",
-      "params": {
-        "decision": "keep",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": true,
-      "score": 0.185839,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 0.000106,
-        "max_drawdown": 16.384568,
-        "average_turnover": 2e-05
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
       "strategy_name": "llm-86efd0bd",
       "params": {
         "decision": "screen_pass",
@@ -78,6 +38,26 @@
       },
       "rejection_reasons": [
         "[]"
+      ]
+    },
+    {
+      "strategy_name": "llm-fa84a811",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 1.0
+      },
+      "rejection_reasons": [
+        "[\"no_op_train_config\"]"
       ]
     },
     {
@@ -95,6 +75,26 @@
         "sharpe": 0.0001,
         "max_drawdown": 13.013044,
         "average_turnover": 2.6e-05
+      },
+      "rejection_reasons": [
+        "[]"
+      ]
+    },
+    {
+      "strategy_name": "llm-826af2af",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -4.841445,
+      "metrics": {
+        "total_return": 1.0,
+        "sharpe": 5.8e-05,
+        "max_drawdown": 11.543365,
+        "average_turnover": 2.2e-05
       },
       "rejection_reasons": [
         "[]"
