@@ -37,8 +37,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t062000z",
-  "latest_cycle_completed_at": "2026-03-21T15:34:56.695097+00:00",
-  "last_processed_bar": "2026-03-21T15:30:00+00:00",
+  "latest_cycle_completed_at": "2026-03-21T15:36:49.351950+00:00",
+  "last_processed_bar": "2026-03-21T15:35:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -80,7 +80,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-38c14999",
+      "mutation_label": "llm-54f66251",
       "baseline_score": 0.0,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -199,7 +199,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-38c14999",
+    "mutation_label": "llm-54f66251",
     "baseline_score": 0.0,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -213,7 +213,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "vol-breakout-v26-correl-penalize-v1",
+    "strategy_name": "vol-breakout-v26-accept-v4b",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -238,7 +238,8 @@
       "crowding_min_scale": 0.22,
       "min_atr_fraction": 0.0012,
       "vol_dampening": 5.5,
-      "corr_penalty_scale": 0.55
+      "realized_vol_lookback": 8,
+      "realized_vol_dampening": 6.0
     },
     "gate_failures": [
       "no_trades_executed",
