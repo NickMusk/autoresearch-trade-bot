@@ -1,12 +1,9 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker active",
+  "phase": "LLM autoresearch worker transient error",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate failed validation or execution: no_op_train_config.",
-    "Latest kept candidate still fails gate: no_op_train_config.",
-    "Research champion passes paper metrics, but its holdout validation pass rate is still below the rollout gate.",
-    "No rollout champion has cleared holdout validation yet."
+    "OpenAI request timed out"
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -27,11 +24,9 @@
   "current_best_ready_for_paper": true,
   "latest_cycle_rollout_ready": false,
   "next_milestones": [
-    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
-    "Accumulate multiple kept improvements in the research branch.",
-    "Promote only candidates that satisfy the hard rollout gates."
+    "Wait for the worker to recover from the latest transient API, repo, or campaign failure."
   ],
-  "loop_state": "searching",
+  "loop_state": "transient_error",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t062000z",
   "latest_cycle_completed_at": "2026-03-21T21:25:23.080348+00:00",
   "last_processed_bar": "2026-03-21T21:25:00+00:00",
@@ -39,7 +34,7 @@
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.7,
   "mutation_win_rate": 0.0,
-  "consecutive_failures": 0,
+  "consecutive_failures": 1,
   "current_best_validation_pass_rate": 0.0,
   "current_best_validated_for_rollout": false,
   "current_best_validation_summary": {
