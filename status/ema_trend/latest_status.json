@@ -3,8 +3,10 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate failed validation or execution: candidate_too_large.",
-    "Latest kept candidate still fails gate: candidate_too_large."
+    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest kept candidate still fails gate: total_return_below_gate.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -29,27 +31,29 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t062000z",
-  "latest_cycle_completed_at": "2026-03-21T06:26:19.672505+00:00",
+  "latest_cycle_completed_at": "2026-03-21T06:28:17.392580+00:00",
   "last_processed_bar": "2026-03-21T06:25:00+00:00",
-  "recent_acceptance_rate": 0.16666666666666666,
-  "evaluation_acceptance_rate": 0.16666666666666666,
-  "generation_validity_rate": 0.6,
+  "recent_acceptance_rate": 0.14285714285714285,
+  "evaluation_acceptance_rate": 0.14285714285714285,
+  "generation_validity_rate": 0.7,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260321t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_error",
-      "stage": "validation",
-      "mutation_label": "llm-9b9d9be1",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-4f5c865a",
       "baseline_score": 14.327115871691023,
-      "candidate_score": -Infinity,
+      "candidate_score": -0.02759359787753235,
       "kept_commit": null,
-      "failure_reason": "candidate_too_large",
+      "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
-        "candidate_too_large"
+        "total_return_below_gate",
+        "sharpe_below_gate",
+        "acceptance_rate_below_gate"
       ]
     },
     "baseline_strategy_name": "ema-trend-disp-v16-exhaustion-hyst-turnover-v2",
@@ -113,6 +117,24 @@
       "rejection_reasons": []
     },
     {
+      "strategy_name": "llm-4f5c865a",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -0.027594,
+      "metrics": {
+        "total_return": -0.0,
+        "sharpe": -0.026858,
+        "max_drawdown": 0.000164,
+        "average_turnover": 7.6e-05
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-c2c96a68",
       "params": {
         "decision": "discard_screen",
@@ -129,59 +151,70 @@
         "average_turnover": 8.9e-05
       },
       "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-c51b7439",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -1.656506,
-      "metrics": {
-        "total_return": -2.8e-05,
-        "sharpe": -1.655678,
-        "max_drawdown": 0.000159,
-        "average_turnover": 5.4e-05
-      },
-      "rejection_reasons": []
     }
   ],
   "latest_decision": {
-    "decision": "discard_error",
-    "stage": "validation",
-    "mutation_label": "llm-9b9d9be1",
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-4f5c865a",
     "baseline_score": 14.327115871691023,
-    "candidate_score": -Infinity,
+    "candidate_score": -0.02759359787753235,
     "kept_commit": null,
-    "failure_reason": "candidate_too_large",
+    "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
-      "candidate_too_large"
+      "total_return_below_gate",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "invalid-candidate",
-    "research_score": -Infinity,
+    "strategy_name": "ema-trend-disp-v16-exhaustion-hyst-turnover-v3",
+    "research_score": -0.02759359787753235,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 0.0,
-      "sharpe": 0.0,
-      "max_drawdown": 1.0,
-      "average_turnover": 0.0,
-      "bars_processed": 0,
-      "nonzero_turnover_steps": 0
+      "total_return": -4.932953291403308e-07,
+      "sharpe": -0.026857736912536127,
+      "max_drawdown": 0.00016422961214279663,
+      "average_turnover": 7.64760397793351e-05,
+      "bars_processed": 2015,
+      "nonzero_turnover_steps": 690
     },
-    "train_config": {},
+    "train_config": {
+      "gross_target": 0.45,
+      "fast_ema_bars": 6,
+      "slow_ema_bars": 72,
+      "trend_ema_bars": 180,
+      "top_k": 2,
+      "min_signal_strength": 0.13,
+      "use_trend_filter": true,
+      "volume_confirmation": 0.33,
+      "volatility_floor": 0.002,
+      "smoothing_alpha": 0.0035,
+      "per_symbol_cap_ratio": 0.24,
+      "signal_exponent": 4.2,
+      "max_weight_move": 0.12,
+      "disp_ref": 0.3,
+      "disp_floor": 0.12,
+      "crowding_exponent": 2.6,
+      "rel_threshold_mult": 1.0,
+      "new_symbol_penalty": 0.72,
+      "disp_low_frac_block": 0.5,
+      "retention_boost": 0.24,
+      "entry_hysteresis": 1.6,
+      "concentration_threshold": 0.45,
+      "concentration_tighten": 0.68,
+      "turnover_limit": 0.14
+    },
     "gate_failures": [
-      "candidate_too_large"
+      "total_return_below_gate",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
     ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "failure_reason": "candidate_too_large"
+    "failure_reason": ""
   },
   "current_best_strategy_name": "ema-trend-disp-v16-exhaustion-hyst-turnover-v2",
   "latest_kept_summary": {}
