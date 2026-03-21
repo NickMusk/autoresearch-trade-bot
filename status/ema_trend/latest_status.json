@@ -31,7 +31,7 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t062000z",
-  "latest_cycle_completed_at": "2026-03-21T13:21:07.223025+00:00",
+  "latest_cycle_completed_at": "2026-03-21T13:23:06.515351+00:00",
   "last_processed_bar": "2026-03-21T13:20:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
@@ -43,9 +43,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-bf39e688",
+      "mutation_label": "llm-ea26e616",
       "baseline_score": 14.327115871691023,
-      "candidate_score": -9.689331049750304,
+      "candidate_score": -16.000914269775972,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -62,24 +62,6 @@
     "provider_name": "llm"
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-47d05ddb",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 14.320172,
-      "metrics": {
-        "total_return": 0.000227,
-        "sharpe": 14.319272,
-        "max_drawdown": 4.5e-05,
-        "average_turnover": 5.5e-05
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-a89f4971",
       "params": {
@@ -151,14 +133,32 @@
         "average_turnover": 7.5e-05
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-4004107f",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -2.471789,
+      "metrics": {
+        "total_return": -3.9e-05,
+        "sharpe": -2.470814,
+        "max_drawdown": 0.000178,
+        "average_turnover": 7e-05
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-bf39e688",
+    "mutation_label": "llm-ea26e616",
     "baseline_score": 14.327115871691023,
-    "candidate_score": -9.689331049750304,
+    "candidate_score": -16.000914269775972,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -170,42 +170,42 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v16-exhaustion-hyst-turnover-v2-slow",
-    "research_score": -9.689331049750304,
+    "strategy_name": "ema-trend-disp-v16-exhaustion-hyst-turnover-v3",
+    "research_score": -16.000914269775972,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.00016270313969779515,
-      "sharpe": -9.687674269764452,
-      "max_drawdown": 0.00019585268808497425,
-      "average_turnover": 5.9853535024010844e-05,
+      "total_return": -0.00022275852914577232,
+      "sharpe": -15.998840122608575,
+      "max_drawdown": 0.00022400120543364377,
+      "average_turnover": 6.434969993177358e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 451
+      "nonzero_turnover_steps": 641
     },
     "train_config": {
       "gross_target": 0.45,
       "fast_ema_bars": 6,
       "slow_ema_bars": 96,
-      "trend_ema_bars": 300,
+      "trend_ema_bars": 240,
       "top_k": 2,
       "min_signal_strength": 0.13,
       "use_trend_filter": true,
       "volume_confirmation": 0.33,
       "volatility_floor": 0.002,
-      "smoothing_alpha": 0.004,
-      "per_symbol_cap_ratio": 0.28,
-      "signal_exponent": 4.0,
-      "max_weight_move": 0.12,
+      "smoothing_alpha": 0.003,
+      "per_symbol_cap_ratio": 0.25,
+      "signal_exponent": 4.5,
+      "max_weight_move": 0.1,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
       "crowding_exponent": 2.2,
       "rel_threshold_mult": 1.0,
-      "new_symbol_penalty": 0.72,
+      "new_symbol_penalty": 0.78,
       "disp_low_frac_block": 0.5,
-      "retention_boost": 0.22,
-      "entry_hysteresis": 1.5,
+      "retention_boost": 0.28,
+      "entry_hysteresis": 1.8,
       "concentration_threshold": 0.5,
       "concentration_tighten": 0.7,
-      "turnover_limit": 0.16
+      "turnover_limit": 0.14
     },
     "gate_failures": [
       "total_return_below_gate",
