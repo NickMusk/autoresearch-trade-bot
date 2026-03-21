@@ -3,6 +3,10 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
+    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest kept candidate still fails gate: total_return_below_gate.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
     "Research champion passes paper metrics, but its holdout validation pass rate is still below the rollout gate.",
     "No rollout champion has cleared holdout validation yet."
   ],
@@ -15,11 +19,11 @@
   },
   "baseline_metrics": {
     "total_return": 0.0002,
-    "sharpe": 14.4471,
+    "sharpe": 14.4865,
     "max_drawdown": 0.0,
     "average_turnover": 0.0001,
     "bars_processed": 2015,
-    "score": 14.448
+    "score": 14.4874
   },
   "accepted_for_paper": false,
   "current_best_ready_for_paper": true,
@@ -31,8 +35,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t062000z",
-  "latest_cycle_completed_at": "2026-03-21T18:24:13.311880+00:00",
-  "last_processed_bar": "2026-03-21T18:20:00+00:00",
+  "latest_cycle_completed_at": "2026-03-21T18:26:37.888248+00:00",
+  "last_processed_bar": "2026-03-21T18:25:00+00:00",
   "recent_acceptance_rate": 0.1,
   "evaluation_acceptance_rate": 0.1,
   "generation_validity_rate": 1.0,
@@ -154,19 +158,23 @@
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260321t062000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "keep",
-      "stage": "full",
-      "mutation_label": "llm-88d2e29f",
-      "baseline_score": 14.448009069203687,
-      "candidate_score": 14.487390999258878,
-      "kept_commit": "c899665cc38c4d0e7d5e6374afec83b4f9084afa",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-2c10c2e0",
+      "baseline_score": 14.487390999258878,
+      "candidate_score": -4.042273768003432,
+      "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": []
+      "gate_failures": [
+        "total_return_below_gate",
+        "sharpe_below_gate",
+        "acceptance_rate_below_gate"
+      ]
     },
     "baseline_strategy_name": "ema-trend-disp-v18-selectivity",
-    "baseline_score": 14.448009069203687,
+    "baseline_score": 14.487390999258878,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm",
     "current_best_ready_for_paper": true,
@@ -269,91 +277,68 @@
     }
   ],
   "latest_decision": {
-    "decision": "keep",
-    "stage": "full",
-    "mutation_label": "llm-88d2e29f",
-    "baseline_score": 14.448009069203687,
-    "candidate_score": 14.487390999258878,
-    "kept_commit": "c899665cc38c4d0e7d5e6374afec83b4f9084afa",
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-2c10c2e0",
+    "baseline_score": 14.487390999258878,
+    "candidate_score": -4.042273768003432,
+    "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "gate_failures": []
+    "gate_failures": [
+      "total_return_below_gate",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v18-selectivity",
-    "research_score": 14.487390999258878,
-    "ready_for_paper": true,
+    "strategy_name": "ema-trend-disp-v19-selectivity",
+    "research_score": -4.042273768003432,
+    "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 0.00023095310144150005,
-      "sharpe": 14.486472161984222,
-      "max_drawdown": 4.524330278266042e-05,
-      "average_turnover": 5.495502142171327e-05,
+      "total_return": -6.371773065749764e-05,
+      "sharpe": -4.041359879926534,
+      "max_drawdown": 0.00013908537693418932,
+      "average_turnover": 3.89579158740204e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 563
+      "nonzero_turnover_steps": 419
     },
     "train_config": {
       "gross_target": 0.45,
-      "fast_ema_bars": 6,
+      "fast_ema_bars": 5,
       "slow_ema_bars": 72,
       "trend_ema_bars": 180,
       "top_k": 2,
       "min_signal_strength": 0.15,
       "use_trend_filter": true,
-      "volume_confirmation": 0.33,
-      "volatility_floor": 0.002,
+      "volume_confirmation": 0.5,
+      "volatility_floor": 0.003,
       "smoothing_alpha": 0.004,
       "per_symbol_cap_ratio": 0.28,
-      "signal_exponent": 6.0,
-      "max_weight_move": 0.12,
+      "signal_exponent": 7.0,
+      "max_weight_move": 0.1,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
       "crowding_exponent": 2.2,
       "rel_threshold_mult": 1.0,
       "new_symbol_penalty": 0.82,
       "disp_low_frac_block": 0.65,
-      "retention_boost": 0.34,
+      "retention_boost": 0.4,
       "entry_hysteresis": 2.0,
       "concentration_threshold": 0.5,
       "concentration_tighten": 0.7,
       "turnover_limit": 0.16
     },
-    "gate_failures": [],
+    "gate_failures": [
+      "total_return_below_gate",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
   },
   "current_best_strategy_name": "ema-trend-disp-v18-selectivity",
-  "latest_kept_summary": {
-    "strategy_name": "ema-trend-disp-v18-selectivity",
-    "baseline_strategy_name": "ema-trend-disp-v18-selectivity",
-    "score_delta": 0.039382,
-    "config_diff": [
-      {
-        "key": "disp_low_frac_block",
-        "before": 0.6,
-        "after": 0.65
-      },
-      {
-        "key": "entry_hysteresis",
-        "before": 1.8,
-        "after": 2.0
-      },
-      {
-        "key": "new_symbol_penalty",
-        "before": 0.78,
-        "after": 0.82
-      },
-      {
-        "key": "retention_boost",
-        "before": 0.3,
-        "after": 0.34
-      },
-      {
-        "key": "signal_exponent",
-        "before": 5.0,
-        "after": 6.0
-      }
-    ]
-  }
+  "latest_kept_summary": {}
 }
