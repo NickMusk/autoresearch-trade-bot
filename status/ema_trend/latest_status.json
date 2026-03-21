@@ -31,11 +31,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t062000z",
-  "latest_cycle_completed_at": "2026-03-21T06:22:33.437105+00:00",
+  "latest_cycle_completed_at": "2026-03-21T06:24:23.995596+00:00",
   "last_processed_bar": "2026-03-21T06:20:00+00:00",
-  "recent_acceptance_rate": 0.16666666666666666,
-  "evaluation_acceptance_rate": 0.16666666666666666,
-  "generation_validity_rate": 0.6,
+  "recent_acceptance_rate": 0.14285714285714285,
+  "evaluation_acceptance_rate": 0.14285714285714285,
+  "generation_validity_rate": 0.7,
   "consecutive_failures": 0,
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/ema_trend/campaigns/render-bybit-linear-5m-20260321t062000z.json",
@@ -43,9 +43,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-5b647922",
+      "mutation_label": "llm-ab3476c5",
       "baseline_score": 14.327115871691023,
-      "candidate_score": -6.617543661619947,
+      "candidate_score": -12.859822448384133,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -99,24 +99,6 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-668b79a7",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 19.164384,
-      "metrics": {
-        "total_return": 0.000309,
-        "sharpe": 19.163065,
-        "max_drawdown": 3.9e-05,
-        "average_turnover": 7.1e-05
-      },
-      "rejection_reasons": []
-    },
-    {
       "strategy_name": "llm-ef11c142",
       "params": {
         "decision": "discard_screen",
@@ -151,14 +133,32 @@
         "average_turnover": 8.9e-05
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-c51b7439",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -1.656506,
+      "metrics": {
+        "total_return": -2.8e-05,
+        "sharpe": -1.655678,
+        "max_drawdown": 0.000159,
+        "average_turnover": 5.4e-05
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-5b647922",
+    "mutation_label": "llm-ab3476c5",
     "baseline_score": 14.327115871691023,
-    "candidate_score": -6.617543661619947,
+    "candidate_score": -12.859822448384133,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -170,42 +170,42 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v16-exhaustion-hyst-turnover-v3",
-    "research_score": -6.617543661619947,
+    "strategy_name": "ema-trend-disp-v17-exhaustion-hyst-turnover",
+    "research_score": -12.859822448384133,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.00012072225711878826,
-      "sharpe": -6.6162145214813854,
-      "max_drawdown": 0.0001610540742517097,
-      "average_turnover": 8.131255596057652e-05,
+      "total_return": -0.00024559464417583943,
+      "sharpe": -12.857465841541503,
+      "max_drawdown": 0.0002594629604016907,
+      "average_turnover": 9.078178014247262e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 659
+      "nonzero_turnover_steps": 663
     },
     "train_config": {
-      "gross_target": 0.4,
-      "fast_ema_bars": 5,
-      "slow_ema_bars": 84,
+      "gross_target": 0.45,
+      "fast_ema_bars": 6,
+      "slow_ema_bars": 88,
       "trend_ema_bars": 240,
       "top_k": 2,
-      "min_signal_strength": 0.14,
+      "min_signal_strength": 0.13,
       "use_trend_filter": true,
       "volume_confirmation": 0.33,
       "volatility_floor": 0.002,
-      "smoothing_alpha": 0.0035,
+      "smoothing_alpha": 0.003,
       "per_symbol_cap_ratio": 0.28,
-      "signal_exponent": 4.2,
+      "signal_exponent": 4.0,
       "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
       "crowding_exponent": 2.2,
       "rel_threshold_mult": 1.0,
-      "new_symbol_penalty": 0.72,
+      "new_symbol_penalty": 0.78,
       "disp_low_frac_block": 0.5,
-      "retention_boost": 0.24,
+      "retention_boost": 0.26,
       "entry_hysteresis": 1.6,
       "concentration_threshold": 0.5,
       "concentration_tighten": 0.7,
-      "turnover_limit": 0.14
+      "turnover_limit": 0.15
     },
     "gate_failures": [
       "total_return_below_gate",
