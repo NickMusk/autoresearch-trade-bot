@@ -32,8 +32,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t062000z",
-  "latest_cycle_completed_at": "2026-03-21T15:59:47.195384+00:00",
-  "last_processed_bar": "2026-03-21T15:55:00+00:00",
+  "latest_cycle_completed_at": "2026-03-21T16:01:21.891843+00:00",
+  "last_processed_bar": "2026-03-21T16:00:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -136,9 +136,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-d386d3e8",
+      "mutation_label": "llm-06b017d0",
       "baseline_score": 6.1220059574101615,
-      "candidate_score": 6.122005592290556,
+      "candidate_score": 6.121779542964864,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -230,7 +230,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-19d7f958",
+      "strategy_name": "llm-06b017d0",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -238,10 +238,10 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": 6.120837,
+      "score": 6.12178,
       "metrics": {
         "total_return": 0.0,
-        "sharpe": 6.120837,
+        "sharpe": 6.121779,
         "max_drawdown": 0.0,
         "average_turnover": 0.0
       },
@@ -251,9 +251,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-d386d3e8",
+    "mutation_label": "llm-06b017d0",
     "baseline_score": 6.1220059574101615,
-    "candidate_score": 6.122005592290556,
+    "candidate_score": 6.121779542964864,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -261,19 +261,19 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "mean-reversion-bbands-rsi-v23-topk2-damp3.2-capvol-v5-rsirelax-v6",
-    "research_score": 6.122005592290556,
+    "strategy_name": "mean-reversion-bbands-rsi-v23-topk2-band1.95-rsi33-67-vol7",
+    "research_score": 6.121779542964864,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 2.4109193308419208e-08,
-      "sharpe": 6.122005495986128,
-      "max_drawdown": 4.0503068676756016e-09,
-      "average_turnover": 8.040311426807806e-09,
+      "total_return": 3.010203908360154e-08,
+      "sharpe": 6.121779422728883,
+      "max_drawdown": 5.058253815803937e-09,
+      "average_turnover": 1.0041198607889904e-08,
       "bars_processed": 2015,
       "nonzero_turnover_steps": 2
     },
     "train_config": {
-      "gross_target": 0.15,
+      "gross_target": 0.13,
       "lookback_bars": 38,
       "rsi_period": 14,
       "rsi_lower": 33.0,
@@ -281,7 +281,7 @@
       "band_std_mult": 1.95,
       "top_k": 2,
       "min_reversion_score": 0.25,
-      "volatility_floor": 0.006,
+      "volatility_floor": 0.007,
       "use_trend_filter": true,
       "trend_lookback_bars": 56,
       "volatility_scale_alpha": 0.6,
@@ -292,7 +292,7 @@
       "market_scale_floor": 0.5,
       "rsi_relax_max": 0.96,
       "volatility_penalty_exponent": 5.0,
-      "damping_exponent": 3.2,
+      "damping_exponent": 3.8,
       "liquidity_strict_mult": 1.1,
       "liquidity_promote_min": 0.9
     },
