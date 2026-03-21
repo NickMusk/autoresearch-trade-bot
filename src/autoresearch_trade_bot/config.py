@@ -90,6 +90,7 @@ class LLMWorkerConfig:
     campaign_refresh_interval_seconds: int = 86400
     failure_cooldown_seconds: int = 900
     timeout_failure_cooldown_seconds: int = 180
+    degraded_failure_threshold: int = 3
     openai_timeout_seconds: float = 120.0
     openai_max_retries: int = 3
     openai_retry_backoff_seconds: float = 2.0

@@ -1105,7 +1105,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             second_worker.run_cycle()
             self.assertEqual(len(campaign_calls), 2)
 
-    def test_run_forever_persists_degraded_snapshot_on_failure(self) -> None:
+    def test_run_forever_persists_transient_snapshot_on_first_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             temp_path = Path(tempdir)
             sleep_calls: list[float] = []
@@ -1153,7 +1153,8 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
             self.assertIsNotNone(snapshot)
             assert snapshot is not None
-            self.assertEqual(snapshot.loop_state, "degraded")
+            self.assertEqual(snapshot.loop_state, "transient_error")
+            self.assertEqual(snapshot.phase, "LLM autoresearch worker transient error")
             self.assertEqual(snapshot.consecutive_failures, 1)
             self.assertIn("openai_http_error:429", snapshot.research_blockers[0])
             self.assertEqual(sleep_calls, [123.0])
@@ -1199,7 +1200,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
             self.assertIsNotNone(snapshot)
             assert snapshot is not None
-            self.assertEqual(snapshot.loop_state, "degraded")
+            self.assertEqual(snapshot.loop_state, "transient_error")
             self.assertIn("OpenAI request timed out", snapshot.research_blockers[0])
             self.assertEqual(sleep_calls, [12.0])
 
@@ -1264,7 +1265,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             snapshot = store.load_snapshot()
             self.assertIsNotNone(snapshot)
             assert snapshot is not None
-            self.assertEqual(snapshot.loop_state, "degraded")
+            self.assertEqual(snapshot.loop_state, "transient_error")
             self.assertIn("OpenAI request timed out", snapshot.research_blockers[0])
             self.assertEqual(snapshot.latest_dataset_id, "campaign")
             self.assertEqual(snapshot.baseline_metrics["score"], 4.5)
@@ -1273,6 +1274,42 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 "llm-test",
             )
             self.assertEqual(sleep_calls, [15.0])
+
+    def test_failure_snapshot_becomes_degraded_after_threshold_failures(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                degraded_failure_threshold=3,
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+
+            snapshot = worker._build_failure_snapshot(  # type: ignore[attr-defined]
+                checkpoint=worker.state_store.load_llm_checkpoint().__class__(consecutive_failures=3),
+                failure_message="OpenAI request timed out",
+                previous_snapshot=None,
+            )
+
+            self.assertEqual(snapshot.loop_state, "degraded")
+            self.assertEqual(snapshot.phase, "LLM autoresearch worker degraded")
 
     def test_persist_snapshot_suppresses_publish_timeout_for_degraded_status(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

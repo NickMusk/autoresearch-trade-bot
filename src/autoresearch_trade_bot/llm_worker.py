@@ -118,7 +118,7 @@ class LLMAutoresearchWorker:
                 )
                 self._persist_snapshot(
                     snapshot,
-                    message="Publish degraded LLM autoresearch status",
+                    message="Publish LLM autoresearch failure status",
                     suppress_publish_errors=True,
                 )
                 self.sleep_fn(self._failure_cooldown_seconds(failure_message))
@@ -639,6 +639,17 @@ class LLMAutoresearchWorker:
         failure_message: str,
         previous_snapshot: ResearchStatusSnapshot | None,
     ) -> ResearchStatusSnapshot:
+        loop_state = self._failure_loop_state(checkpoint.consecutive_failures)
+        phase = (
+            "LLM autoresearch worker degraded"
+            if loop_state == "degraded"
+            else "LLM autoresearch worker transient error"
+        )
+        recovery_milestone = (
+            "Recover the worker from repeated API, repo, or campaign failures."
+            if loop_state == "degraded"
+            else "Wait for the worker to recover from the latest transient API, repo, or campaign failure."
+        )
         baseline_strategy = (
             previous_snapshot.baseline_strategy
             if previous_snapshot is not None
@@ -732,7 +743,7 @@ class LLMAutoresearchWorker:
         )
         return ResearchStatusSnapshot(
             mission="Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-            phase="LLM autoresearch worker degraded",
+            phase=phase,
             research_rollout_ready=preserved_rollout_ready,
             research_blockers=[failure_message],
             baseline_strategy=baseline_strategy,
@@ -753,9 +764,9 @@ class LLMAutoresearchWorker:
             current_best_validated_for_rollout=current_best_validated_for_rollout,
             latest_cycle_rollout_ready=False,
             next_milestones=[
-                "Recover the worker from the latest API, repo, or campaign failure.",
+                recovery_milestone,
             ],
-            loop_state="degraded",
+            loop_state=loop_state,
             latest_dataset_id=latest_dataset_id,
             latest_cycle_completed_at=latest_cycle_completed_at,
             last_processed_bar=last_processed_bar,
@@ -787,6 +798,11 @@ class LLMAutoresearchWorker:
             current_best_strategy_name=current_best_strategy_name,
             latest_kept_summary=latest_kept_summary,
         )
+
+    def _failure_loop_state(self, consecutive_failures: int) -> str:
+        if consecutive_failures >= self.config.degraded_failure_threshold:
+            return "degraded"
+        return "transient_error"
 
     def _persist_snapshot(
         self,
@@ -1031,6 +1047,9 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
         ),
         timeout_failure_cooldown_seconds=int(
             os.environ.get("AUTORESEARCH_LLM_TIMEOUT_FAILURE_COOLDOWN_SECONDS", "180")
+        ),
+        degraded_failure_threshold=int(
+            os.environ.get("AUTORESEARCH_LLM_DEGRADED_FAILURE_THRESHOLD", "3")
         ),
         openai_timeout_seconds=float(
             os.environ.get("AUTORESEARCH_LLM_OPENAI_TIMEOUT_SECONDS", "120")
