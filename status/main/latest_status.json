@@ -1,9 +1,14 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker transient error",
+  "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "OpenAI request timed out"
+    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest kept candidate still fails gate: total_return_below_gate.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
+    "Research champion passes paper metrics, but its holdout validation pass rate is still below the rollout gate.",
+    "No rollout champion has cleared holdout validation yet."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -24,17 +29,19 @@
   "current_best_ready_for_paper": true,
   "latest_cycle_rollout_ready": false,
   "next_milestones": [
-    "Wait for the worker to recover from the latest transient API, repo, or campaign failure."
+    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
+    "Accumulate multiple kept improvements in the research branch.",
+    "Promote only candidates that satisfy the hard rollout gates."
   ],
-  "loop_state": "transient_error",
+  "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t111500z",
-  "latest_cycle_completed_at": "2026-03-21T18:37:21.340191+00:00",
-  "last_processed_bar": "2026-03-21T18:35:00+00:00",
+  "latest_cycle_completed_at": "2026-03-21T18:58:27.949469+00:00",
+  "last_processed_bar": "2026-03-21T18:55:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
   "mutation_win_rate": 0.0,
-  "consecutive_failures": 1,
+  "consecutive_failures": 0,
   "current_best_validation_pass_rate": 0.3333333333333333,
   "current_best_validated_for_rollout": false,
   "current_best_validation_summary": {
@@ -132,14 +139,15 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-4021f4fb",
+      "mutation_label": "llm-dffa07f2",
       "baseline_score": 16.19917104016042,
-      "candidate_score": 0.2922134551066635,
+      "candidate_score": -1.667124836165374,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
+        "total_return_below_gate",
         "sharpe_below_gate",
         "acceptance_rate_below_gate"
       ]
@@ -237,7 +245,7 @@
       ]
     },
     {
-      "strategy_name": "llm-518d4076",
+      "strategy_name": "llm-b48a05d1",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -245,11 +253,11 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -7.339538,
+      "score": -2.641898,
       "metrics": {
         "total_return": 1.0,
-        "sharpe": 4.9e-05,
-        "max_drawdown": 8.859489,
+        "sharpe": 9.1e-05,
+        "max_drawdown": 13.556916,
         "average_turnover": 2.3e-05
       },
       "rejection_reasons": [
@@ -260,29 +268,30 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-4021f4fb",
+    "mutation_label": "llm-dffa07f2",
     "baseline_score": 16.19917104016042,
-    "candidate_score": 0.2922134551066635,
+    "candidate_score": -1.667124836165374,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
+      "total_return_below_gate",
       "sharpe_below_gate",
       "acceptance_rate_below_gate"
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v4-selective-cap-persistence-v2b",
-    "research_score": 0.2922134551066635,
+    "strategy_name": "cs-demeaned-momentum-inertia-v4-selective-cap-persistence-v2",
+    "research_score": -1.667124836165374,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 1.5505363955004015e-06,
-      "sharpe": 0.292369484566134,
-      "max_drawdown": 3.980791936353256e-05,
-      "average_turnover": 4.55046399381331e-06,
+      "total_return": -9.97485715403812e-06,
+      "sharpe": -1.6668857102258443,
+      "max_drawdown": 4.65458937187746e-05,
+      "average_turnover": 3.0680788845661174e-06,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 20
+      "nonzero_turnover_steps": 12
     },
     "train_config": {
       "gross_target": 0.06,
@@ -293,8 +302,8 @@
       "regime_threshold": 0.02,
       "top_k": 2,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.003,
-      "volatility_floor": 0.0015,
+      "min_cross_sectional_spread": 0.0015,
+      "volatility_floor": 0.002,
       "reversal_bias_weight": 0.075,
       "funding_penalty_weight": 0.0,
       "hold_bars": 160,
@@ -303,12 +312,13 @@
       "drawdown_cut": 0.16,
       "max_vol_for_full": 0.02,
       "initial_leg_fraction": 0.2,
-      "consistency_threshold": 0.45,
-      "relative_strength_threshold": 0.55,
-      "crowding_threshold": 2.0,
-      "crowding_penalty": 0.55
+      "consistency_threshold": 0.5,
+      "relative_strength_threshold": 0.6,
+      "crowding_threshold": 2.2,
+      "crowding_penalty": 0.6
     },
     "gate_failures": [
+      "total_return_below_gate",
       "sharpe_below_gate",
       "acceptance_rate_below_gate"
     ],
