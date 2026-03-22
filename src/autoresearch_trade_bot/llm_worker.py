@@ -47,6 +47,26 @@ from .state import (
 )
 
 
+def _env_flag(name: str, *, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _maybe_bootstrap_history() -> None:
+    if not _env_flag("AUTORESEARCH_LLM_BOOTSTRAP_HISTORY_ON_START"):
+        return
+    from .history_refresh import history_refresh_config_from_env, run_history_refresh_once
+
+    refresh_config = history_refresh_config_from_env()
+    run_history_refresh_once(
+        config=refresh_config,
+        lookback_days=refresh_config.full_lookback_days,
+        skip_open_interest=refresh_config.bootstrap_skip_open_interest,
+    )
+
+
 @dataclass(frozen=True)
 class LLMCycleResult:
     cycle_id: str
@@ -1328,6 +1348,7 @@ def _discover_repo_url() -> str:
 
 
 def main() -> None:
+    _maybe_bootstrap_history()
     config = llm_worker_config_from_env()
     state_store = FilesystemResearchStateStore(config.state_root)
     worker = LLMAutoresearchWorker(

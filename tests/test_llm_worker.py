@@ -8,7 +8,9 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
+import autoresearch_trade_bot.llm_worker as llm_worker_module
 from autoresearch_trade_bot.config import DataConfig, LLMWorkerConfig, ResearchTargetGate
 from autoresearch_trade_bot.llm_worker import LLMAutoresearchWorker, publisher_from_env
 from autoresearch_trade_bot.state import CycleSummary, FilesystemResearchStateStore
@@ -1462,6 +1464,36 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
         self.assertIsNotNone(publisher)
         assert publisher is not None
         self.assertEqual(publisher.base_path, "status/ema_trend")
+
+    def test_main_bootstraps_history_on_start_when_enabled(self) -> None:
+        previous = dict(os.environ)
+        try:
+            os.environ["AUTORESEARCH_LLM_BOOTSTRAP_HISTORY_ON_START"] = "1"
+            with patch("autoresearch_trade_bot.history_refresh.history_refresh_config_from_env") as mocked_config:
+                mocked_config.return_value = SimpleNamespace(
+                    full_lookback_days=365,
+                    bootstrap_skip_open_interest=True,
+                )
+                with patch("autoresearch_trade_bot.history_refresh.run_history_refresh_once") as mocked_run:
+                    with patch.object(llm_worker_module, "llm_worker_config_from_env") as mocked_worker_config:
+                        mocked_worker_config.return_value = LLMWorkerConfig(
+                            repo_url="https://example.com/repo.git"
+                        )
+                        with patch("autoresearch_trade_bot.llm_worker.FilesystemResearchStateStore"):
+                            worker_double = SimpleNamespace(run_forever=lambda: None)
+                            with patch(
+                                "autoresearch_trade_bot.llm_worker.LLMAutoresearchWorker",
+                                return_value=worker_double,
+                            ):
+                                llm_worker_module.main()
+
+            self.assertEqual(mocked_run.call_count, 1)
+            kwargs = mocked_run.call_args.kwargs
+            self.assertEqual(kwargs["lookback_days"], 365)
+            self.assertTrue(kwargs["skip_open_interest"])
+        finally:
+            os.environ.clear()
+            os.environ.update(previous)
 
 
 if __name__ == "__main__":
