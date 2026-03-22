@@ -1,9 +1,12 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker transient error",
+  "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "OpenAI request timed out"
+    "Latest LLM candidate failed validation or execution: candidate_error:UnboundLocalError.",
+    "Latest kept candidate still fails gate: candidate_error:UnboundLocalError.",
+    "Research champion passes paper metrics, but its holdout validation pass rate is still below the rollout gate.",
+    "No rollout champion has cleared holdout validation yet."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -24,17 +27,19 @@
   "current_best_ready_for_paper": true,
   "latest_cycle_rollout_ready": false,
   "next_milestones": [
-    "Wait for the worker to recover from the latest transient API, repo, or campaign failure."
+    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
+    "Accumulate multiple kept improvements in the research branch.",
+    "Promote only candidates that satisfy the hard rollout gates."
   ],
-  "loop_state": "transient_error",
+  "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t111500z",
-  "latest_cycle_completed_at": "2026-03-22T00:41:32.015378+00:00",
-  "last_processed_bar": "2026-03-22T00:40:00+00:00",
+  "latest_cycle_completed_at": "2026-03-22T01:08:42.106189+00:00",
+  "last_processed_bar": "2026-03-22T01:05:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.9,
   "mutation_win_rate": 0.0,
-  "consecutive_failures": 1,
+  "consecutive_failures": 0,
   "current_best_validation_pass_rate": 0.0,
   "current_best_validated_for_rollout": false,
   "current_best_validation_summary": {
@@ -144,16 +149,18 @@
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-bybit-linear-5m-20260321t111500z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_screen",
-      "stage": "screen",
-      "mutation_label": "llm-b31a2e55",
+      "decision": "discard_error",
+      "stage": "validation",
+      "mutation_label": "llm-47fde059",
       "baseline_score": 16.522126581816575,
-      "candidate_score": 9.784506517888863,
+      "candidate_score": -Infinity,
       "kept_commit": null,
-      "failure_reason": "",
+      "failure_reason": "candidate_error:UnboundLocalError",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": []
+      "gate_failures": [
+        "candidate_error:UnboundLocalError"
+      ]
     },
     "baseline_strategy_name": "cs-demeaned-momentum-inertia-v6-selective-cap-persistence",
     "baseline_score": 16.522126581816575,
@@ -168,7 +175,7 @@
   },
   "leaderboard": [
     {
-      "strategy_name": "llm-fa84a811",
+      "strategy_name": "llm-47fde059",
       "params": {
         "decision": "discard_error",
         "provider_name": "llm",
@@ -184,7 +191,7 @@
         "average_turnover": 1.0
       },
       "rejection_reasons": [
-        "[\"no_op_train_config\"]"
+        "[\"candidate_error:UnboundLocalError\"]"
       ]
     },
     {
@@ -269,57 +276,38 @@
     }
   ],
   "latest_decision": {
-    "decision": "discard_screen",
-    "stage": "screen",
-    "mutation_label": "llm-b31a2e55",
+    "decision": "discard_error",
+    "stage": "validation",
+    "mutation_label": "llm-47fde059",
     "baseline_score": 16.522126581816575,
-    "candidate_score": 9.784506517888863,
+    "candidate_score": -Infinity,
     "kept_commit": null,
-    "failure_reason": "",
+    "failure_reason": "candidate_error:UnboundLocalError",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "gate_failures": []
+    "gate_failures": [
+      "candidate_error:UnboundLocalError"
+    ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v6-selective-cap-persistence-2",
-    "research_score": 9.784506517888863,
-    "ready_for_paper": true,
+    "strategy_name": "invalid-candidate",
+    "research_score": -Infinity,
+    "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 1.886709953335952e-05,
-      "sharpe": 9.784456503659245,
-      "max_drawdown": 1.071966174015504e-05,
-      "average_turnover": 1.442621087335353e-06,
-      "bars_processed": 2015,
-      "nonzero_turnover_steps": 18
+      "total_return": 0.0,
+      "sharpe": 0.0,
+      "max_drawdown": 1.0,
+      "average_turnover": 0.0,
+      "bars_processed": 0,
+      "nonzero_turnover_steps": 0
     },
-    "train_config": {
-      "gross_target": 0.06,
-      "lookback_bars": 30,
-      "min_signal_strength": 0.065,
-      "ranking_mode": "risk_adjusted",
-      "regime_lookback_bars": 60,
-      "regime_threshold": 0.02,
-      "top_k": 2,
-      "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.006,
-      "volatility_floor": 0.0012,
-      "reversal_bias_weight": 0.075,
-      "funding_penalty_weight": 0.0,
-      "hold_bars": 160,
-      "turn_threshold": 0.06,
-      "drawdown_reduce": 0.08,
-      "drawdown_cut": 0.16,
-      "max_vol_for_full": 0.02,
-      "initial_leg_fraction": 0.06,
-      "consistency_threshold": 0.45,
-      "relative_strength_threshold": 0.5,
-      "crowding_threshold": 2.2,
-      "crowding_penalty": 0.65
-    },
-    "gate_failures": [],
+    "train_config": {},
+    "gate_failures": [
+      "candidate_error:UnboundLocalError"
+    ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "failure_reason": ""
+    "failure_reason": "candidate_error:UnboundLocalError"
   },
   "current_best_strategy_name": "cs-demeaned-momentum-inertia-v6-selective-cap-persistence",
   "latest_kept_summary": {}
