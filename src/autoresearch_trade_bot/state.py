@@ -134,8 +134,10 @@ class WorkerCheckpoint:
 class LLMWorkerCheckpoint:
     last_cycle_completed_at: datetime | None = None
     last_campaign_refreshed_at: datetime | None = None
-    last_validation_completed_at: datetime | None = None
-    last_validation_campaign_refreshed_at: datetime | None = None
+    last_fast_validation_completed_at: datetime | None = None
+    last_fast_validation_campaign_refreshed_at: datetime | None = None
+    last_rollout_validation_completed_at: datetime | None = None
+    last_rollout_validation_campaign_refreshed_at: datetime | None = None
     consecutive_failures: int = 0
 
     def to_dict(self) -> dict[str, Any]:
@@ -146,10 +148,20 @@ class LLMWorkerCheckpoint:
             payload["last_cycle_completed_at"] = self.last_cycle_completed_at.isoformat()
         if self.last_campaign_refreshed_at is not None:
             payload["last_campaign_refreshed_at"] = self.last_campaign_refreshed_at.isoformat()
-        if self.last_validation_completed_at is not None:
-            payload["last_validation_completed_at"] = self.last_validation_completed_at.isoformat()
-        if self.last_validation_campaign_refreshed_at is not None:
-            payload["last_validation_campaign_refreshed_at"] = self.last_validation_campaign_refreshed_at.isoformat()
+        if self.last_fast_validation_completed_at is not None:
+            payload["last_fast_validation_completed_at"] = self.last_fast_validation_completed_at.isoformat()
+        if self.last_fast_validation_campaign_refreshed_at is not None:
+            payload["last_fast_validation_campaign_refreshed_at"] = (
+                self.last_fast_validation_campaign_refreshed_at.isoformat()
+            )
+        if self.last_rollout_validation_completed_at is not None:
+            payload["last_rollout_validation_completed_at"] = (
+                self.last_rollout_validation_completed_at.isoformat()
+            )
+        if self.last_rollout_validation_campaign_refreshed_at is not None:
+            payload["last_rollout_validation_campaign_refreshed_at"] = (
+                self.last_rollout_validation_campaign_refreshed_at.isoformat()
+            )
         return payload
 
     @classmethod
@@ -165,14 +177,35 @@ class LLMWorkerCheckpoint:
                 if payload.get("last_campaign_refreshed_at")
                 else None
             ),
-            last_validation_completed_at=(
-                _ensure_utc(datetime.fromisoformat(payload["last_validation_completed_at"]))
-                if payload.get("last_validation_completed_at")
+            last_fast_validation_completed_at=(
+                _ensure_utc(
+                    datetime.fromisoformat(
+                        payload.get("last_fast_validation_completed_at")
+                        or payload["last_validation_completed_at"]
+                    )
+                )
+                if payload.get("last_fast_validation_completed_at") or payload.get("last_validation_completed_at")
                 else None
             ),
-            last_validation_campaign_refreshed_at=(
-                _ensure_utc(datetime.fromisoformat(payload["last_validation_campaign_refreshed_at"]))
-                if payload.get("last_validation_campaign_refreshed_at")
+            last_fast_validation_campaign_refreshed_at=(
+                _ensure_utc(
+                    datetime.fromisoformat(
+                        payload.get("last_fast_validation_campaign_refreshed_at")
+                        or payload["last_validation_campaign_refreshed_at"]
+                    )
+                )
+                if payload.get("last_fast_validation_campaign_refreshed_at")
+                or payload.get("last_validation_campaign_refreshed_at")
+                else None
+            ),
+            last_rollout_validation_completed_at=(
+                _ensure_utc(datetime.fromisoformat(payload["last_rollout_validation_completed_at"]))
+                if payload.get("last_rollout_validation_completed_at")
+                else None
+            ),
+            last_rollout_validation_campaign_refreshed_at=(
+                _ensure_utc(datetime.fromisoformat(payload["last_rollout_validation_campaign_refreshed_at"]))
+                if payload.get("last_rollout_validation_campaign_refreshed_at")
                 else None
             ),
             consecutive_failures=int(payload.get("consecutive_failures", 0)),
@@ -200,9 +233,12 @@ class ResearchStatusSnapshot:
     generation_validity_rate: float = 0.0
     mutation_win_rate: float = 0.0
     current_best_ready_for_paper: bool = False
+    current_best_fast_validation_pass_rate: float = 0.0
+    current_best_fast_holdout_passed: bool = False
     current_best_validation_pass_rate: float = 0.0
     current_best_validated_for_rollout: bool = False
     latest_cycle_rollout_ready: bool = False
+    current_best_fast_validation_summary: dict[str, Any] = field(default_factory=dict)
     current_best_validation_summary: dict[str, Any] = field(default_factory=dict)
     research_champion_summary: dict[str, Any] = field(default_factory=dict)
     rollout_champion_summary: dict[str, Any] = field(default_factory=dict)
@@ -236,8 +272,11 @@ class ResearchStatusSnapshot:
             "generation_validity_rate": self.generation_validity_rate,
             "mutation_win_rate": self.mutation_win_rate,
             "consecutive_failures": self.consecutive_failures,
+            "current_best_fast_validation_pass_rate": self.current_best_fast_validation_pass_rate,
+            "current_best_fast_holdout_passed": self.current_best_fast_holdout_passed,
             "current_best_validation_pass_rate": self.current_best_validation_pass_rate,
             "current_best_validated_for_rollout": self.current_best_validated_for_rollout,
+            "current_best_fast_validation_summary": dict(self.current_best_fast_validation_summary),
             "current_best_validation_summary": dict(self.current_best_validation_summary),
             "research_champion_summary": dict(self.research_champion_summary),
             "rollout_champion_summary": dict(self.rollout_champion_summary),
@@ -279,8 +318,23 @@ class ResearchStatusSnapshot:
             generation_validity_rate=float(payload.get("generation_validity_rate", 0.0)),
             mutation_win_rate=float(payload.get("mutation_win_rate", payload.get("evaluation_acceptance_rate", payload.get("recent_acceptance_rate", 0.0)))),
             consecutive_failures=int(payload.get("consecutive_failures", 0)),
+            current_best_fast_validation_pass_rate=float(
+                payload.get(
+                    "current_best_fast_validation_pass_rate",
+                    payload.get("current_best_validation_pass_rate", 0.0),
+                )
+            ),
+            current_best_fast_holdout_passed=bool(
+                payload.get(
+                    "current_best_fast_holdout_passed",
+                    payload.get("current_best_validated_for_rollout", payload.get("accepted_for_paper", False)),
+                )
+            ),
             current_best_validation_pass_rate=float(payload.get("current_best_validation_pass_rate", 0.0)),
             current_best_validated_for_rollout=bool(payload.get("current_best_validated_for_rollout", payload.get("accepted_for_paper", False))),
+            current_best_fast_validation_summary=dict(
+                payload.get("current_best_fast_validation_summary", {})
+            ),
             current_best_validation_summary=dict(payload.get("current_best_validation_summary", {})),
             research_champion_summary=dict(payload.get("research_champion_summary", {})),
             rollout_champion_summary=dict(payload.get("rollout_champion_summary", {})),
@@ -328,7 +382,7 @@ class FilesystemResearchStateStore:
 
     @property
     def validation_cache_path(self) -> Path:
-        return self.root / "current_best_validation_cache.json"
+        return self.root / "validation_cache.json"
 
     @property
     def candidate_registry_path(self) -> Path:
@@ -376,9 +430,13 @@ class FilesystemResearchStateStore:
         return self._write_json(self.llm_checkpoint_path, checkpoint.to_dict())
 
     def load_validation_cache(self) -> dict[str, dict[str, Any]]:
-        if not self.validation_cache_path.exists():
-            return {}
-        payload = json.loads(self.validation_cache_path.read_text(encoding="utf-8"))
+        path = self.validation_cache_path
+        if not path.exists():
+            legacy_path = self.root / "current_best_validation_cache.json"
+            if not legacy_path.exists():
+                return {}
+            path = legacy_path
+        payload = json.loads(path.read_text(encoding="utf-8"))
         return {
             str(key): dict(value)
             for key, value in payload.get("entries", {}).items()

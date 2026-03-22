@@ -87,7 +87,11 @@ class FilesystemResearchStateStoreTests(unittest.TestCase):
                 "candidate-1": {
                     "strategy_name": "stable-rollout",
                     "research_score": 5.0,
-                    "latest_validation_summary": {
+                    "latest_fast_validation_summary": {
+                        "validation_pass_rate": 1.0,
+                        "passes_stage_gate": True,
+                    },
+                    "latest_rollout_validation_summary": {
                         "validation_pass_rate": 0.9,
                         "validated_for_rollout": True,
                     },

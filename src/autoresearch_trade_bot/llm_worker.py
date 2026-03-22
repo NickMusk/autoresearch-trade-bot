@@ -24,10 +24,13 @@ from .datasets import timeframe_to_timedelta
 from .family_wave import ensure_family_branch_seeded
 from .mutations import load_recent_results, run_llm_mutation_campaign
 from .rollout import (
+    FAST_VALIDATION_STAGE,
+    ROLLOUT_VALIDATION_STAGE,
     build_research_champion_summary,
     build_rollout_champion_summary,
     build_rollout_shortlist_summary,
     candidate_key,
+    latest_validation_summary,
     paper_gate_failures,
     record_candidate_validation,
     select_rollout_champion,
@@ -58,8 +61,11 @@ class LLMCycleResult:
     mutation_win_rate: float
     latest_cycle_rollout_ready: bool
     current_best_ready_for_paper: bool
+    current_best_fast_validation_pass_rate: float
+    current_best_fast_holdout_passed: bool
     current_best_validation_pass_rate: float
     current_best_validated_for_rollout: bool
+    current_best_fast_validation_summary: dict[str, object]
     current_best_validation_summary: dict[str, object]
     research_champion_summary: dict[str, object]
     rollout_champion_summary: dict[str, object]
@@ -106,8 +112,10 @@ class LLMAutoresearchWorker:
                 failed_checkpoint = LLMWorkerCheckpoint(
                     last_cycle_completed_at=checkpoint.last_cycle_completed_at,
                     last_campaign_refreshed_at=checkpoint.last_campaign_refreshed_at,
-                    last_validation_completed_at=checkpoint.last_validation_completed_at,
-                    last_validation_campaign_refreshed_at=checkpoint.last_validation_campaign_refreshed_at,
+                    last_fast_validation_completed_at=checkpoint.last_fast_validation_completed_at,
+                    last_fast_validation_campaign_refreshed_at=checkpoint.last_fast_validation_campaign_refreshed_at,
+                    last_rollout_validation_completed_at=checkpoint.last_rollout_validation_completed_at,
+                    last_rollout_validation_campaign_refreshed_at=checkpoint.last_rollout_validation_campaign_refreshed_at,
                     consecutive_failures=checkpoint.consecutive_failures + 1,
                 )
                 self.state_store.save_llm_checkpoint(failed_checkpoint)
@@ -135,9 +143,15 @@ class LLMAutoresearchWorker:
             latest_closed_bar=latest_closed_bar,
             checkpoint=checkpoint,
         )
-        validation_campaign_path, refreshed_validation_campaign = self._ensure_validation_campaign(
+        fast_validation_campaign_path, refreshed_fast_validation_campaign = self._ensure_validation_campaign(
             latest_closed_bar=latest_closed_bar,
             checkpoint=checkpoint,
+            stage=FAST_VALIDATION_STAGE,
+        )
+        rollout_validation_campaign_path, refreshed_rollout_validation_campaign = self._ensure_validation_campaign(
+            latest_closed_bar=latest_closed_bar,
+            checkpoint=checkpoint,
+            stage=ROLLOUT_VALIDATION_STAGE,
         )
         decisions = self.llm_runner(
             campaign_path=campaign_path,
@@ -154,11 +168,13 @@ class LLMAutoresearchWorker:
         latest_decision = decisions[-1]
         cycle_result = self._record_cycle(
             campaign_path=campaign_path,
-            validation_campaign_path=validation_campaign_path,
+            fast_validation_campaign_path=fast_validation_campaign_path,
+            rollout_validation_campaign_path=rollout_validation_campaign_path,
             latest_closed_bar=latest_closed_bar,
             cycle_now=cycle_now,
             refreshed_campaign=refreshed_campaign,
-            refreshed_validation_campaign=refreshed_validation_campaign,
+            refreshed_fast_validation_campaign=refreshed_fast_validation_campaign,
+            refreshed_rollout_validation_campaign=refreshed_rollout_validation_campaign,
             checkpoint=checkpoint,
             latest_decision=latest_decision,
         )
@@ -167,15 +183,25 @@ class LLMAutoresearchWorker:
             last_campaign_refreshed_at=(
                 latest_closed_bar if refreshed_campaign else checkpoint.last_campaign_refreshed_at
             ),
-            last_validation_completed_at=(
+            last_fast_validation_completed_at=(
+                latest_closed_bar
+                if cycle_result.current_best_fast_validation_summary
+                else checkpoint.last_fast_validation_completed_at
+            ),
+            last_fast_validation_campaign_refreshed_at=(
+                latest_closed_bar
+                if refreshed_fast_validation_campaign
+                else checkpoint.last_fast_validation_campaign_refreshed_at
+            ),
+            last_rollout_validation_completed_at=(
                 latest_closed_bar
                 if cycle_result.current_best_validation_summary
-                else checkpoint.last_validation_completed_at
+                else checkpoint.last_rollout_validation_completed_at
             ),
-            last_validation_campaign_refreshed_at=(
+            last_rollout_validation_campaign_refreshed_at=(
                 latest_closed_bar
-                if refreshed_validation_campaign
-                else checkpoint.last_validation_campaign_refreshed_at
+                if refreshed_rollout_validation_campaign
+                else checkpoint.last_rollout_validation_campaign_refreshed_at
             ),
             consecutive_failures=0,
         )
@@ -255,12 +281,36 @@ class LLMAutoresearchWorker:
         *,
         latest_closed_bar: datetime,
         checkpoint: LLMWorkerCheckpoint,
+        stage: str,
     ) -> tuple[Path, bool]:
-        active_pointer = Path(self.config.validation_active_campaign_path)
+        if stage == FAST_VALIDATION_STAGE:
+            active_pointer = Path(self.config.fast_validation_active_campaign_path)
+            refresh_interval_seconds = self.config.fast_validation_refresh_interval_seconds
+            campaigns_root = self.config.fast_validation_campaigns_root
+            last_refreshed_at = checkpoint.last_fast_validation_campaign_refreshed_at
+            validation_anchor_end = latest_closed_bar - timedelta(
+                days=self.config.history_window_days * max(self.config.campaign_window_count, 1)
+            )
+            window_days = self.config.fast_validation_window_days
+            window_count = self.config.fast_validation_window_count
+            campaign_suffix = "holdout"
+        elif stage == ROLLOUT_VALIDATION_STAGE:
+            active_pointer = Path(self.config.rollout_validation_active_campaign_path)
+            refresh_interval_seconds = self.config.rollout_validation_refresh_interval_seconds
+            campaigns_root = self.config.rollout_validation_campaigns_root
+            last_refreshed_at = checkpoint.last_rollout_validation_campaign_refreshed_at
+            validation_anchor_end = latest_closed_bar - timedelta(
+                days=self.config.history_window_days * max(self.config.campaign_window_count, 1)
+            )
+            window_days = self.config.rollout_validation_window_days
+            window_count = self.config.rollout_validation_window_count
+            campaign_suffix = "rollout"
+        else:
+            raise ValueError(f"unsupported validation stage: {stage}")
         refresh_due = (
-            checkpoint.last_validation_campaign_refreshed_at is None
-            or (latest_closed_bar - checkpoint.last_validation_campaign_refreshed_at).total_seconds()
-            >= self.config.validation_refresh_interval_seconds
+            last_refreshed_at is None
+            or (latest_closed_bar - last_refreshed_at).total_seconds()
+            >= refresh_interval_seconds
             or not active_pointer.exists()
         )
         if not refresh_due:
@@ -270,12 +320,9 @@ class LLMAutoresearchWorker:
         if not refresh_due:
             return (resolved_path, False)
 
-        validation_anchor_end = latest_closed_bar - timedelta(
-            days=self.config.history_window_days * max(self.config.campaign_window_count, 1)
-        )
         campaign_name = (
             f"render-{self.config.data_config.exchange}-{self.config.data_config.market}-"
-            f"{self.config.data_config.timeframe}-holdout-{validation_anchor_end.strftime('%Y%m%dT%H%M%SZ')}"
+            f"{self.config.data_config.timeframe}-{campaign_suffix}-{validation_anchor_end.strftime('%Y%m%dT%H%M%SZ')}"
         )
         campaign_path = self.campaign_preparer(
             campaign_name=campaign_name,
@@ -284,11 +331,11 @@ class LLMAutoresearchWorker:
             timeframe=self.config.data_config.timeframe,
             symbols=self.config.symbols,
             anchor_end=validation_anchor_end,
-            window_days=self.config.history_window_days,
-            window_count=self.config.validation_window_count,
+            window_days=window_days,
+            window_count=window_count,
             storage_root=self.config.data_config.storage_root,
-            campaigns_root=self.config.validation_campaigns_root,
-            active_pointer_path=self.config.validation_active_campaign_path,
+            campaigns_root=campaigns_root,
+            active_pointer_path=str(active_pointer),
             target_gate=self.config.target_gate,
         )
         return campaign_path, True
@@ -339,11 +386,13 @@ class LLMAutoresearchWorker:
         self,
         *,
         campaign_path: Path,
-        validation_campaign_path: Path,
+        fast_validation_campaign_path: Path,
+        rollout_validation_campaign_path: Path,
         latest_closed_bar: datetime,
         cycle_now: datetime,
         refreshed_campaign: bool,
-        refreshed_validation_campaign: bool,
+        refreshed_fast_validation_campaign: bool,
+        refreshed_rollout_validation_campaign: bool,
         checkpoint: LLMWorkerCheckpoint,
         latest_decision,
     ) -> LLMCycleResult:
@@ -390,39 +439,74 @@ class LLMAutoresearchWorker:
             limit=self.config.rollout_candidate_shortlist_size,
         )
         force_refresh_ids = {current_best_candidate_id} if latest_decision.decision == "keep" else set()
+        rollout_certification_ids: list[str] = []
         for candidate_id in shortlist_ids:
             entry = candidate_registry.get(candidate_id)
             if entry is None:
                 continue
-            validation_summary = self._candidate_validation_summary(
-                validation_campaign_path=validation_campaign_path,
+            fast_validation_summary = self._candidate_validation_summary(
+                validation_campaign_path=fast_validation_campaign_path,
                 candidate=entry,
                 latest_closed_bar=latest_closed_bar,
-                refreshed_validation_campaign=refreshed_validation_campaign,
+                refreshed_validation_campaign=refreshed_fast_validation_campaign,
                 checkpoint=checkpoint,
                 force_refresh=candidate_id in force_refresh_ids,
+                stage=FAST_VALIDATION_STAGE,
             )
             candidate_registry = record_candidate_validation(
                 candidate_registry,
                 candidate_id=candidate_id,
-                validation_summary=validation_summary,
+                stage=FAST_VALIDATION_STAGE,
+                validation_summary=fast_validation_summary,
+            )
+            if bool(fast_validation_summary.get("passes_stage_gate", False)):
+                rollout_certification_ids.append(candidate_id)
+
+        for candidate_id in rollout_certification_ids[: self.config.rollout_candidate_shortlist_size]:
+            entry = candidate_registry.get(candidate_id)
+            if entry is None:
+                continue
+            rollout_validation_summary = self._candidate_validation_summary(
+                validation_campaign_path=rollout_validation_campaign_path,
+                candidate=entry,
+                latest_closed_bar=latest_closed_bar,
+                refreshed_validation_campaign=refreshed_rollout_validation_campaign,
+                checkpoint=checkpoint,
+                force_refresh=candidate_id in force_refresh_ids,
+                stage=ROLLOUT_VALIDATION_STAGE,
+            )
+            candidate_registry = record_candidate_validation(
+                candidate_registry,
+                candidate_id=candidate_id,
+                stage=ROLLOUT_VALIDATION_STAGE,
+                validation_summary=rollout_validation_summary,
             )
         self.state_store.save_candidate_registry(candidate_registry)
         current_best_entry = candidate_registry.get(current_best_candidate_id, {})
-        validation_summary = dict(current_best_entry.get("latest_validation_summary", {}))
+        fast_validation_summary = latest_validation_summary(current_best_entry, FAST_VALIDATION_STAGE)
+        rollout_validation_summary = latest_validation_summary(current_best_entry, ROLLOUT_VALIDATION_STAGE)
         rollout_champion = select_rollout_champion(candidate_registry)
         research_champion_summary = build_research_champion_summary(
             current_best_report,
-            validation_summary=validation_summary,
+            fast_validation_summary=fast_validation_summary,
+            rollout_validation_summary=rollout_validation_summary,
         )
         rollout_champion_summary = build_rollout_champion_summary(rollout_champion)
         rollout_candidate_shortlist = build_rollout_shortlist_summary(
             candidate_registry,
-            candidate_ids=shortlist_ids,
+            candidate_ids=rollout_certification_ids[: self.config.rollout_candidate_shortlist_size],
         )
         current_best_ready_for_paper = bool(research_champion_summary.get("paper_gate_ready", False))
-        current_best_validation_pass_rate = float(validation_summary.get("validation_pass_rate", 0.0))
-        current_best_validated_for_rollout = bool(validation_summary.get("validated_for_rollout", False))
+        current_best_fast_validation_pass_rate = float(
+            fast_validation_summary.get("validation_pass_rate", 0.0)
+        )
+        current_best_fast_holdout_passed = bool(fast_validation_summary.get("passes_stage_gate", False))
+        current_best_validation_pass_rate = float(
+            rollout_validation_summary.get("validation_pass_rate", 0.0)
+        )
+        current_best_validated_for_rollout = bool(
+            rollout_validation_summary.get("validated_for_rollout", False)
+        )
         latest_cycle_rollout_ready = (
             latest_decision.decision == "keep" and current_best_validated_for_rollout
         )
@@ -457,9 +541,12 @@ class LLMAutoresearchWorker:
             mutation_win_rate=mutation_win_rate,
             latest_cycle_rollout_ready=latest_cycle_rollout_ready,
             current_best_ready_for_paper=current_best_ready_for_paper,
+            current_best_fast_validation_pass_rate=current_best_fast_validation_pass_rate,
+            current_best_fast_holdout_passed=current_best_fast_holdout_passed,
             current_best_validation_pass_rate=current_best_validation_pass_rate,
             current_best_validated_for_rollout=current_best_validated_for_rollout,
-            current_best_validation_summary=validation_summary,
+            current_best_fast_validation_summary=fast_validation_summary,
+            current_best_validation_summary=rollout_validation_summary,
             research_champion_summary=research_champion_summary,
             rollout_champion_summary=rollout_champion_summary,
             rollout_candidate_shortlist=rollout_candidate_shortlist,
@@ -537,10 +624,17 @@ class LLMAutoresearchWorker:
                 )
             if (
                 cycle_result.current_best_ready_for_paper
+                and not cycle_result.current_best_fast_holdout_passed
+            ):
+                blockers.append(
+                    "Research champion passes paper metrics, but it still has not cleared the fast holdout screen."
+                )
+            if (
+                cycle_result.current_best_fast_holdout_passed
                 and not cycle_result.current_best_validated_for_rollout
             ):
                 blockers.append(
-                    "Research champion passes paper metrics, but its holdout validation pass rate is still below the rollout gate."
+                    "Research champion cleared fast holdout, but its rollout certification pass rate is still below the rollout gate."
                 )
             if not cycle_result.rollout_champion_summary:
                 blockers.append("No rollout champion has cleared holdout validation yet.")
@@ -569,6 +663,8 @@ class LLMAutoresearchWorker:
             },
             accepted_for_paper=cycle_result.research_rollout_ready,
             current_best_ready_for_paper=cycle_result.current_best_ready_for_paper,
+            current_best_fast_validation_pass_rate=cycle_result.current_best_fast_validation_pass_rate,
+            current_best_fast_holdout_passed=cycle_result.current_best_fast_holdout_passed,
             current_best_validation_pass_rate=cycle_result.current_best_validation_pass_rate,
             current_best_validated_for_rollout=cycle_result.current_best_validated_for_rollout,
             latest_cycle_rollout_ready=cycle_result.latest_cycle_rollout_ready,
@@ -586,6 +682,7 @@ class LLMAutoresearchWorker:
             generation_validity_rate=cycle_result.generation_validity_rate,
             mutation_win_rate=cycle_result.mutation_win_rate,
             consecutive_failures=checkpoint.consecutive_failures,
+            current_best_fast_validation_summary=cycle_result.current_best_fast_validation_summary,
             current_best_validation_summary=cycle_result.current_best_validation_summary,
             research_champion_summary=cycle_result.research_champion_summary,
             rollout_champion_summary=cycle_result.rollout_champion_summary,
@@ -599,6 +696,8 @@ class LLMAutoresearchWorker:
                 "model_name": report["model_name"],
                 "provider_name": report["provider_name"],
                 "current_best_ready_for_paper": cycle_result.current_best_ready_for_paper,
+                "current_best_fast_validation_pass_rate": cycle_result.current_best_fast_validation_pass_rate,
+                "current_best_fast_holdout_passed": cycle_result.current_best_fast_holdout_passed,
                 "current_best_validation_pass_rate": cycle_result.current_best_validation_pass_rate,
                 "current_best_validated_for_rollout": cycle_result.current_best_validated_for_rollout,
                 "latest_cycle_rollout_ready": cycle_result.latest_cycle_rollout_ready,
@@ -723,6 +822,16 @@ class LLMAutoresearchWorker:
             if previous_snapshot is not None
             else False
         )
+        current_best_fast_validation_pass_rate = (
+            previous_snapshot.current_best_fast_validation_pass_rate
+            if previous_snapshot is not None
+            else 0.0
+        )
+        current_best_fast_holdout_passed = (
+            previous_snapshot.current_best_fast_holdout_passed
+            if previous_snapshot is not None
+            else False
+        )
         current_best_validation_pass_rate = (
             previous_snapshot.current_best_validation_pass_rate
             if previous_snapshot is not None
@@ -732,6 +841,11 @@ class LLMAutoresearchWorker:
             previous_snapshot.current_best_validated_for_rollout
             if previous_snapshot is not None
             else False
+        )
+        current_best_fast_validation_summary = (
+            dict(previous_snapshot.current_best_fast_validation_summary)
+            if previous_snapshot is not None
+            else {}
         )
         current_best_validation_summary = (
             dict(previous_snapshot.current_best_validation_summary)
@@ -760,6 +874,8 @@ class LLMAutoresearchWorker:
                 else current_best_validated_for_rollout
             ),
             current_best_ready_for_paper=current_best_ready_for_paper,
+            current_best_fast_validation_pass_rate=current_best_fast_validation_pass_rate,
+            current_best_fast_holdout_passed=current_best_fast_holdout_passed,
             current_best_validation_pass_rate=current_best_validation_pass_rate,
             current_best_validated_for_rollout=current_best_validated_for_rollout,
             latest_cycle_rollout_ready=False,
@@ -775,6 +891,7 @@ class LLMAutoresearchWorker:
             generation_validity_rate=generation_validity_rate,
             mutation_win_rate=mutation_win_rate,
             consecutive_failures=checkpoint.consecutive_failures,
+            current_best_fast_validation_summary=current_best_fast_validation_summary,
             current_best_validation_summary=current_best_validation_summary,
             research_champion_summary=(
                 dict(previous_snapshot.research_champion_summary)
@@ -931,17 +1048,33 @@ class LLMAutoresearchWorker:
         refreshed_validation_campaign: bool,
         checkpoint: LLMWorkerCheckpoint,
         force_refresh: bool,
+        stage: str,
     ) -> dict[str, object]:
         candidate_train_sha1 = str(candidate.get("train_sha1", ""))
         candidate_git_commit = str(candidate.get("git_commit", ""))
-        cache_key = f"{candidate_key(train_sha1=candidate_train_sha1, git_commit=candidate_git_commit, strategy_name=str(candidate.get('strategy_name', '')))}:{Path(validation_campaign_path).stem}"
+        cache_key = (
+            f"{stage}:{candidate_key(train_sha1=candidate_train_sha1, git_commit=candidate_git_commit, strategy_name=str(candidate.get('strategy_name', '')))}:"
+            f"{Path(validation_campaign_path).stem}"
+        )
         cache = self.state_store.load_validation_cache()
+        if stage == FAST_VALIDATION_STAGE:
+            refresh_interval_seconds = self.config.fast_validation_refresh_interval_seconds
+            last_completed_at = checkpoint.last_fast_validation_completed_at
+            evaluation_stage = "validation_holdout"
+            passes_key = "passes_stage_gate"
+        elif stage == ROLLOUT_VALIDATION_STAGE:
+            refresh_interval_seconds = self.config.rollout_validation_refresh_interval_seconds
+            last_completed_at = checkpoint.last_rollout_validation_completed_at
+            evaluation_stage = "rollout_certification"
+            passes_key = "validated_for_rollout"
+        else:
+            raise ValueError(f"unsupported validation stage: {stage}")
         refresh_due = (
             force_refresh
             or refreshed_validation_campaign
-            or checkpoint.last_validation_completed_at is None
-            or (latest_closed_bar - checkpoint.last_validation_completed_at).total_seconds()
-            >= self.config.validation_refresh_interval_seconds
+            or last_completed_at is None
+            or (latest_closed_bar - last_completed_at).total_seconds()
+            >= refresh_interval_seconds
             or cache_key not in cache
         )
         if not refresh_due:
@@ -951,7 +1084,7 @@ class LLMAutoresearchWorker:
             campaign_path=validation_campaign_path,
             train_path=self._candidate_train_path(candidate=candidate),
             artifact_root=Path(self.config.artifact_root) / "validation",
-            stage="validation_holdout",
+            stage=evaluation_stage,
             mutation_label="current-best-validation",
             provider_name="validation",
             model_name="",
@@ -968,9 +1101,10 @@ class LLMAutoresearchWorker:
             "strategy_name": validation_report.strategy_name,
             "git_commit": validation_report.git_commit,
             "train_sha1": validation_report.train_sha1,
+            "stage": stage,
             "validation_pass_rate": validation_pass_rate,
             "paper_ready": not validation_paper_gate_failures,
-            "validated_for_rollout": (
+            passes_key: (
                 not validation_paper_gate_failures
                 and validation_pass_rate >= self.config.target_gate.min_acceptance_rate
             ),
@@ -981,6 +1115,10 @@ class LLMAutoresearchWorker:
             "average_metrics": dict(validation_report.average_metrics),
             "artifact_path": validation_report.artifact_path,
         }
+        if stage == FAST_VALIDATION_STAGE:
+            summary["validated_for_rollout"] = False
+        else:
+            summary["passes_stage_gate"] = bool(summary["validated_for_rollout"])
         cache[cache_key] = summary
         self.state_store.save_validation_cache(cache)
         return summary
@@ -1017,6 +1155,28 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
     active_campaign_path = os.environ.get(
         "AUTORESEARCH_LLM_ACTIVE_CAMPAIGN_PATH",
         "/var/data/autoresearch/llm/active_campaign.txt",
+    )
+    fast_validation_campaigns_root = os.environ.get(
+        "AUTORESEARCH_LLM_FAST_VALIDATION_CAMPAIGNS_ROOT",
+        os.environ.get(
+            "AUTORESEARCH_LLM_VALIDATION_CAMPAIGNS_ROOT",
+            f"{campaigns_root.rstrip('/')}/validation",
+        ),
+    )
+    fast_validation_active_campaign_path = os.environ.get(
+        "AUTORESEARCH_LLM_FAST_VALIDATION_ACTIVE_CAMPAIGN_PATH",
+        os.environ.get(
+            "AUTORESEARCH_LLM_VALIDATION_ACTIVE_CAMPAIGN_PATH",
+            "/var/data/autoresearch/llm/validation_active_campaign.txt",
+        ),
+    )
+    rollout_validation_campaigns_root = os.environ.get(
+        "AUTORESEARCH_LLM_ROLLOUT_VALIDATION_CAMPAIGNS_ROOT",
+        f"{campaigns_root.rstrip('/')}/rollout_validation",
+    )
+    rollout_validation_active_campaign_path = os.environ.get(
+        "AUTORESEARCH_LLM_ROLLOUT_VALIDATION_ACTIVE_CAMPAIGN_PATH",
+        "/var/data/autoresearch/llm/rollout_validation_active_campaign.txt",
     )
     worktrees_root = os.environ.get("AUTORESEARCH_LLM_WORKTREES_ROOT", "/var/data/autoresearch/llm/worktrees")
     results_path = os.environ.get("AUTORESEARCH_LLM_RESULTS_PATH", "/var/data/autoresearch/llm/results.tsv")
@@ -1068,20 +1228,39 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
         campaign_window_count=int(os.environ.get("AUTORESEARCH_LLM_CAMPAIGN_WINDOW_COUNT", "1")),
         campaigns_root=campaigns_root,
         active_campaign_path=active_campaign_path,
-        validation_window_count=int(os.environ.get("AUTORESEARCH_LLM_VALIDATION_WINDOW_COUNT", "3")),
-        validation_refresh_interval_seconds=int(
-            os.environ.get("AUTORESEARCH_LLM_VALIDATION_REFRESH_INTERVAL_SECONDS", "14400")
+        fast_validation_window_days=int(
+            os.environ.get(
+                "AUTORESEARCH_LLM_FAST_VALIDATION_WINDOW_DAYS",
+                os.environ.get("AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS", "7"),
+            )
         ),
-        validation_campaigns_root=os.environ.get(
-            "AUTORESEARCH_LLM_VALIDATION_CAMPAIGNS_ROOT",
-            f"{campaigns_root.rstrip('/')}/validation",
+        fast_validation_window_count=int(
+            os.environ.get(
+                "AUTORESEARCH_LLM_FAST_VALIDATION_WINDOW_COUNT",
+                os.environ.get("AUTORESEARCH_LLM_VALIDATION_WINDOW_COUNT", "3"),
+            )
         ),
-        validation_active_campaign_path=os.environ.get(
-            "AUTORESEARCH_LLM_VALIDATION_ACTIVE_CAMPAIGN_PATH",
-            "/var/data/autoresearch/llm/validation_active_campaign.txt",
+        fast_validation_refresh_interval_seconds=int(
+            os.environ.get(
+                "AUTORESEARCH_LLM_FAST_VALIDATION_REFRESH_INTERVAL_SECONDS",
+                os.environ.get("AUTORESEARCH_LLM_VALIDATION_REFRESH_INTERVAL_SECONDS", "21600"),
+            )
         ),
+        fast_validation_campaigns_root=fast_validation_campaigns_root,
+        fast_validation_active_campaign_path=fast_validation_active_campaign_path,
+        rollout_validation_window_days=int(
+            os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_DAYS", "14")
+        ),
+        rollout_validation_window_count=int(
+            os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_COUNT", "8")
+        ),
+        rollout_validation_refresh_interval_seconds=int(
+            os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_REFRESH_INTERVAL_SECONDS", "86400")
+        ),
+        rollout_validation_campaigns_root=rollout_validation_campaigns_root,
+        rollout_validation_active_campaign_path=rollout_validation_active_campaign_path,
         rollout_candidate_shortlist_size=int(
-            os.environ.get("AUTORESEARCH_LLM_ROLLOUT_CANDIDATE_SHORTLIST_SIZE", "5")
+            os.environ.get("AUTORESEARCH_LLM_ROLLOUT_CANDIDATE_SHORTLIST_SIZE", "3")
         ),
         worktrees_root=worktrees_root,
         state_root=state_root,

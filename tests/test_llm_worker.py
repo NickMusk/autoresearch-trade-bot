@@ -196,11 +196,11 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
     def test_run_cycle_creates_campaign_status_and_history(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             temp_path = Path(tempdir)
-            campaign_calls: list[str] = []
+            campaign_calls: list[dict] = []
 
             def fake_prepare_campaign(**kwargs):
                 campaign_name = kwargs["campaign_name"]
-                campaign_calls.append(campaign_name)
+                campaign_calls.append(dict(kwargs))
                 campaign_path = Path(kwargs["campaigns_root"]) / f"{campaign_name}.json"
                 campaign_path.parent.mkdir(parents=True, exist_ok=True)
                 campaign_path.write_text("{}", encoding="utf-8")
@@ -247,9 +247,14 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
 
             result = worker.run_cycle()
 
-            self.assertEqual(len(campaign_calls), 2)
-            self.assertIn("holdout", campaign_calls[1])
-            self.assertEqual(result.campaign_id, campaign_calls[0])
+            self.assertEqual(len(campaign_calls), 3)
+            self.assertIn("holdout", campaign_calls[1]["campaign_name"])
+            self.assertIn("rollout", campaign_calls[2]["campaign_name"])
+            self.assertEqual(campaign_calls[1]["window_days"], 7)
+            self.assertEqual(campaign_calls[1]["window_count"], 3)
+            self.assertEqual(campaign_calls[2]["window_days"], 14)
+            self.assertEqual(campaign_calls[2]["window_count"], 8)
+            self.assertEqual(result.campaign_id, campaign_calls[0]["campaign_name"])
             snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
             self.assertIsNotNone(snapshot)
             assert snapshot is not None
@@ -259,7 +264,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertEqual(snapshot.generation_validity_rate, 1.0)
             self.assertFalse(snapshot.current_best_ready_for_paper)
             self.assertFalse(snapshot.latest_cycle_rollout_ready)
-            self.assertEqual(snapshot.latest_dataset_id, campaign_calls[0])
+            self.assertEqual(snapshot.latest_dataset_id, campaign_calls[0]["campaign_name"])
             self.assertEqual(snapshot.multi_window_summary["latest_decision"]["decision"], "discard_screen")
             self.assertEqual(snapshot.latest_decision["decision"], "discard_screen")
             self.assertEqual(snapshot.current_best_strategy_name, "baseline-train-head")
@@ -351,11 +356,13 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertIsNotNone(snapshot)
             assert snapshot is not None
             self.assertTrue(snapshot.current_best_ready_for_paper)
-            self.assertEqual(snapshot.current_best_validation_pass_rate, 0.4)
+            self.assertEqual(snapshot.current_best_fast_validation_pass_rate, 0.4)
+            self.assertFalse(snapshot.current_best_fast_holdout_passed)
+            self.assertEqual(snapshot.current_best_validation_pass_rate, 0.0)
             self.assertFalse(snapshot.latest_cycle_rollout_ready)
             self.assertFalse(snapshot.research_rollout_ready)
             self.assertIn(
-                "holdout validation pass rate is still below the rollout gate",
+                "still has not cleared the fast holdout screen",
                 " ".join(snapshot.research_blockers),
             )
 
@@ -378,8 +385,10 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 repo_root=str(temp_path / "repo"),
                 campaigns_root=str(temp_path / "campaigns"),
                 active_campaign_path=str(temp_path / "active_campaign.txt"),
-                validation_campaigns_root=str(temp_path / "validation_campaigns"),
-                validation_active_campaign_path=str(temp_path / "validation_active_campaign.txt"),
+                fast_validation_campaigns_root=str(temp_path / "validation_campaigns"),
+                fast_validation_active_campaign_path=str(temp_path / "validation_active_campaign.txt"),
+                rollout_validation_campaigns_root=str(temp_path / "rollout_validation_campaigns"),
+                rollout_validation_active_campaign_path=str(temp_path / "rollout_validation_active_campaign.txt"),
                 worktrees_root=str(temp_path / "worktrees"),
                 state_root=str(temp_path / "state"),
                 artifact_root=str(temp_path / "artifacts"),
@@ -447,9 +456,11 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             assert snapshot is not None
             self.assertFalse(snapshot.latest_cycle_rollout_ready)
             self.assertTrue(snapshot.current_best_ready_for_paper)
+            self.assertTrue(snapshot.current_best_fast_holdout_passed)
             self.assertTrue(snapshot.current_best_validated_for_rollout)
             self.assertTrue(snapshot.research_rollout_ready)
             self.assertTrue(snapshot.accepted_for_paper)
+            self.assertEqual(snapshot.current_best_fast_validation_pass_rate, 0.75)
             self.assertEqual(snapshot.current_best_validation_pass_rate, 0.75)
             self.assertEqual(snapshot.mutation_win_rate, 0.0)
 
@@ -479,8 +490,10 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 repo_root=str(temp_path / "repo"),
                 campaigns_root=str(temp_path / "campaigns"),
                 active_campaign_path=str(temp_path / "active_campaign.txt"),
-                validation_campaigns_root=str(temp_path / "validation_campaigns"),
-                validation_active_campaign_path=str(temp_path / "validation_active_campaign.txt"),
+                fast_validation_campaigns_root=str(temp_path / "validation_campaigns"),
+                fast_validation_active_campaign_path=str(temp_path / "validation_active_campaign.txt"),
+                rollout_validation_campaigns_root=str(temp_path / "rollout_validation_campaigns"),
+                rollout_validation_active_campaign_path=str(temp_path / "rollout_validation_active_campaign.txt"),
                 worktrees_root=str(temp_path / "worktrees"),
                 state_root=str(temp_path / "state"),
                 artifact_root=str(temp_path / "artifacts"),
@@ -582,9 +595,12 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 repo_root=str(temp_path / "repo"),
                 campaigns_root=str(temp_path / "campaigns"),
                 active_campaign_path=str(temp_path / "active_campaign.txt"),
-                validation_campaigns_root=str(temp_path / "validation_campaigns"),
-                validation_active_campaign_path=str(temp_path / "validation_active_campaign.txt"),
-                validation_refresh_interval_seconds=86_400,
+                fast_validation_campaigns_root=str(temp_path / "validation_campaigns"),
+                fast_validation_active_campaign_path=str(temp_path / "validation_active_campaign.txt"),
+                fast_validation_refresh_interval_seconds=86_400,
+                rollout_validation_campaigns_root=str(temp_path / "rollout_validation_campaigns"),
+                rollout_validation_active_campaign_path=str(temp_path / "rollout_validation_active_campaign.txt"),
+                rollout_validation_refresh_interval_seconds=86_400,
                 worktrees_root=str(temp_path / "worktrees"),
                 state_root=str(temp_path / "state"),
                 artifact_root=str(temp_path / "artifacts"),
@@ -633,7 +649,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             second_worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
             second_worker.run_cycle()
 
-            self.assertEqual(validator_calls["count"], 1)
+            self.assertEqual(validator_calls["count"], 2)
 
     def test_acceptance_rate_ignores_validation_errors_but_tracks_generation_validity(self) -> None:
         history = [
@@ -1090,7 +1106,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             )
             worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
             worker.run_cycle()
-            self.assertEqual(len(campaign_calls), 2)
+            self.assertEqual(len(campaign_calls), 3)
 
             second_worker = LLMAutoresearchWorker(
                 config=config,
@@ -1103,7 +1119,7 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             )
             second_worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
             second_worker.run_cycle()
-            self.assertEqual(len(campaign_calls), 2)
+            self.assertEqual(len(campaign_calls), 3)
 
     def test_run_forever_persists_transient_snapshot_on_first_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
