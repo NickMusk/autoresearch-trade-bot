@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .autoresearch import (
@@ -16,7 +16,11 @@ from .autoresearch import (
     run_deterministic_mutation_campaign,
 )
 from .config import DataConfig
-from .data import HistoricalDatasetMaterializer
+from .data import (
+    HistoricalDatasetMaterializer,
+    find_covering_manifest,
+    find_latest_reusable_manifest,
+)
 from .datasets import DatasetSpec
 from .experiments import run_baseline_from_manifest_path
 from .family_wave import run_llm_family_wave, serialize_family_wave_results
@@ -54,6 +58,47 @@ def cmd_materialize_dataset(args: argparse.Namespace) -> int:
         default_end=spec.end,
     )
     dataset = HistoricalDatasetMaterializer.for_exchange(data_config).materialize(spec)
+    print(dataset.manifest_path)
+    return 0
+
+
+def cmd_backfill_dataset(args: argparse.Namespace) -> int:
+    market = args.market
+    exchange = args.exchange
+    if args.end:
+        end = parse_datetime(args.end)
+    else:
+        end = datetime.now(timezone.utc)
+    start = parse_datetime(args.start) if args.start else end - timedelta(days=args.lookback_days)
+    spec = DatasetSpec(
+        exchange=exchange,
+        market=market,
+        timeframe=args.timeframe,
+        start=start,
+        end=end,
+        symbols=tuple(symbol.strip().upper() for symbol in args.symbols.split(",") if symbol.strip()),
+    )
+    data_config = DataConfig(
+        exchange=exchange,
+        market=market,
+        timeframe=args.timeframe,
+        storage_root=args.storage_root,
+        default_start=spec.start,
+        default_end=spec.end,
+        min_request_interval_seconds=args.min_request_interval_seconds,
+        rate_limit_max_retries=args.rate_limit_max_retries,
+        rate_limit_backoff_seconds=args.rate_limit_backoff_seconds,
+    )
+    materializer = HistoricalDatasetMaterializer.for_exchange(data_config)
+    covering_manifest = find_covering_manifest(args.storage_root, spec, materializer.store)
+    if covering_manifest is not None:
+        print(covering_manifest)
+        return 0
+    latest_manifest = find_latest_reusable_manifest(args.storage_root, spec, materializer.store)
+    if latest_manifest is not None:
+        dataset = materializer.materialize_incremental(spec, latest_manifest)
+    else:
+        dataset = materializer.materialize(spec)
     print(dataset.manifest_path)
     return 0
 
@@ -300,6 +345,25 @@ def build_parser() -> argparse.ArgumentParser:
     materialize_bybit.add_argument("--storage-root", default="data")
     materialize_bybit.set_defaults(
         func=cmd_materialize_dataset,
+        exchange="bybit",
+        market="linear",
+    )
+
+    backfill_bybit = subparsers.add_parser(
+        "backfill-bybit-history",
+        help="Materialize or incrementally extend a local Bybit historical dataset for a long lookback window",
+    )
+    backfill_bybit.add_argument("--symbols", required=True, help="Comma-separated symbols")
+    backfill_bybit.add_argument("--timeframe", default="5m")
+    backfill_bybit.add_argument("--start")
+    backfill_bybit.add_argument("--end")
+    backfill_bybit.add_argument("--lookback-days", type=int, default=365)
+    backfill_bybit.add_argument("--storage-root", default="data")
+    backfill_bybit.add_argument("--min-request-interval-seconds", type=float, default=0.25)
+    backfill_bybit.add_argument("--rate-limit-max-retries", type=int, default=6)
+    backfill_bybit.add_argument("--rate-limit-backoff-seconds", type=float, default=2.0)
+    backfill_bybit.set_defaults(
+        func=cmd_backfill_dataset,
         exchange="bybit",
         market="linear",
     )

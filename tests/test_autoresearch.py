@@ -25,7 +25,7 @@ from autoresearch_trade_bot.autoresearch import (
 from autoresearch_trade_bot.binance import BinanceBarNormalizer
 from autoresearch_trade_bot.config import DataConfig, ResearchTargetGate
 from autoresearch_trade_bot.data import HistoricalDatasetMaterializer
-from autoresearch_trade_bot.datasets import DatasetSpec, RawSymbolHistory
+from autoresearch_trade_bot.datasets import DatasetManifest, DatasetSpec, RawSymbolHistory
 from autoresearch_trade_bot.storage import PyArrowParquetDatasetStore
 from autoresearch_trade_bot.validation import DatasetValidator
 
@@ -73,15 +73,39 @@ class SlicingHistoricalClient:
 
 class RecordingMaterializer:
     def __init__(self) -> None:
-        self.specs: list[DatasetSpec] = []
+        self.materialized_specs: list[DatasetSpec] = []
+        self.incremental_specs: list[tuple[DatasetSpec, Path]] = []
+        self.store = SimpleNamespace(read_manifest=self._read_manifest)
 
     def materialize(self, spec: DatasetSpec):
-        self.specs.append(spec)
-        path = Path(tempfile.gettempdir()) / f"{spec.dataset_id}.json"
-        path.write_text("{}", encoding="utf-8")
-        return SimpleNamespace(manifest_path=path)
+        self.materialized_specs.append(spec)
+        return SimpleNamespace(manifest_path=self._write_manifest(spec))
 
-    store = SimpleNamespace(read_manifest=lambda _path: None)
+    def materialize_incremental(self, spec: DatasetSpec, base_manifest_path: str | Path):
+        resolved_base = Path(base_manifest_path)
+        self.incremental_specs.append((spec, resolved_base))
+        return SimpleNamespace(manifest_path=self._write_manifest(spec))
+
+    def _write_manifest(self, spec: DatasetSpec) -> Path:
+        path = Path(tempfile.gettempdir()) / f"{spec.dataset_id}-manifest.json"
+        manifest = DatasetManifest(
+            dataset_id=spec.dataset_id,
+            exchange=spec.exchange,
+            market=spec.market,
+            timeframe=spec.timeframe,
+            start=spec.start,
+            end=spec.end,
+            generated_at=datetime(2026, 3, 1, 0, 0, tzinfo=timezone.utc),
+            symbols=spec.symbols,
+            files={},
+            validation_issues=[],
+        )
+        path.write_text(json.dumps(manifest.to_dict(), indent=2), encoding="utf-8")
+        return path
+
+    @staticmethod
+    def _read_manifest(path: str | Path) -> DatasetManifest:
+        return DatasetManifest.from_dict(json.loads(Path(path).read_text(encoding="utf-8")))
 
 
 class AutoresearchTests(unittest.TestCase):
@@ -113,7 +137,63 @@ class AutoresearchTests(unittest.TestCase):
             self.assertEqual(len(payload["windows"]), 2)
             self.assertEqual(Path(active_pointer.read_text(encoding="utf-8").strip()), path.resolve())
             self.assertEqual(resolve_campaign_path(None, pointer_path=active_pointer), path.resolve())
-            self.assertEqual(len(materializer.specs), 2)
+            self.assertEqual(len(materializer.materialized_specs), 2)
+
+    def test_prepare_campaign_prefers_incremental_materialization_when_partial_manifest_exists(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            materializer = RecordingMaterializer()
+            storage_root = temp_path / "data"
+            partial_spec = DatasetSpec(
+                exchange="bybit",
+                market="linear",
+                timeframe="5m",
+                start=datetime(2026, 3, 8, 0, 0, tzinfo=timezone.utc),
+                end=datetime(2026, 3, 14, 0, 0, tzinfo=timezone.utc),
+                symbols=("BTCUSDT", "ETHUSDT"),
+            )
+            partial_dir = storage_root / partial_spec.exchange / partial_spec.market / partial_spec.timeframe / partial_spec.dataset_id
+            partial_dir.mkdir(parents=True, exist_ok=True)
+            partial_manifest_path = partial_dir / "manifest.json"
+            partial_manifest = DatasetManifest(
+                dataset_id=partial_spec.dataset_id,
+                exchange=partial_spec.exchange,
+                market=partial_spec.market,
+                timeframe=partial_spec.timeframe,
+                start=partial_spec.start,
+                end=partial_spec.end,
+                generated_at=datetime(2026, 3, 14, 0, 0, tzinfo=timezone.utc),
+                symbols=partial_spec.symbols,
+                files={},
+                validation_issues=[],
+            )
+            partial_manifest_path.write_text(
+                json.dumps(partial_manifest.to_dict(), indent=2),
+                encoding="utf-8",
+            )
+
+            prepare_campaign(
+                campaign_name="Bybit Incremental",
+                exchange="bybit",
+                market="linear",
+                timeframe="5m",
+                symbols=("BTCUSDT", "ETHUSDT"),
+                anchor_end=datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc),
+                window_days=7,
+                window_count=1,
+                storage_root=str(storage_root),
+                campaigns_root=temp_path / ".autoresearch" / "campaigns",
+                active_pointer_path=temp_path / ".autoresearch" / "active_campaign.txt",
+                materializer=materializer,
+                target_gate=ResearchTargetGate(),
+            )
+
+            self.assertEqual(len(materializer.materialized_specs), 0)
+            self.assertEqual(len(materializer.incremental_specs), 1)
+            incremental_spec, base_manifest = materializer.incremental_specs[0]
+            self.assertEqual(base_manifest, partial_manifest_path)
+            self.assertEqual(incremental_spec.start, datetime(2026, 3, 8, 0, 0, tzinfo=timezone.utc))
+            self.assertEqual(incremental_spec.end, datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc))
 
     def test_evaluate_train_file_writes_artifact_and_results_row(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

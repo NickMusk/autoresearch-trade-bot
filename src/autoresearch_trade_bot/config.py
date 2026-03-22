@@ -31,6 +31,9 @@ class DataConfig:
     strict_validation: bool = True
     max_batch_size: int = 1000
     request_timeout_seconds: int = 30
+    min_request_interval_seconds: float = 0.25
+    rate_limit_max_retries: int = 6
+    rate_limit_backoff_seconds: float = 2.0
     default_start: datetime = field(
         default_factory=lambda: datetime(2025, 1, 1, tzinfo=timezone.utc)
     )

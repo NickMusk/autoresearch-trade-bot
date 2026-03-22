@@ -5,8 +5,9 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
-from autoresearch_trade_bot.bybit import BybitBarNormalizer
+from autoresearch_trade_bot.bybit import BybitBarNormalizer, BybitLinearHistoricalClient
 from autoresearch_trade_bot.config import DataConfig
 from autoresearch_trade_bot.data import HistoricalDatasetMaterializer, ManifestHistoricalDataSource
 from autoresearch_trade_bot.datasets import DatasetManifest, DatasetSpec, RawSymbolHistory
@@ -90,6 +91,20 @@ class JsonDatasetStore(DatasetStore):
 
     def read_manifest(self, path: Path) -> DatasetManifest:
         return DatasetManifest.from_dict(json.loads(path.read_text(encoding="utf-8")))
+
+
+class FakeHTTPResponse:
+    def __init__(self, payload: dict) -> None:
+        self.payload = payload
+
+    def read(self) -> bytes:
+        return json.dumps(self.payload).encode("utf-8")
+
+    def __enter__(self) -> "FakeHTTPResponse":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        return None
 
 
 class BybitDataPipelineTests(unittest.TestCase):
@@ -232,6 +247,30 @@ class BybitDataPipelineTests(unittest.TestCase):
         )
         self.assertEqual(materializer.client.__class__.__name__, "BybitLinearHistoricalClient")
         self.assertEqual(materializer.normalizer.__class__.__name__, "BybitBarNormalizer")
+
+    def test_bybit_request_retries_on_rate_limit(self) -> None:
+        client = BybitLinearHistoricalClient(
+            data_config=DataConfig(
+                exchange="bybit",
+                market="linear",
+                storage_root="data",
+                min_request_interval_seconds=0.0,
+                rate_limit_max_retries=2,
+                rate_limit_backoff_seconds=1.5,
+            )
+        )
+        responses = [
+            FakeHTTPResponse({"retCode": 10006, "retMsg": "Too many visits. Exceeded the API Rate Limit."}),
+            FakeHTTPResponse({"retCode": 0, "result": {"list": []}}),
+        ]
+
+        with patch("autoresearch_trade_bot.bybit.urlopen", side_effect=responses) as mocked_urlopen:
+            with patch("autoresearch_trade_bot.bybit.time.sleep") as mocked_sleep:
+                payload = client._request("/v5/market/kline", {"symbol": "BTCUSDT"})
+
+        self.assertEqual(payload["retCode"], 0)
+        self.assertEqual(mocked_urlopen.call_count, 2)
+        mocked_sleep.assert_called_with(1.5)
 
 
 if __name__ == "__main__":

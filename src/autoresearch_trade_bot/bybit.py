@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Callable
@@ -40,6 +41,7 @@ BYBIT_OPEN_INTEREST_INTERVAL_MAP = {
 class BybitLinearHistoricalClient:
     data_config: DataConfig
     base_url: str = "https://api.bytick.com"
+    _last_request_started_at: float = 0.0
 
     def fetch_symbol_history(self, spec: DatasetSpec, symbol: str) -> RawSymbolHistory:
         interval = self._interval_for(spec.timeframe)
@@ -207,14 +209,29 @@ class BybitLinearHistoricalClient:
     def _request(self, path: str, params: dict[str, object]) -> dict:
         query = urlencode(params)
         url = f"{self.base_url}{path}?{query}"
-        with urlopen(url, timeout=self.data_config.request_timeout_seconds) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-        if int(payload.get("retCode", 0)) != 0:
-            raise RuntimeError(
-                "Bybit request failed for %s: %s"
-                % (path, payload.get("retMsg", "unknown_error"))
-            )
-        return payload
+        for attempt in range(self.data_config.rate_limit_max_retries + 1):
+            self._sleep_until_request_allowed()
+            with urlopen(url, timeout=self.data_config.request_timeout_seconds) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            if int(payload.get("retCode", 0)) == 0:
+                return payload
+            message = str(payload.get("retMsg", "unknown_error"))
+            if "Too many visits" not in message or attempt >= self.data_config.rate_limit_max_retries:
+                raise RuntimeError(
+                    "Bybit request failed for %s: %s"
+                    % (path, message)
+                )
+            time.sleep(self.data_config.rate_limit_backoff_seconds * (attempt + 1))
+        raise RuntimeError("Bybit request retry budget exhausted")
+
+    def _sleep_until_request_allowed(self) -> None:
+        now = time.monotonic()
+        wait_seconds = self.data_config.min_request_interval_seconds - (
+            now - self._last_request_started_at
+        )
+        if wait_seconds > 0:
+            time.sleep(wait_seconds)
+        self._last_request_started_at = time.monotonic()
 
     @staticmethod
     def _interval_for(timeframe: str) -> str:

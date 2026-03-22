@@ -559,7 +559,10 @@ class ContinuousResearchWorker:
 
 def worker_config_from_env() -> WorkerConfig:
     timeframe = os.environ.get("AUTORESEARCH_TIMEFRAME", "5m")
-    data_root = os.environ.get("AUTORESEARCH_DATA_ROOT", "data")
+    data_root = (
+        os.environ.get("AUTORESEARCH_SHARED_DATA_ROOT")
+        or os.environ.get("AUTORESEARCH_DATA_ROOT", "data")
+    )
     state_root = os.environ.get("AUTORESEARCH_STATE_ROOT", "state")
     artifact_root = os.environ.get("AUTORESEARCH_ARTIFACT_ROOT", "artifacts")
     symbols = tuple(
@@ -603,6 +606,15 @@ def worker_config_from_env() -> WorkerConfig:
             max_batch_size=int(os.environ.get("AUTORESEARCH_MAX_BATCH_SIZE", "1000")),
             request_timeout_seconds=int(
                 os.environ.get("AUTORESEARCH_REQUEST_TIMEOUT_SECONDS", "30")
+            ),
+            min_request_interval_seconds=float(
+                os.environ.get("AUTORESEARCH_MIN_REQUEST_INTERVAL_SECONDS", "0.25")
+            ),
+            rate_limit_max_retries=int(
+                os.environ.get("AUTORESEARCH_RATE_LIMIT_MAX_RETRIES", "6")
+            ),
+            rate_limit_backoff_seconds=float(
+                os.environ.get("AUTORESEARCH_RATE_LIMIT_BACKOFF_SECONDS", "2.0")
             ),
         ),
         target_gate=ResearchTargetGate(

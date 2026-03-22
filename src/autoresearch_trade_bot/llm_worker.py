@@ -1147,7 +1147,11 @@ class LLMAutoresearchWorker:
 
 
 def llm_worker_config_from_env() -> LLMWorkerConfig:
-    data_root = os.environ.get("AUTORESEARCH_LLM_DATA_ROOT", "/var/data/autoresearch/llm/data")
+    data_root = (
+        os.environ.get("AUTORESEARCH_LLM_SHARED_DATA_ROOT")
+        or os.environ.get("AUTORESEARCH_SHARED_DATA_ROOT")
+        or os.environ.get("AUTORESEARCH_LLM_DATA_ROOT", "/var/data/autoresearch/llm/data")
+    )
     state_root = os.environ.get("AUTORESEARCH_LLM_STATE_ROOT", "/var/data/autoresearch/llm/state")
     artifact_root = os.environ.get("AUTORESEARCH_LLM_ARTIFACT_ROOT", "/var/data/autoresearch/llm/artifacts")
     repo_root = os.environ.get("AUTORESEARCH_LLM_REPO_ROOT", "/var/data/autoresearch/llm/repo")
@@ -1276,6 +1280,15 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
             max_batch_size=int(os.environ.get("AUTORESEARCH_MAX_BATCH_SIZE", "1000")),
             request_timeout_seconds=int(
                 os.environ.get("AUTORESEARCH_REQUEST_TIMEOUT_SECONDS", "30")
+            ),
+            min_request_interval_seconds=float(
+                os.environ.get("AUTORESEARCH_MIN_REQUEST_INTERVAL_SECONDS", "0.25")
+            ),
+            rate_limit_max_retries=int(
+                os.environ.get("AUTORESEARCH_RATE_LIMIT_MAX_RETRIES", "6")
+            ),
+            rate_limit_backoff_seconds=float(
+                os.environ.get("AUTORESEARCH_RATE_LIMIT_BACKOFF_SECONDS", "2.0")
             ),
         ),
         target_gate=ResearchTargetGate(

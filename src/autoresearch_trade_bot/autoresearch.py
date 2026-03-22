@@ -21,6 +21,7 @@ from .data import (
     HistoricalDatasetMaterializer,
     ManifestHistoricalDataSource,
     find_covering_manifest,
+    find_latest_reusable_manifest,
 )
 from .datasets import DatasetSpec, ensure_utc
 from .experiments import WindowEvaluationReport, build_baseline_experiment_config, build_rolling_window_specs
@@ -395,7 +396,18 @@ def prepare_campaign(
         if reusable_manifest is not None:
             dataset_manifest_path = reusable_manifest
         else:
-            dataset = resolved_materializer.materialize(spec)
+            latest_reusable_manifest = find_latest_reusable_manifest(
+                storage_root,
+                spec,
+                resolved_materializer.store,
+            )
+            if latest_reusable_manifest is not None:
+                dataset = resolved_materializer.materialize_incremental(
+                    spec,
+                    latest_reusable_manifest,
+                )
+            else:
+                dataset = resolved_materializer.materialize(spec)
             dataset_manifest_path = dataset.manifest_path
         windows.append(
             FrozenResearchWindow(
