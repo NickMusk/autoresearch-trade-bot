@@ -16,11 +16,7 @@ from .autoresearch import (
     run_deterministic_mutation_campaign,
 )
 from .config import DataConfig
-from .data import (
-    HistoricalDatasetMaterializer,
-    find_covering_manifest,
-    find_latest_reusable_manifest,
-)
+from .data import HistoricalDatasetMaterializer, ensure_dataset_manifest
 from .datasets import DatasetSpec
 from .experiments import run_baseline_from_manifest_path
 from .family_wave import run_llm_family_wave, serialize_family_wave_results
@@ -88,18 +84,15 @@ def cmd_backfill_dataset(args: argparse.Namespace) -> int:
         min_request_interval_seconds=args.min_request_interval_seconds,
         rate_limit_max_retries=args.rate_limit_max_retries,
         rate_limit_backoff_seconds=args.rate_limit_backoff_seconds,
+        include_open_interest=not args.skip_open_interest,
     )
     materializer = HistoricalDatasetMaterializer.for_exchange(data_config)
-    covering_manifest = find_covering_manifest(args.storage_root, spec, materializer.store)
-    if covering_manifest is not None:
-        print(covering_manifest)
-        return 0
-    latest_manifest = find_latest_reusable_manifest(args.storage_root, spec, materializer.store)
-    if latest_manifest is not None:
-        dataset = materializer.materialize_incremental(spec, latest_manifest)
-    else:
-        dataset = materializer.materialize(spec)
-    print(dataset.manifest_path)
+    manifest_path = ensure_dataset_manifest(
+        storage_root=args.storage_root,
+        spec=spec,
+        materializer=materializer,
+    )
+    print(manifest_path)
     return 0
 
 
@@ -362,6 +355,11 @@ def build_parser() -> argparse.ArgumentParser:
     backfill_bybit.add_argument("--min-request-interval-seconds", type=float, default=0.25)
     backfill_bybit.add_argument("--rate-limit-max-retries", type=int, default=6)
     backfill_bybit.add_argument("--rate-limit-backoff-seconds", type=float, default=2.0)
+    backfill_bybit.add_argument(
+        "--skip-open-interest",
+        action="store_true",
+        help="Skip Bybit open-interest fetches for faster lower-pressure backfills",
+    )
     backfill_bybit.set_defaults(
         func=cmd_backfill_dataset,
         exchange="bybit",

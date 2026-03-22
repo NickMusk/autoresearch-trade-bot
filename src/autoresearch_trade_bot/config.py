@@ -34,6 +34,7 @@ class DataConfig:
     min_request_interval_seconds: float = 0.25
     rate_limit_max_retries: int = 6
     rate_limit_backoff_seconds: float = 2.0
+    include_open_interest: bool = True
     default_start: datetime = field(
         default_factory=lambda: datetime(2025, 1, 1, tzinfo=timezone.utc)
     )

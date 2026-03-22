@@ -45,11 +45,14 @@ class BybitLinearHistoricalClient:
 
     def fetch_symbol_history(self, spec: DatasetSpec, symbol: str) -> RawSymbolHistory:
         interval = self._interval_for(spec.timeframe)
+        open_interest_stats = []
+        if self.data_config.include_open_interest:
+            open_interest_stats = self.fetch_open_interest(symbol, spec.timeframe, spec.start, spec.end)
         return RawSymbolHistory(
             symbol=symbol,
             klines=self.fetch_klines(symbol, interval, spec.start, spec.end),
             funding_rates=self.fetch_funding_rates(symbol, spec.start, spec.end),
-            open_interest_stats=self.fetch_open_interest(symbol, spec.timeframe, spec.start, spec.end),
+            open_interest_stats=open_interest_stats,
             mark_price_klines=self.fetch_mark_price_klines(symbol, interval, spec.start, spec.end),
             index_price_klines=self.fetch_index_price_klines(symbol, interval, spec.start, spec.end),
         )

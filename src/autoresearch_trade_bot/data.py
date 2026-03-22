@@ -104,6 +104,29 @@ def find_latest_reusable_manifest(
     return candidates[0][2]
 
 
+def ensure_dataset_manifest(
+    *,
+    storage_root: str | Path,
+    spec: DatasetSpec,
+    materializer: "HistoricalDatasetMaterializer",
+) -> Path:
+    covering_manifest = find_covering_manifest(storage_root, spec, materializer.store)
+    if covering_manifest is not None:
+        return Path(covering_manifest)
+
+    latest_reusable_manifest = find_latest_reusable_manifest(
+        storage_root,
+        spec,
+        materializer.store,
+    )
+    if latest_reusable_manifest is not None:
+        dataset = materializer.materialize_incremental(spec, latest_reusable_manifest)
+        return dataset.manifest_path
+
+    dataset = materializer.materialize(spec)
+    return dataset.manifest_path
+
+
 @dataclass
 class HistoricalDatasetMaterializer:
     data_config: DataConfig

@@ -272,6 +272,31 @@ class BybitDataPipelineTests(unittest.TestCase):
         self.assertEqual(mocked_urlopen.call_count, 2)
         mocked_sleep.assert_called_with(1.5)
 
+    def test_fetch_symbol_history_can_skip_open_interest(self) -> None:
+        client = BybitLinearHistoricalClient(
+            data_config=DataConfig(
+                exchange="bybit",
+                market="linear",
+                storage_root="data",
+                include_open_interest=False,
+            )
+        )
+
+        with patch.object(client, "fetch_klines", return_value=[]) as mocked_klines:
+            with patch.object(client, "fetch_funding_rates", return_value=[]) as mocked_funding:
+                with patch.object(client, "fetch_open_interest") as mocked_open_interest:
+                    with patch.object(client, "fetch_mark_price_klines", return_value=[]):
+                        with patch.object(client, "fetch_index_price_klines", return_value=[]):
+                            history = client.fetch_symbol_history(
+                                self.spec,
+                                "BTCUSDT",
+                            )
+
+        self.assertEqual(history.open_interest_stats, [])
+        self.assertEqual(mocked_klines.call_count, 1)
+        self.assertEqual(mocked_funding.call_count, 1)
+        mocked_open_interest.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

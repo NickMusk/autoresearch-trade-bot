@@ -195,6 +195,58 @@ class AutoresearchTests(unittest.TestCase):
             self.assertEqual(incremental_spec.start, datetime(2026, 3, 8, 0, 0, tzinfo=timezone.utc))
             self.assertEqual(incremental_spec.end, datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc))
 
+    def test_prepare_campaign_reuses_covering_manifest_without_materializing(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            materializer = RecordingMaterializer()
+            storage_root = temp_path / "data"
+            covering_spec = DatasetSpec(
+                exchange="bybit",
+                market="linear",
+                timeframe="5m",
+                start=datetime(2026, 3, 8, 0, 0, tzinfo=timezone.utc),
+                end=datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc),
+                symbols=("BTCUSDT", "ETHUSDT"),
+            )
+            covering_dir = storage_root / covering_spec.exchange / covering_spec.market / covering_spec.timeframe / covering_spec.dataset_id
+            covering_dir.mkdir(parents=True, exist_ok=True)
+            covering_manifest_path = covering_dir / "manifest.json"
+            covering_manifest = DatasetManifest(
+                dataset_id=covering_spec.dataset_id,
+                exchange=covering_spec.exchange,
+                market=covering_spec.market,
+                timeframe=covering_spec.timeframe,
+                start=covering_spec.start,
+                end=covering_spec.end,
+                generated_at=datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc),
+                symbols=covering_spec.symbols,
+                files={},
+                validation_issues=[],
+            )
+            covering_manifest_path.write_text(
+                json.dumps(covering_manifest.to_dict(), indent=2),
+                encoding="utf-8",
+            )
+
+            prepare_campaign(
+                campaign_name="Bybit Covered",
+                exchange="bybit",
+                market="linear",
+                timeframe="5m",
+                symbols=("BTCUSDT", "ETHUSDT"),
+                anchor_end=datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc),
+                window_days=7,
+                window_count=1,
+                storage_root=str(storage_root),
+                campaigns_root=temp_path / ".autoresearch" / "campaigns",
+                active_pointer_path=temp_path / ".autoresearch" / "active_campaign.txt",
+                materializer=materializer,
+                target_gate=ResearchTargetGate(),
+            )
+
+            self.assertEqual(materializer.materialized_specs, [])
+            self.assertEqual(materializer.incremental_specs, [])
+
     def test_evaluate_train_file_writes_artifact_and_results_row(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             temp_path = Path(tempdir)
