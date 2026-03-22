@@ -3,7 +3,7 @@
   "phase": "LLM autoresearch worker degraded",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Bybit request failed for /v5/market/kline: Too many visits. Exceeded the API Rate Limit."
+    "<urlopen error [Errno 104] Connection reset by peer>"
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -34,7 +34,7 @@
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
   "mutation_win_rate": 0.0,
-  "consecutive_failures": 3,
+  "consecutive_failures": 4,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
   "current_best_validation_pass_rate": 0.0,
