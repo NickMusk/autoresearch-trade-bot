@@ -35,11 +35,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-bybit-linear-5m-20260321t062000z",
-  "latest_cycle_completed_at": "2026-03-22T03:01:49.445325+00:00",
+  "latest_cycle_completed_at": "2026-03-22T03:03:47.484573+00:00",
   "last_processed_bar": "2026-03-22T03:00:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.9,
+  "generation_validity_rate": 1.0,
   "mutation_win_rate": 0.0,
   "consecutive_failures": 0,
   "current_best_validation_pass_rate": 0.3333333333333333,
@@ -167,9 +167,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-0f551a30",
+      "mutation_label": "llm-dd68cac2",
       "baseline_score": 16.113446972172635,
-      "candidate_score": -13.88369044259271,
+      "candidate_score": -3.599771828968002,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -247,24 +247,6 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-e3823959",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 6.387004,
-      "metrics": {
-        "total_return": 0.000141,
-        "sharpe": 6.38696,
-        "max_drawdown": 0.000154,
-        "average_turnover": 4.8e-05
-      },
-      "rejection_reasons": []
-    },
-    {
       "strategy_name": "llm-f94dd04d",
       "params": {
         "decision": "discard_screen",
@@ -281,14 +263,32 @@
         "average_turnover": 2.4e-05
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-1f25b913",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.249588,
+      "metrics": {
+        "total_return": 6e-06,
+        "sharpe": 0.250395,
+        "max_drawdown": 0.000191,
+        "average_turnover": 7.6e-05
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-0f551a30",
+    "mutation_label": "llm-dd68cac2",
     "baseline_score": 16.113446972172635,
-    "candidate_score": -13.88369044259271,
+    "candidate_score": -3.599771828968002,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -300,34 +300,34 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ema-trend-disp-v21-selectivity-smoothed",
-    "research_score": -13.88369044259271,
+    "strategy_name": "ema-trend-disp-v21-fast4-persist48",
+    "research_score": -3.599771828968002,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.00024211480469960023,
-      "sharpe": -13.88141285038833,
-      "max_drawdown": 0.00025362750644830623,
-      "average_turnover": 5.250815508956706e-05,
+      "total_return": -4.0958609605623586e-05,
+      "sharpe": -3.5991830711417654,
+      "max_drawdown": 8.17772839916131e-05,
+      "average_turnover": 5.6855642241695735e-05,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 616
+      "nonzero_turnover_steps": 924
     },
     "train_config": {
       "gross_target": 0.45,
       "fast_ema_bars": 4,
-      "slow_ema_bars": 96,
-      "trend_ema_bars": 240,
+      "slow_ema_bars": 48,
+      "trend_ema_bars": 144,
       "top_k": 2,
       "min_signal_strength": 0.15,
       "use_trend_filter": true,
-      "volume_confirmation": 0.6,
-      "volatility_floor": 0.002,
+      "volume_confirmation": 0.33,
+      "volatility_floor": 0.003,
       "smoothing_alpha": 0.004,
       "per_symbol_cap_ratio": 0.28,
-      "signal_exponent": 6.0,
+      "signal_exponent": 5.0,
       "max_weight_move": 0.12,
       "disp_ref": 0.3,
       "disp_floor": 0.12,
-      "crowding_exponent": 2.8,
+      "crowding_exponent": 3.2,
       "rel_threshold_mult": 1.0,
       "new_symbol_penalty": 0.86,
       "disp_low_frac_block": 0.65,
@@ -336,7 +336,7 @@
       "concentration_threshold": 0.5,
       "concentration_tighten": 0.7,
       "turnover_limit": 0.16,
-      "signal_smoothing": 0.72
+      "signal_smoothing": 0.48
     },
     "gate_failures": [
       "total_return_below_gate",
