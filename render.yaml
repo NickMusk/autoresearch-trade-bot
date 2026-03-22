@@ -17,7 +17,7 @@ services:
     plan: starter
     region: frankfurt
     buildCommand: pip install '.[data]'
-    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.service_runner llm-worker
+    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.llm_worker
     envVars:
       - key: AUTORESEARCH_LLM_DATA_ROOT
         value: /var/data/autoresearch/llm/data
@@ -95,20 +95,6 @@ services:
         value: "8"
       - key: AUTORESEARCH_RATE_LIMIT_BACKOFF_SECONDS
         value: "3.0"
-      - key: AUTORESEARCH_ENABLE_HISTORY_REFRESHER
-        value: "1"
-      - key: AUTORESEARCH_HISTORY_WARM_LOOKBACK_DAYS
-        value: "365"
-      - key: AUTORESEARCH_HISTORY_BOOTSTRAP_LOOKBACK_DAYS
-        value: "112"
-      - key: AUTORESEARCH_HISTORY_REFRESH_INTERVAL_SECONDS
-        value: "86400"
-      - key: AUTORESEARCH_HISTORY_BOOTSTRAP_SKIP_OPEN_INTEREST
-        value: "1"
-      - key: AUTORESEARCH_HISTORY_REFRESH_SKIP_OPEN_INTEREST
-        value: "0"
-      - key: AUTORESEARCH_HISTORY_REFRESH_STATE_PATH
-        value: /var/data/autoresearch/llm/history_refresh_state.json
       - key: AUTORESEARCH_TARGET_MIN_SHARPE
         value: "1.0"
       - key: AUTORESEARCH_TARGET_MAX_DRAWDOWN
@@ -135,7 +121,7 @@ services:
     plan: starter
     region: frankfurt
     buildCommand: pip install '.[data]'
-    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.service_runner llm-worker
+    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.llm_worker
     envVars:
       - key: AUTORESEARCH_LLM_DATA_ROOT
         value: /var/data/autoresearch/mean_reversion/data
@@ -213,20 +199,6 @@ services:
         value: "8"
       - key: AUTORESEARCH_RATE_LIMIT_BACKOFF_SECONDS
         value: "3.0"
-      - key: AUTORESEARCH_ENABLE_HISTORY_REFRESHER
-        value: "1"
-      - key: AUTORESEARCH_HISTORY_WARM_LOOKBACK_DAYS
-        value: "365"
-      - key: AUTORESEARCH_HISTORY_BOOTSTRAP_LOOKBACK_DAYS
-        value: "112"
-      - key: AUTORESEARCH_HISTORY_REFRESH_INTERVAL_SECONDS
-        value: "86400"
-      - key: AUTORESEARCH_HISTORY_BOOTSTRAP_SKIP_OPEN_INTEREST
-        value: "1"
-      - key: AUTORESEARCH_HISTORY_REFRESH_SKIP_OPEN_INTEREST
-        value: "0"
-      - key: AUTORESEARCH_HISTORY_REFRESH_STATE_PATH
-        value: /var/data/autoresearch/mean_reversion/history_refresh_state.json
       - key: AUTORESEARCH_TARGET_MIN_SHARPE
         value: "1.0"
       - key: AUTORESEARCH_TARGET_MAX_DRAWDOWN
@@ -253,7 +225,7 @@ services:
     plan: starter
     region: frankfurt
     buildCommand: pip install '.[data]'
-    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.service_runner llm-worker
+    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.llm_worker
     envVars:
       - key: AUTORESEARCH_LLM_DATA_ROOT
         value: /var/data/autoresearch/ema_trend/data
@@ -331,20 +303,6 @@ services:
         value: "8"
       - key: AUTORESEARCH_RATE_LIMIT_BACKOFF_SECONDS
         value: "3.0"
-      - key: AUTORESEARCH_ENABLE_HISTORY_REFRESHER
-        value: "1"
-      - key: AUTORESEARCH_HISTORY_WARM_LOOKBACK_DAYS
-        value: "365"
-      - key: AUTORESEARCH_HISTORY_BOOTSTRAP_LOOKBACK_DAYS
-        value: "112"
-      - key: AUTORESEARCH_HISTORY_REFRESH_INTERVAL_SECONDS
-        value: "86400"
-      - key: AUTORESEARCH_HISTORY_BOOTSTRAP_SKIP_OPEN_INTEREST
-        value: "1"
-      - key: AUTORESEARCH_HISTORY_REFRESH_SKIP_OPEN_INTEREST
-        value: "0"
-      - key: AUTORESEARCH_HISTORY_REFRESH_STATE_PATH
-        value: /var/data/autoresearch/ema_trend/history_refresh_state.json
       - key: AUTORESEARCH_TARGET_MIN_SHARPE
         value: "1.0"
       - key: AUTORESEARCH_TARGET_MAX_DRAWDOWN
@@ -371,7 +329,7 @@ services:
     plan: starter
     region: frankfurt
     buildCommand: pip install '.[data]'
-    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.service_runner llm-worker
+    startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.llm_worker
     envVars:
       - key: AUTORESEARCH_LLM_DATA_ROOT
         value: /var/data/autoresearch/volatility_breakout/data
@@ -449,20 +407,6 @@ services:
         value: "8"
       - key: AUTORESEARCH_RATE_LIMIT_BACKOFF_SECONDS
         value: "3.0"
-      - key: AUTORESEARCH_ENABLE_HISTORY_REFRESHER
-        value: "1"
-      - key: AUTORESEARCH_HISTORY_WARM_LOOKBACK_DAYS
-        value: "365"
-      - key: AUTORESEARCH_HISTORY_BOOTSTRAP_LOOKBACK_DAYS
-        value: "112"
-      - key: AUTORESEARCH_HISTORY_REFRESH_INTERVAL_SECONDS
-        value: "86400"
-      - key: AUTORESEARCH_HISTORY_BOOTSTRAP_SKIP_OPEN_INTEREST
-        value: "1"
-      - key: AUTORESEARCH_HISTORY_REFRESH_SKIP_OPEN_INTEREST
-        value: "0"
-      - key: AUTORESEARCH_HISTORY_REFRESH_STATE_PATH
-        value: /var/data/autoresearch/volatility_breakout/history_refresh_state.json
       - key: AUTORESEARCH_TARGET_MIN_SHARPE
         value: "1.0"
       - key: AUTORESEARCH_TARGET_MAX_DRAWDOWN
