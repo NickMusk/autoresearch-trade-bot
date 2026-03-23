@@ -37,12 +37,12 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260323t095500z",
-  "latest_cycle_completed_at": "2026-03-23T22:56:42.002866+00:00",
-  "last_processed_bar": "2026-03-23T22:55:00+00:00",
-  "recent_acceptance_rate": 0.3333333333333333,
-  "evaluation_acceptance_rate": 0.3333333333333333,
-  "generation_validity_rate": 0.6,
-  "mutation_win_rate": 0.3333333333333333,
+  "latest_cycle_completed_at": "2026-03-23T23:56:42.003294+00:00",
+  "last_processed_bar": "2026-03-23T23:55:00+00:00",
+  "recent_acceptance_rate": 0.2857142857142857,
+  "evaluation_acceptance_rate": 0.2857142857142857,
+  "generation_validity_rate": 0.7,
+  "mutation_win_rate": 0.2857142857142857,
   "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
@@ -84,7 +84,7 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-47cdc6a1",
+      "mutation_label": "llm-ef3330eb",
       "baseline_score": -91.86441463006354,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -148,6 +148,42 @@
       "rejection_reasons": []
     },
     {
+      "strategy_name": "llm-ef3330eb",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-ef3330eb",
+      "params": {
+        "decision": "discard_full",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-074f7e33",
       "params": {
         "decision": "screen_pass",
@@ -164,48 +200,12 @@
         "average_turnover": 0.13201
       },
       "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-074f7e33",
-      "params": {
-        "decision": "keep",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": true,
-      "score": -91.864415,
-      "metrics": {
-        "total_return": -0.129106,
-        "sharpe": -90.567616,
-        "max_drawdown": 0.129815,
-        "average_turnover": 0.13201
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-e3d02491",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -94.14955,
-      "metrics": {
-        "total_return": -0.132045,
-        "sharpe": -92.826902,
-        "max_drawdown": 0.132045,
-        "average_turnover": 0.134243
-      },
-      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-47cdc6a1",
+    "mutation_label": "llm-ef3330eb",
     "baseline_score": -91.86441463006354,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -237,14 +237,12 @@
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 36,
       "regime_threshold": 0.015,
-      "top_k": 1,
+      "top_k": 2,
       "use_regime_filter": false,
       "min_cross_sectional_spread": 0.08,
-      "volatility_floor": 0.003,
-      "reversal_bias_weight": 0.12,
-      "funding_penalty_weight": 0.01,
-      "confirmation_bars": 3,
-      "min_confirmation_ratio": 0.25
+      "volatility_floor": 0.005,
+      "reversal_bias_weight": 0.18,
+      "funding_penalty_weight": 0.01
     },
     "gate_failures": [
       "no_trades_executed",
