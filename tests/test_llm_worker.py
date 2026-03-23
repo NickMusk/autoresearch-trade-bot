@@ -1549,6 +1549,31 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             "/tmp/autoresearch/llm/history_refresh_state.json",
         )
 
+    def test_llm_worker_config_from_env_falls_back_to_default_repo_url(self) -> None:
+        previous = dict(os.environ)
+        try:
+            os.environ.pop("AUTORESEARCH_LLM_REPO_URL", None)
+            with patch.object(
+                llm_worker_module,
+                "_discover_repo_url",
+                return_value=llm_worker_module.DEFAULT_LLM_REPO_URL,
+            ):
+                config = llm_worker_module.llm_worker_config_from_env()
+        finally:
+            os.environ.clear()
+            os.environ.update(previous)
+
+        self.assertEqual(config.repo_url, llm_worker_module.DEFAULT_LLM_REPO_URL)
+
+    def test_discover_repo_url_falls_back_to_default_when_git_lookup_fails(self) -> None:
+        with patch(
+            "autoresearch_trade_bot.llm_worker.subprocess.run",
+            side_effect=subprocess.CalledProcessError(2, ["git", "remote", "get-url", "origin"]),
+        ):
+            repo_url = llm_worker_module._discover_repo_url()
+
+        self.assertEqual(repo_url, llm_worker_module.DEFAULT_LLM_REPO_URL)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -48,6 +48,8 @@ from .state import (
     ResearchStatusSnapshot,
 )
 
+DEFAULT_LLM_REPO_URL = "https://github.com/NickMusk/autoresearch-trade-bot.git"
+
 
 def _env_flag(name: str, *, default: bool = False) -> bool:
     value = os.environ.get(name)
@@ -1357,13 +1359,17 @@ def publisher_from_env() -> GitHubStatusPublisher | None:
 
 
 def _discover_repo_url() -> str:
-    completed = subprocess.run(
-        ["git", "remote", "get-url", "origin"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return completed.stdout.strip()
+    try:
+        completed = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return DEFAULT_LLM_REPO_URL
+    repo_url = completed.stdout.strip()
+    return repo_url or DEFAULT_LLM_REPO_URL
 
 
 def main() -> None:
