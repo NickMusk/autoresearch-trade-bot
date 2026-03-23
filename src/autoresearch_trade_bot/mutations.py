@@ -184,24 +184,56 @@ class OpenAIResponsesClient:
                     return json.loads(response.read().decode("utf-8"))
             except urllib.error.HTTPError as exc:
                 detail = exc.read().decode("utf-8", errors="replace")
+                if self._is_retryable_http_status(exc.code) and attempt < attempts:
+                    time.sleep(self._retry_delay_seconds(exc.headers, attempt))
+                    continue
                 raise RuntimeError(f"openai_http_error:{exc.code}:{detail}") from exc
             except TimeoutError as exc:
                 if attempt == attempts:
                     raise RuntimeError("openai_timeout") from exc
-                time.sleep(self.retry_backoff_seconds)
+                time.sleep(self._retry_delay_seconds(None, attempt))
             except socket.timeout as exc:
                 if attempt == attempts:
                     raise RuntimeError("openai_timeout") from exc
-                time.sleep(self.retry_backoff_seconds)
+                time.sleep(self._retry_delay_seconds(None, attempt))
             except urllib.error.URLError as exc:
                 reason = exc.reason
                 if isinstance(reason, (TimeoutError, socket.timeout)):
                     if attempt == attempts:
                         raise RuntimeError("openai_timeout") from exc
-                    time.sleep(self.retry_backoff_seconds)
+                    time.sleep(self._retry_delay_seconds(None, attempt))
                     continue
                 raise RuntimeError(f"openai_transport_error:{reason}") from exc
         raise RuntimeError("openai_timeout")
+
+    @staticmethod
+    def _is_retryable_http_status(status_code: int) -> bool:
+        return status_code in {408, 409, 429, 500, 502, 503, 504}
+
+    def _retry_delay_seconds(self, headers: Any, attempt: int) -> float:
+        retry_after_seconds = self._retry_after_seconds(headers)
+        if retry_after_seconds is not None:
+            return retry_after_seconds
+        # Exponential backoff with a small floor, while staying simple and predictable.
+        multiplier = max(1, attempt)
+        return self.retry_backoff_seconds * multiplier
+
+    @staticmethod
+    def _retry_after_seconds(headers: Any) -> float | None:
+        if headers is None:
+            return None
+        retry_after = None
+        if hasattr(headers, "get"):
+            retry_after = headers.get("Retry-After")
+        elif isinstance(headers, Mapping):
+            retry_after = headers.get("Retry-After")
+        if retry_after is None:
+            return None
+        try:
+            parsed = float(str(retry_after).strip())
+        except ValueError:
+            return None
+        return max(0.0, parsed)
 
 
 class LLMMutationProvider:

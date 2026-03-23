@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import json
+import io
+import socket
 import subprocess
 import tempfile
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import patch
+from urllib.error import HTTPError, URLError
 
 from autoresearch_trade_bot.autoresearch import (
     AutoresearchRunReport,
@@ -20,6 +24,7 @@ from autoresearch_trade_bot.mutations import (
     build_experiment_memory_artifact,
     build_experiment_memory_summary,
     build_llm_mutation_prompt,
+    OpenAIResponsesClient,
     validate_train_candidate_text,
     validate_train_candidate_semantics,
 )
@@ -49,6 +54,103 @@ class FakeLLMClient:
 
 
 class MutationTests(unittest.TestCase):
+    def test_openai_client_retries_retryable_http_error_then_succeeds(self) -> None:
+        client = OpenAIResponsesClient(
+            api_key="test-key",
+            timeout_seconds=1.0,
+            max_retries=3,
+            retry_backoff_seconds=2.0,
+        )
+        responses = [
+            HTTPError(
+                url="https://api.openai.com/v1/responses",
+                code=429,
+                msg="Too Many Requests",
+                hdrs={"Retry-After": "1.5"},
+                fp=io.BytesIO(b'{"error":"rate_limited"}'),
+            ),
+            io.BytesIO(json.dumps({"id": "resp_1", "model": "gpt-5-mini", "output_text": "ok"}).encode("utf-8")),
+        ]
+
+        class FakeResponse:
+            def __init__(self, payload: bytes) -> None:
+                self.payload = payload
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def read(self) -> bytes:
+                return self.payload
+
+        side_effects = [responses[0], FakeResponse(responses[1].read())]
+
+        with patch("autoresearch_trade_bot.mutations.urllib.request.urlopen", side_effect=side_effects):
+            with patch("autoresearch_trade_bot.mutations.time.sleep") as mocked_sleep:
+                completion = client.generate(system_prompt="system", user_prompt="user")
+
+        self.assertEqual(completion.content, "ok")
+        mocked_sleep.assert_called_once_with(1.5)
+
+    def test_openai_client_retries_timeout_then_raises_after_budget(self) -> None:
+        client = OpenAIResponsesClient(
+            api_key="test-key",
+            timeout_seconds=1.0,
+            max_retries=3,
+            retry_backoff_seconds=2.0,
+        )
+
+        with patch(
+            "autoresearch_trade_bot.mutations.urllib.request.urlopen",
+            side_effect=socket.timeout("timed out"),
+        ):
+            with patch("autoresearch_trade_bot.mutations.time.sleep") as mocked_sleep:
+                with self.assertRaisesRegex(RuntimeError, "openai_timeout"):
+                    client.generate(system_prompt="system", user_prompt="user")
+
+        self.assertEqual(mocked_sleep.call_args_list[0].args[0], 2.0)
+        self.assertEqual(mocked_sleep.call_args_list[1].args[0], 4.0)
+
+    def test_openai_client_does_not_retry_non_retryable_http_error(self) -> None:
+        client = OpenAIResponsesClient(
+            api_key="test-key",
+            timeout_seconds=1.0,
+            max_retries=3,
+            retry_backoff_seconds=2.0,
+        )
+        error = HTTPError(
+            url="https://api.openai.com/v1/responses",
+            code=400,
+            msg="Bad Request",
+            hdrs={},
+            fp=io.BytesIO(b'{"error":"bad_request"}'),
+        )
+
+        with patch("autoresearch_trade_bot.mutations.urllib.request.urlopen", side_effect=error):
+            with patch("autoresearch_trade_bot.mutations.time.sleep") as mocked_sleep:
+                with self.assertRaisesRegex(RuntimeError, r"openai_http_error:400"):
+                    client.generate(system_prompt="system", user_prompt="user")
+
+        mocked_sleep.assert_not_called()
+
+    def test_openai_client_retries_retryable_url_timeout_errors(self) -> None:
+        client = OpenAIResponsesClient(
+            api_key="test-key",
+            timeout_seconds=1.0,
+            max_retries=2,
+            retry_backoff_seconds=3.0,
+        )
+        timeout_error = URLError(socket.timeout("timed out"))
+
+        with patch("autoresearch_trade_bot.mutations.urllib.request.urlopen", side_effect=timeout_error):
+            with patch("autoresearch_trade_bot.mutations.time.sleep") as mocked_sleep:
+                with self.assertRaisesRegex(RuntimeError, "openai_timeout"):
+                    client.generate(system_prompt="system", user_prompt="user")
+
+        mocked_sleep.assert_called_once_with(3.0)
+
     def test_validate_train_candidate_text_accepts_current_shape_and_rejects_forbidden_import(self) -> None:
         valid_candidate = render_train_file(
             {
