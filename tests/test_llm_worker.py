@@ -1578,6 +1578,42 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
         self.assertIn("LLM worker startup: initializing state store and worker", printed)
         self.assertIn("LLM worker startup: entering run loop", printed)
 
+    def test_run_forever_emits_cycle_checkpoints(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                cycle_interval_seconds=0,
+                max_cycles=1,
+                data_config=DataConfig(
+                    exchange="binance",
+                    market="usdm_futures",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                now_fn=lambda: datetime(2026, 3, 23, 6, 30, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            with patch.object(worker, "run_cycle", return_value=SimpleNamespace()) as mocked_cycle:
+                with patch("builtins.print") as mocked_print:
+                    worker.run_forever()
+
+        printed = [" ".join(str(arg) for arg in call.args) for call in mocked_print.call_args_list]
+        self.assertEqual(mocked_cycle.call_count, 1)
+        self.assertTrue(any("LLM worker loop: starting cycle at" in line for line in printed))
+        self.assertTrue(any("LLM worker loop: cycle completed at" in line for line in printed))
+
     def test_llm_worker_config_from_env_supports_local_only_history_mode(self) -> None:
         previous = dict(os.environ)
         try:
