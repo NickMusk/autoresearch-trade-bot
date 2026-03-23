@@ -22,11 +22,14 @@ class BinanceUSDMHistoricalClient:
     base_url: str = "https://fapi.binance.com"
 
     def fetch_symbol_history(self, spec: DatasetSpec, symbol: str) -> RawSymbolHistory:
+        open_interest_stats = []
+        if self.data_config.include_open_interest:
+            open_interest_stats = self.fetch_open_interest(symbol, spec.timeframe, spec.start, spec.end)
         return RawSymbolHistory(
             symbol=symbol,
             klines=self.fetch_klines(symbol, spec.timeframe, spec.start, spec.end),
             funding_rates=self.fetch_funding_rates(symbol, spec.start, spec.end),
-            open_interest_stats=self.fetch_open_interest(symbol, spec.timeframe, spec.start, spec.end),
+            open_interest_stats=open_interest_stats,
         )
 
     def fetch_klines(
