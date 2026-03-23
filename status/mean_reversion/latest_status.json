@@ -3,9 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate passed screen but underperformed on the full campaign.",
-    "Latest LLM candidate produced no trades on the evaluation window.",
-    "Latest kept candidate still fails gate: no_trades_executed.",
+    "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
     "Research champion still fails paper gate: total_return_below_gate.",
@@ -37,8 +35,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260323t095000z",
-  "latest_cycle_completed_at": "2026-03-23T18:51:11.196172+00:00",
-  "last_processed_bar": "2026-03-23T18:50:00+00:00",
+  "latest_cycle_completed_at": "2026-03-23T19:51:11.196585+00:00",
+  "last_processed_bar": "2026-03-23T19:50:00+00:00",
   "recent_acceptance_rate": 0.4,
   "evaluation_acceptance_rate": 0.4,
   "generation_validity_rate": 1.0,
@@ -51,15 +49,15 @@
   "current_best_fast_validation_summary": {},
   "current_best_validation_summary": {},
   "research_champion_summary": {
-    "strategy_name": "configurable-momentum-v5",
-    "git_commit": "eb4e8329c9ec0ed3c4ea5b14ceac5361e1f269cf",
-    "train_sha1": "06d4141f37c0b0c48f09919d91a1a4cf5e8c1e30",
-    "research_score": -9.178026262472155,
+    "strategy_name": "configurable-momentum-v6",
+    "git_commit": "bae2bea4352055db3693eb48a7b4b6f835966e7c",
+    "train_sha1": "9c1119b8cc5209b400f9363bfebb9fbb106ee3c5",
+    "research_score": -9.177092631552991,
     "average_metrics": {
-      "total_return": -0.0005893903504341491,
-      "sharpe": -9.17242398256887,
-      "max_drawdown": 0.0005893903504341491,
-      "average_turnover": 0.0002977667493796526,
+      "total_return": -0.0004911677807007964,
+      "sharpe": -9.172423982568867,
+      "max_drawdown": 0.0004911677807007964,
+      "average_turnover": 0.00024813895781637717,
       "bars_processed": 2015,
       "nonzero_turnover_steps": 2
     },
@@ -82,17 +80,17 @@
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-binance-usdm-futures-5m-20260323t095000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_full",
+      "decision": "keep",
       "stage": "full",
-      "mutation_label": "llm-83ef6168",
+      "mutation_label": "llm-462a00fe",
       "baseline_score": -9.178026262472155,
-      "candidate_score": 0.0,
-      "kept_commit": null,
+      "candidate_score": -9.177092631552991,
+      "kept_commit": "bae2bea4352055db3693eb48a7b4b6f835966e7c",
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
-        "no_trades_executed",
+        "total_return_below_gate",
         "sharpe_below_gate",
         "acceptance_rate_below_gate"
       ]
@@ -107,7 +105,7 @@
     "current_best_validation_pass_rate": 0.0,
     "current_best_validated_for_rollout": false,
     "latest_cycle_rollout_ready": false,
-    "research_champion_strategy_name": "configurable-momentum-v5",
+    "research_champion_strategy_name": "configurable-momentum-v6",
     "rollout_champion_strategy_name": ""
   },
   "leaderboard": [
@@ -184,7 +182,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-dabf422a",
+      "strategy_name": "llm-462a00fe",
       "params": {
         "decision": "screen_pass",
         "provider_name": "llm",
@@ -192,43 +190,43 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -9.178026,
+      "score": -9.177093,
       "metrics": {
-        "total_return": -0.000589,
+        "total_return": -0.000491,
         "sharpe": -9.172424,
-        "max_drawdown": 0.000589,
-        "average_turnover": 0.000298
+        "max_drawdown": 0.000491,
+        "average_turnover": 0.000248
       },
       "rejection_reasons": []
     }
   ],
   "latest_decision": {
-    "decision": "discard_full",
+    "decision": "keep",
     "stage": "full",
-    "mutation_label": "llm-83ef6168",
+    "mutation_label": "llm-462a00fe",
     "baseline_score": -9.178026262472155,
-    "candidate_score": 0.0,
-    "kept_commit": null,
+    "candidate_score": -9.177092631552991,
+    "kept_commit": "bae2bea4352055db3693eb48a7b4b6f835966e7c",
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
-      "no_trades_executed",
+      "total_return_below_gate",
       "sharpe_below_gate",
       "acceptance_rate_below_gate"
     ]
   },
   "latest_candidate_summary": {
     "strategy_name": "configurable-momentum-v6",
-    "research_score": 0.0,
+    "research_score": -9.177092631552991,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 0.0,
-      "sharpe": 0.0,
-      "max_drawdown": 0.0,
-      "average_turnover": 0.0,
+      "total_return": -0.0004911677807007964,
+      "sharpe": -9.172423982568867,
+      "max_drawdown": 0.0004911677807007964,
+      "average_turnover": 0.00024813895781637717,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 0
+      "nonzero_turnover_steps": 2
     },
     "train_config": {
       "gross_target": 0.5,
@@ -240,15 +238,15 @@
       "top_k": 1,
       "use_regime_filter": false,
       "min_cross_sectional_spread": 0.08,
-      "volatility_floor": 0.003,
+      "volatility_floor": 0.004,
       "reversal_bias_weight": 0.08,
-      "funding_penalty_weight": 0.02,
+      "funding_penalty_weight": 0.03,
       "min_directional_consistency": 0.65,
       "signal_saturation": 0.08,
       "max_single_weight": 0.5
     },
     "gate_failures": [
-      "no_trades_executed",
+      "total_return_below_gate",
       "sharpe_below_gate",
       "acceptance_rate_below_gate"
     ],
@@ -257,5 +255,36 @@
     "failure_reason": ""
   },
   "current_best_strategy_name": "configurable-momentum-v5",
-  "latest_kept_summary": {}
+  "latest_kept_summary": {
+    "strategy_name": "configurable-momentum-v6",
+    "baseline_strategy_name": "configurable-momentum-v5",
+    "score_delta": 0.000934,
+    "config_diff": [
+      {
+        "key": "funding_penalty_weight",
+        "before": 0.02,
+        "after": 0.03
+      },
+      {
+        "key": "max_single_weight",
+        "before": 0.6,
+        "after": 0.5
+      },
+      {
+        "key": "min_cross_sectional_spread",
+        "before": 0.06,
+        "after": 0.08
+      },
+      {
+        "key": "min_signal_strength",
+        "before": 0.05,
+        "after": 0.06
+      },
+      {
+        "key": "volatility_floor",
+        "before": 0.003,
+        "after": 0.004
+      }
+    ]
+  }
 }
