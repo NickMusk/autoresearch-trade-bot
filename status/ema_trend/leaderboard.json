@@ -1,6 +1,42 @@
 {
   "leaderboard": [
     {
+      "strategy_name": "llm-074f7e33",
+      "params": {
+        "decision": "screen_pass",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -91.864415,
+      "metrics": {
+        "total_return": -0.129106,
+        "sharpe": -90.567616,
+        "max_drawdown": 0.129815,
+        "average_turnover": 0.13201
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-074f7e33",
+      "params": {
+        "decision": "keep",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": true,
+      "score": -91.864415,
+      "metrics": {
+        "total_return": -0.129106,
+        "sharpe": -90.567616,
+        "max_drawdown": 0.129815,
+        "average_turnover": 0.13201
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-d52dda23",
       "params": {
         "decision": "screen_pass",
@@ -53,46 +89,6 @@
         "average_turnover": 0.155087
       },
       "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-8e95591f",
-      "params": {
-        "decision": "discard_error",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "validation"
-      },
-      "accepted": false,
-      "score": -Infinity,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 1.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": [
-        "missing_required_symbols:STRATEGY_FAMILY"
-      ]
-    },
-    {
-      "strategy_name": "llm-746f3e7f",
-      "params": {
-        "decision": "discard_error",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "validation"
-      },
-      "accepted": false,
-      "score": -Infinity,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 1.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": [
-        "missing_required_symbols:STRATEGY_FAMILY"
-      ]
     }
   ]
 }
