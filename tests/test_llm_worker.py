@@ -1532,6 +1532,52 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             os.environ.clear()
             os.environ.update(previous)
 
+    def test_main_emits_startup_checkpoints(self) -> None:
+        previous = dict(os.environ)
+        try:
+            with patch(
+                "autoresearch_trade_bot.llm_worker.maybe_install_history_dataset_from_env"
+            ) as mocked_install:
+                mocked_install.return_value = SimpleNamespace(
+                    manifest_path=Path("/tmp/autoresearch/data/manifest.json"),
+                    installed=False,
+                )
+                with patch.object(llm_worker_module, "llm_worker_config_from_env") as mocked_worker_config:
+                    mocked_worker_config.return_value = LLMWorkerConfig(
+                        repo_url="https://example.com/repo.git",
+                        data_config=DataConfig(
+                            exchange="binance",
+                            market="usdm_futures",
+                            timeframe="5m",
+                            storage_root="/tmp/data",
+                            local_only=False,
+                        ),
+                    )
+                    with patch("autoresearch_trade_bot.llm_worker.FilesystemResearchStateStore"):
+                        worker_double = SimpleNamespace(run_forever=lambda: None)
+                        with patch(
+                            "autoresearch_trade_bot.llm_worker.LLMAutoresearchWorker",
+                            return_value=worker_double,
+                        ):
+                            with patch("builtins.print") as mocked_print:
+                                llm_worker_module.main()
+        finally:
+            os.environ.clear()
+            os.environ.update(previous)
+
+        printed = [" ".join(str(arg) for arg in call.args) for call in mocked_print.call_args_list]
+        self.assertIn("LLM worker startup: checking history dataset install", printed)
+        self.assertTrue(
+            any("LLM worker startup: dataset install complete" in line for line in printed)
+        )
+        self.assertIn("LLM worker startup: installed manifest present, skipping bootstrap", printed)
+        self.assertIn("LLM worker startup: loading worker config", printed)
+        self.assertTrue(
+            any("LLM worker startup: config loaded (exchange=binance, market=usdm_futures" in line for line in printed)
+        )
+        self.assertIn("LLM worker startup: initializing state store and worker", printed)
+        self.assertIn("LLM worker startup: entering run loop", printed)
+
     def test_llm_worker_config_from_env_supports_local_only_history_mode(self) -> None:
         previous = dict(os.environ)
         try:

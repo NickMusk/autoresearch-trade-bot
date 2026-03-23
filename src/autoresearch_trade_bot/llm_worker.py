@@ -1373,10 +1373,29 @@ def _discover_repo_url() -> str:
 
 
 def main() -> None:
+    print("LLM worker startup: checking history dataset install")
     installed_dataset = maybe_install_history_dataset_from_env()
+    print(
+        "LLM worker startup: dataset install complete (installed=%s, manifest=%s)"
+        % (installed_dataset.installed, installed_dataset.manifest_path)
+    )
     if installed_dataset.manifest_path is None:
+        print("LLM worker startup: no installed manifest, evaluating bootstrap path")
         _maybe_bootstrap_history()
+    else:
+        print("LLM worker startup: installed manifest present, skipping bootstrap")
+    print("LLM worker startup: loading worker config")
     config = llm_worker_config_from_env()
+    print(
+        "LLM worker startup: config loaded (exchange=%s, market=%s, timeframe=%s, local_only=%s)"
+        % (
+            config.data_config.exchange,
+            config.data_config.market,
+            config.data_config.timeframe,
+            config.data_config.local_only,
+        )
+    )
+    print("LLM worker startup: initializing state store and worker")
     state_store = FilesystemResearchStateStore(config.state_root)
     worker = LLMAutoresearchWorker(
         config=config,
@@ -1387,6 +1406,7 @@ def main() -> None:
         "Starting LLM autoresearch worker for %s on %s with model %s"
         % (",".join(config.symbols), config.data_config.timeframe, config.model_name)
     )
+    print("LLM worker startup: entering run loop")
     worker.run_forever()
 
 
