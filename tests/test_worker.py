@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from autoresearch_trade_bot.config import DataConfig, ResearchTargetGate, WorkerConfig
+from autoresearch_trade_bot.data import LocalHistoryUnavailableError
 from autoresearch_trade_bot.datasets import DatasetManifest, DatasetSpec
 from autoresearch_trade_bot.models import Bar
 from autoresearch_trade_bot.state import FilesystemResearchStateStore
@@ -231,6 +232,29 @@ class ContinuousResearchWorkerTests(unittest.TestCase):
             datetime(2026, 3, 15, 12, 0, tzinfo=timezone.utc),
         )
         self.assertGreater(worker.seconds_until_next_cycle(now), 120.0)
+
+    def test_run_cycle_fails_fast_in_local_only_mode_without_readiness_marker(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            worker_config = WorkerConfig(
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                data_config=DataConfig(
+                    storage_root=str(temp_path / "data"),
+                    local_only=True,
+                    history_readiness_state_path=str(temp_path / "history_refresh_state.json"),
+                ),
+            )
+            worker = ContinuousResearchWorker(
+                worker_config=worker_config,
+                state_store=FilesystemResearchStateStore(worker_config.state_root),
+                materializer=FakeMaterializer(temp_path / "data"),
+                now_fn=lambda: datetime(2026, 3, 15, 0, 5, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+
+            with self.assertRaises(LocalHistoryUnavailableError):
+                worker.run_cycle()
 
 
 if __name__ == "__main__":

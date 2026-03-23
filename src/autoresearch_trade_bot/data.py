@@ -45,6 +45,14 @@ class DataValidationError(ValueError):
         self.issues = issues
 
 
+class LocalHistoryUnavailableError(RuntimeError):
+    """Raised when local-only mode is enabled without sufficient local coverage."""
+
+
+def default_history_readiness_state_path(storage_root: str | Path) -> Path:
+    return Path(storage_root).parent / "history_refresh_state.json"
+
+
 def _manifest_search_root(storage_root: str | Path, spec: DatasetSpec) -> Path:
     return Path(storage_root) / spec.exchange / spec.market / spec.timeframe
 
@@ -109,8 +117,36 @@ def ensure_dataset_manifest(
     storage_root: str | Path,
     spec: DatasetSpec,
     materializer: "HistoricalDatasetMaterializer",
+    local_only: bool | None = None,
+    readiness_state_path: str | Path | None = None,
 ) -> Path:
+    materializer_data_config = getattr(materializer, "data_config", None)
+    resolved_local_only = (
+        getattr(materializer_data_config, "local_only", False)
+        if local_only is None
+        else local_only
+    )
+    resolved_readiness_state_path = (
+        getattr(materializer_data_config, "history_readiness_state_path", None)
+        if readiness_state_path is None
+        else readiness_state_path
+    )
     covering_manifest = find_covering_manifest(storage_root, spec, materializer.store)
+    readiness_manifest, readiness_issue = _resolve_readiness_manifest(
+        readiness_state_path=resolved_readiness_state_path,
+        spec=spec,
+        store=materializer.store,
+    )
+    if resolved_local_only:
+        if readiness_manifest is not None:
+            return readiness_manifest
+        if covering_manifest is not None and resolved_readiness_state_path is None:
+            return Path(covering_manifest)
+        reason = readiness_issue or "no local manifest covers the requested window"
+        raise LocalHistoryUnavailableError(
+            "local-only history mode is enabled for "
+            f"{spec.dataset_id}, but local coverage is unavailable: {reason}"
+        )
     if covering_manifest is not None:
         return Path(covering_manifest)
 
@@ -125,6 +161,40 @@ def ensure_dataset_manifest(
 
     dataset = materializer.materialize(spec)
     return dataset.manifest_path
+
+
+def _resolve_readiness_manifest(
+    *,
+    readiness_state_path: str | Path | None,
+    spec: DatasetSpec,
+    store: DatasetStore,
+) -> tuple[Path | None, str | None]:
+    if readiness_state_path is None:
+        return None, None
+    marker_path = Path(readiness_state_path)
+    if not marker_path.exists():
+        return None, f"readiness marker is missing at {marker_path}"
+    try:
+        payload = json.loads(marker_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return None, f"readiness marker is invalid JSON: {exc}"
+    manifest_raw = payload.get("manifest_path")
+    if not manifest_raw:
+        return None, "readiness marker does not include a manifest_path"
+    manifest_path = Path(str(manifest_raw))
+    if not manifest_path.exists():
+        return None, f"readiness manifest is missing at {manifest_path}"
+    manifest = store.read_manifest(manifest_path)
+    if not _manifest_matches_spec(manifest, spec):
+        return None, (
+            "readiness manifest does not match the requested exchange/market/timeframe/symbols"
+        )
+    if manifest.start > spec.start or manifest.end < spec.end:
+        return None, (
+            "readiness manifest does not cover the requested time window "
+            f"({spec.start.isoformat()} to {spec.end.isoformat()})"
+        )
+    return manifest_path, None
 
 
 @dataclass

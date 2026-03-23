@@ -20,8 +20,10 @@ from .autoresearch import (
     slugify,
 )
 from .config import DataConfig, LLMWorkerConfig, ResearchTargetGate
+from .data import default_history_readiness_state_path
 from .datasets import timeframe_to_timedelta
 from .family_wave import ensure_family_branch_seeded
+from .history_dataset_install import maybe_install_history_dataset_from_env
 from .mutations import load_recent_results, run_llm_mutation_campaign
 from .rollout import (
     FAST_VALIDATION_STAGE,
@@ -293,6 +295,8 @@ class LLMAutoresearchWorker:
             campaigns_root=self.config.campaigns_root,
             active_pointer_path=self.config.active_campaign_path,
             target_gate=self.config.target_gate,
+            local_data_only=self.config.data_config.local_only,
+            history_readiness_state_path=self.config.data_config.history_readiness_state_path,
         )
         return campaign_path, True
 
@@ -357,6 +361,8 @@ class LLMAutoresearchWorker:
             campaigns_root=campaigns_root,
             active_pointer_path=str(active_pointer),
             target_gate=self.config.target_gate,
+            local_data_only=self.config.data_config.local_only,
+            history_readiness_state_path=self.config.data_config.history_readiness_state_path,
         )
         return campaign_path, True
 
@@ -1215,6 +1221,17 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
     repo_url = os.environ.get("AUTORESEARCH_LLM_REPO_URL") or _discover_repo_url()
     max_cycles_raw = os.environ.get("AUTORESEARCH_LLM_MAX_CYCLES")
     max_cycles = int(max_cycles_raw) if max_cycles_raw else None
+    local_data_only = _env_flag(
+        "AUTORESEARCH_LLM_LOCAL_DATA_ONLY",
+        default=_env_flag("AUTORESEARCH_LOCAL_DATA_ONLY"),
+    )
+    history_readiness_state_path = os.environ.get(
+        "AUTORESEARCH_LLM_HISTORY_READINESS_STATE_PATH",
+        os.environ.get(
+            "AUTORESEARCH_HISTORY_READINESS_STATE_PATH",
+            str(default_history_readiness_state_path(data_root)),
+        ),
+    )
     return LLMWorkerConfig(
         repo_url=repo_url,
         symbols=symbols,
@@ -1310,6 +1327,8 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
             rate_limit_backoff_seconds=float(
                 os.environ.get("AUTORESEARCH_RATE_LIMIT_BACKOFF_SECONDS", "2.0")
             ),
+            local_only=local_data_only,
+            history_readiness_state_path=history_readiness_state_path,
         ),
         target_gate=ResearchTargetGate(
             min_total_return=float(
@@ -1348,7 +1367,9 @@ def _discover_repo_url() -> str:
 
 
 def main() -> None:
-    _maybe_bootstrap_history()
+    installed_dataset = maybe_install_history_dataset_from_env()
+    if installed_dataset.manifest_path is None:
+        _maybe_bootstrap_history()
     config = llm_worker_config_from_env()
     state_store = FilesystemResearchStateStore(config.state_root)
     worker = LLMAutoresearchWorker(

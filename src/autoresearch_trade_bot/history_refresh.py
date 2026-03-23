@@ -9,7 +9,11 @@ from pathlib import Path
 from typing import Callable
 
 from .config import DataConfig
-from .data import HistoricalDatasetMaterializer, ensure_dataset_manifest
+from .data import (
+    HistoricalDatasetMaterializer,
+    default_history_readiness_state_path,
+    ensure_dataset_manifest,
+)
 from .datasets import DatasetSpec
 
 
@@ -88,7 +92,7 @@ def history_refresh_config_from_env() -> HistoryRefreshConfig:
         ),
         state_path=os.environ.get(
             "AUTORESEARCH_HISTORY_REFRESH_STATE_PATH",
-            str(Path(storage_root).parent / "history_refresh_state.json"),
+            str(default_history_readiness_state_path(storage_root)),
         ),
         min_request_interval_seconds=float(
             os.environ.get("AUTORESEARCH_MIN_REQUEST_INTERVAL_SECONDS", "0.25")

@@ -25,6 +25,7 @@ from autoresearch_trade_bot.autoresearch import (
 from autoresearch_trade_bot.binance import BinanceBarNormalizer
 from autoresearch_trade_bot.config import DataConfig, ResearchTargetGate
 from autoresearch_trade_bot.data import HistoricalDatasetMaterializer
+from autoresearch_trade_bot.data import LocalHistoryUnavailableError
 from autoresearch_trade_bot.datasets import DatasetManifest, DatasetSpec, RawSymbolHistory
 from autoresearch_trade_bot.storage import PyArrowParquetDatasetStore
 from autoresearch_trade_bot.validation import DatasetValidator
@@ -240,6 +241,107 @@ class AutoresearchTests(unittest.TestCase):
                 storage_root=str(storage_root),
                 campaigns_root=temp_path / ".autoresearch" / "campaigns",
                 active_pointer_path=temp_path / ".autoresearch" / "active_campaign.txt",
+                materializer=materializer,
+                target_gate=ResearchTargetGate(),
+            )
+
+            self.assertEqual(materializer.materialized_specs, [])
+            self.assertEqual(materializer.incremental_specs, [])
+
+    def test_prepare_campaign_fails_fast_in_local_only_mode_without_ready_local_history(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            materializer = RecordingMaterializer()
+            readiness_path = temp_path / "history_refresh_state.json"
+
+            with self.assertRaises(LocalHistoryUnavailableError) as ctx:
+                prepare_campaign(
+                    campaign_name="Bybit Local Only Missing",
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    symbols=("BTCUSDT", "ETHUSDT"),
+                    anchor_end=datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc),
+                    window_days=7,
+                    window_count=1,
+                    storage_root=str(temp_path / "data"),
+                    campaigns_root=temp_path / ".autoresearch" / "campaigns",
+                    active_pointer_path=temp_path / ".autoresearch" / "active_campaign.txt",
+                    local_data_only=True,
+                    history_readiness_state_path=readiness_path,
+                    materializer=materializer,
+                    target_gate=ResearchTargetGate(),
+                )
+
+            self.assertIn("local-only history mode is enabled", str(ctx.exception))
+            self.assertEqual(materializer.materialized_specs, [])
+            self.assertEqual(materializer.incremental_specs, [])
+
+    def test_prepare_campaign_uses_ready_marker_for_local_only_campaigns(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            materializer = RecordingMaterializer()
+            storage_root = temp_path / "data"
+            covering_spec = DatasetSpec(
+                exchange="bybit",
+                market="linear",
+                timeframe="5m",
+                start=datetime(2026, 3, 8, 0, 0, tzinfo=timezone.utc),
+                end=datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc),
+                symbols=("BTCUSDT", "ETHUSDT"),
+            )
+            covering_dir = (
+                storage_root
+                / covering_spec.exchange
+                / covering_spec.market
+                / covering_spec.timeframe
+                / covering_spec.dataset_id
+            )
+            covering_dir.mkdir(parents=True, exist_ok=True)
+            covering_manifest_path = covering_dir / "manifest.json"
+            covering_manifest = DatasetManifest(
+                dataset_id=covering_spec.dataset_id,
+                exchange=covering_spec.exchange,
+                market=covering_spec.market,
+                timeframe=covering_spec.timeframe,
+                start=covering_spec.start,
+                end=covering_spec.end,
+                generated_at=datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc),
+                symbols=covering_spec.symbols,
+                files={},
+                validation_issues=[],
+            )
+            covering_manifest_path.write_text(
+                json.dumps(covering_manifest.to_dict(), indent=2),
+                encoding="utf-8",
+            )
+            readiness_path = temp_path / "history_refresh_state.json"
+            readiness_path.write_text(
+                json.dumps(
+                    {
+                        "manifest_path": str(covering_manifest_path),
+                        "storage_root": str(storage_root),
+                        "lookback_days": 365,
+                    },
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+
+            prepare_campaign(
+                campaign_name="Bybit Local Only Ready",
+                exchange="bybit",
+                market="linear",
+                timeframe="5m",
+                symbols=("BTCUSDT", "ETHUSDT"),
+                anchor_end=datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc),
+                window_days=7,
+                window_count=1,
+                storage_root=str(storage_root),
+                campaigns_root=temp_path / ".autoresearch" / "campaigns",
+                active_pointer_path=temp_path / ".autoresearch" / "active_campaign.txt",
+                local_data_only=True,
+                history_readiness_state_path=readiness_path,
                 materializer=materializer,
                 target_gate=ResearchTargetGate(),
             )

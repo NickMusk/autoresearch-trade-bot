@@ -1469,10 +1469,49 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
         previous = dict(os.environ)
         try:
             os.environ["AUTORESEARCH_LLM_BOOTSTRAP_HISTORY_ON_START"] = "1"
-            with patch("autoresearch_trade_bot.history_refresh.history_refresh_config_from_env") as mocked_config:
-                mocked_config.return_value = SimpleNamespace(
-                    full_lookback_days=365,
-                    bootstrap_skip_open_interest=True,
+            with patch(
+                "autoresearch_trade_bot.llm_worker.maybe_install_history_dataset_from_env"
+            ) as mocked_install:
+                mocked_install.return_value = SimpleNamespace(
+                    manifest_path=None,
+                    installed=False,
+                )
+                with patch("autoresearch_trade_bot.history_refresh.history_refresh_config_from_env") as mocked_config:
+                    mocked_config.return_value = SimpleNamespace(
+                        full_lookback_days=365,
+                        bootstrap_skip_open_interest=True,
+                    )
+                    with patch("autoresearch_trade_bot.history_refresh.run_history_refresh_once") as mocked_run:
+                        with patch.object(llm_worker_module, "llm_worker_config_from_env") as mocked_worker_config:
+                            mocked_worker_config.return_value = LLMWorkerConfig(
+                                repo_url="https://example.com/repo.git"
+                            )
+                            with patch("autoresearch_trade_bot.llm_worker.FilesystemResearchStateStore"):
+                                worker_double = SimpleNamespace(run_forever=lambda: None)
+                                with patch(
+                                    "autoresearch_trade_bot.llm_worker.LLMAutoresearchWorker",
+                                    return_value=worker_double,
+                                ):
+                                    llm_worker_module.main()
+
+            self.assertEqual(mocked_run.call_count, 1)
+            kwargs = mocked_run.call_args.kwargs
+            self.assertEqual(kwargs["lookback_days"], 365)
+            self.assertTrue(kwargs["skip_open_interest"])
+        finally:
+            os.environ.clear()
+            os.environ.update(previous)
+
+    def test_main_skips_bootstrap_when_dataset_installer_has_manifest(self) -> None:
+        previous = dict(os.environ)
+        try:
+            os.environ["AUTORESEARCH_LLM_BOOTSTRAP_HISTORY_ON_START"] = "1"
+            with patch(
+                "autoresearch_trade_bot.llm_worker.maybe_install_history_dataset_from_env"
+            ) as mocked_install:
+                mocked_install.return_value = SimpleNamespace(
+                    manifest_path=Path("/tmp/autoresearch/data/manifest.json"),
+                    installed=False,
                 )
                 with patch("autoresearch_trade_bot.history_refresh.run_history_refresh_once") as mocked_run:
                     with patch.object(llm_worker_module, "llm_worker_config_from_env") as mocked_worker_config:
@@ -1487,13 +1526,28 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                             ):
                                 llm_worker_module.main()
 
-            self.assertEqual(mocked_run.call_count, 1)
-            kwargs = mocked_run.call_args.kwargs
-            self.assertEqual(kwargs["lookback_days"], 365)
-            self.assertTrue(kwargs["skip_open_interest"])
+            self.assertEqual(mocked_run.call_count, 0)
+            self.assertEqual(mocked_install.call_count, 1)
         finally:
             os.environ.clear()
             os.environ.update(previous)
+
+    def test_llm_worker_config_from_env_supports_local_only_history_mode(self) -> None:
+        previous = dict(os.environ)
+        try:
+            os.environ["AUTORESEARCH_LLM_LOCAL_DATA_ONLY"] = "1"
+            os.environ["AUTORESEARCH_LLM_DATA_ROOT"] = "/tmp/autoresearch/llm/data"
+            with patch.object(llm_worker_module, "_discover_repo_url", return_value="https://example.com/repo.git"):
+                config = llm_worker_module.llm_worker_config_from_env()
+        finally:
+            os.environ.clear()
+            os.environ.update(previous)
+
+        self.assertTrue(config.data_config.local_only)
+        self.assertEqual(
+            config.data_config.history_readiness_state_path,
+            "/tmp/autoresearch/llm/history_refresh_state.json",
+        )
 
 
 if __name__ == "__main__":

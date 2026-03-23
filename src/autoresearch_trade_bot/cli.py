@@ -16,10 +16,15 @@ from .autoresearch import (
     run_deterministic_mutation_campaign,
 )
 from .config import DataConfig
+from .crypto_import import import_crypto_data_directory
 from .data import HistoricalDatasetMaterializer, ensure_dataset_manifest
 from .datasets import DatasetSpec
 from .experiments import run_baseline_from_manifest_path
 from .family_wave import run_llm_family_wave, serialize_family_wave_results
+from .history_dataset_install import (
+    DatasetInstallConfig,
+    ensure_history_dataset_installed,
+)
 from .mutations import run_llm_mutation_campaign
 from .state import FilesystemResearchStateStore
 from .worker import ContinuousResearchWorker, worker_config_from_env
@@ -99,6 +104,37 @@ def cmd_backfill_dataset(args: argparse.Namespace) -> int:
 def cmd_run_baseline(args: argparse.Namespace) -> int:
     report = run_baseline_from_manifest_path(args.manifest_path, output_dir=args.output_dir)
     print(json.dumps(report.to_dict(), indent=2))
+    return 0
+
+
+def cmd_import_crypto_data(args: argparse.Namespace) -> int:
+    datasets = import_crypto_data_directory(
+        source_root=args.source_root,
+        storage_root=args.storage_root,
+        symbols=tuple(symbol.strip().upper() for symbol in args.symbols.split(",") if symbol.strip()),
+        timeframe=args.timeframe,
+        exchange=args.exchange,
+        market=args.market,
+    )
+    if len(datasets) == 1:
+        print(datasets[0].manifest_path)
+        return 0
+    print(json.dumps([str(dataset.manifest_path) for dataset in datasets], indent=2))
+    return 0
+
+
+def cmd_install_history_dataset(args: argparse.Namespace) -> int:
+    result = ensure_history_dataset_installed(
+        DatasetInstallConfig(
+            archive_url=args.archive_url,
+            storage_root=args.storage_root,
+            manifest_relative_path=args.manifest_relative_path,
+            readiness_state_path=args.readiness_state_path,
+        )
+    )
+    if result.manifest_path is None:
+        raise RuntimeError("history dataset installation did not produce a manifest")
+    print(result.manifest_path)
     return 0
 
 
@@ -365,6 +401,28 @@ def build_parser() -> argparse.ArgumentParser:
         exchange="bybit",
         market="linear",
     )
+
+    import_crypto = subparsers.add_parser(
+        "import-crypto-data",
+        help="Import local Binance-style kline CSV/ZIP files into the canonical dataset store",
+    )
+    import_crypto.add_argument("--source-root", default="crypto_data")
+    import_crypto.add_argument("--symbols", required=True, help="Comma-separated symbols")
+    import_crypto.add_argument("--timeframe", default="5m")
+    import_crypto.add_argument("--storage-root", default="data")
+    import_crypto.add_argument("--exchange", default="binance")
+    import_crypto.add_argument("--market", default="usdm_futures")
+    import_crypto.set_defaults(func=cmd_import_crypto_data)
+
+    install_history = subparsers.add_parser(
+        "install-history-dataset",
+        help="Install a prebuilt history dataset archive into a worker-local storage root",
+    )
+    install_history.add_argument("--archive-url", required=True)
+    install_history.add_argument("--storage-root", required=True)
+    install_history.add_argument("--manifest-relative-path", required=True)
+    install_history.add_argument("--readiness-state-path", required=True)
+    install_history.set_defaults(func=cmd_install_history_dataset)
 
     baseline = subparsers.add_parser(
         "run-baseline",

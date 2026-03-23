@@ -12,8 +12,8 @@ from .config import DataConfig, ResearchTargetGate, WorkerConfig
 from .data import (
     HistoricalDatasetMaterializer,
     ManifestHistoricalDataSource,
-    find_covering_manifest,
-    find_latest_reusable_manifest,
+    default_history_readiness_state_path,
+    ensure_dataset_manifest,
 )
 from .datasets import DatasetSpec, timeframe_to_timedelta
 from .experiments import (
@@ -154,33 +154,13 @@ class ContinuousResearchWorker:
         )
 
     def _materialize_or_reuse_dataset(self, spec: DatasetSpec) -> Path:
-        manifest_path = (
-            Path(self.worker_config.data_config.storage_root)
-            / spec.exchange
-            / spec.market
-            / spec.timeframe
-            / spec.dataset_id
-            / "manifest.json"
+        return ensure_dataset_manifest(
+            storage_root=self.worker_config.data_config.storage_root,
+            spec=spec,
+            materializer=self.materializer,
+            local_only=self.worker_config.data_config.local_only,
+            readiness_state_path=self.worker_config.data_config.history_readiness_state_path,
         )
-        if manifest_path.exists():
-            return manifest_path
-        covering_manifest = find_covering_manifest(
-            self.worker_config.data_config.storage_root,
-            spec,
-            self.materializer.store,
-        )
-        if covering_manifest is not None:
-            return covering_manifest
-        reusable_manifest = find_latest_reusable_manifest(
-            self.worker_config.data_config.storage_root,
-            spec,
-            self.materializer.store,
-        )
-        if reusable_manifest is not None:
-            dataset = self.materializer.materialize_incremental(spec, reusable_manifest)
-            return dataset.manifest_path
-        dataset = self.materializer.materialize(spec)
-        return dataset.manifest_path
 
     def _evaluate_cycle(
         self,
@@ -575,6 +555,16 @@ def worker_config_from_env() -> WorkerConfig:
     )
     max_cycles_raw = os.environ.get("AUTORESEARCH_MAX_CYCLES")
     max_cycles = int(max_cycles_raw) if max_cycles_raw else None
+    local_data_only = os.environ.get("AUTORESEARCH_LOCAL_DATA_ONLY", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    history_readiness_state_path = os.environ.get(
+        "AUTORESEARCH_HISTORY_READINESS_STATE_PATH",
+        str(default_history_readiness_state_path(data_root)),
+    )
     return WorkerConfig(
         symbols=symbols,
         timeframe=timeframe,
@@ -616,6 +606,8 @@ def worker_config_from_env() -> WorkerConfig:
             rate_limit_backoff_seconds=float(
                 os.environ.get("AUTORESEARCH_RATE_LIMIT_BACKOFF_SECONDS", "2.0")
             ),
+            local_only=local_data_only,
+            history_readiness_state_path=history_readiness_state_path,
         ),
         target_gate=ResearchTargetGate(
             min_total_return=float(

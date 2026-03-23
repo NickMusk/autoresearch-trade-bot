@@ -369,6 +369,8 @@ def prepare_campaign(
     set_active: bool = True,
     active_pointer_path: str | Path = DEFAULT_ACTIVE_CAMPAIGN,
     target_gate: ResearchTargetGate | None = None,
+    local_data_only: bool = False,
+    history_readiness_state_path: str | Path | None = None,
     materializer: HistoricalDatasetMaterializer | None = None,
 ) -> Path:
     target = target_gate or ResearchTargetGate()
@@ -379,6 +381,10 @@ def prepare_campaign(
         storage_root=storage_root,
         default_start=ensure_utc(anchor_end) - timedelta(days=window_days),
         default_end=ensure_utc(anchor_end),
+        local_only=local_data_only,
+        history_readiness_state_path=(
+            str(history_readiness_state_path) if history_readiness_state_path is not None else None
+        ),
     )
     resolved_materializer = materializer or HistoricalDatasetMaterializer.for_exchange(data_config)
     windows = []
@@ -395,6 +401,8 @@ def prepare_campaign(
             storage_root=storage_root,
             spec=spec,
             materializer=resolved_materializer,
+            local_only=local_data_only,
+            readiness_state_path=history_readiness_state_path,
         )
         windows.append(
             FrozenResearchWindow(
