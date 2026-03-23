@@ -77,6 +77,7 @@ class RecordingMaterializer:
         self.materialized_specs: list[DatasetSpec] = []
         self.incremental_specs: list[tuple[DatasetSpec, Path]] = []
         self.store = SimpleNamespace(read_manifest=self._read_manifest)
+        self.data_config = DataConfig()
 
     def materialize(self, spec: DatasetSpec):
         self.materialized_specs.append(spec)
@@ -348,6 +349,39 @@ class AutoresearchTests(unittest.TestCase):
 
             self.assertEqual(materializer.materialized_specs, [])
             self.assertEqual(materializer.incremental_specs, [])
+
+    def test_prepare_campaign_preserves_include_open_interest_setting(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            materializer = RecordingMaterializer()
+            captured: dict[str, object] = {}
+
+            def fake_for_exchange(data_config, store=None):  # noqa: ARG001
+                captured["include_open_interest"] = data_config.include_open_interest
+                materializer.data_config = data_config
+                return materializer
+
+            with unittest.mock.patch(
+                "autoresearch_trade_bot.autoresearch.HistoricalDatasetMaterializer.for_exchange",
+                side_effect=fake_for_exchange,
+            ):
+                prepare_campaign(
+                    campaign_name="Binance No OI",
+                    exchange="binance",
+                    market="usdm_futures",
+                    timeframe="5m",
+                    symbols=("BTCUSDT", "ETHUSDT"),
+                    anchor_end=datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc),
+                    window_days=7,
+                    window_count=1,
+                    storage_root=str(temp_path / "data"),
+                    campaigns_root=temp_path / ".autoresearch" / "campaigns",
+                    active_pointer_path=temp_path / ".autoresearch" / "active_campaign.txt",
+                    include_open_interest=False,
+                    target_gate=ResearchTargetGate(),
+                )
+
+            self.assertIs(captured["include_open_interest"], False)
 
     def test_evaluate_train_file_writes_artifact_and_results_row(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

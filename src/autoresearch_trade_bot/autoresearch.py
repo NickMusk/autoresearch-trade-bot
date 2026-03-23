@@ -371,6 +371,7 @@ def prepare_campaign(
     target_gate: ResearchTargetGate | None = None,
     local_data_only: bool = False,
     history_readiness_state_path: str | Path | None = None,
+    include_open_interest: bool = True,
     materializer: HistoricalDatasetMaterializer | None = None,
 ) -> Path:
     target = target_gate or ResearchTargetGate()
@@ -382,6 +383,7 @@ def prepare_campaign(
         default_start=ensure_utc(anchor_end) - timedelta(days=window_days),
         default_end=ensure_utc(anchor_end),
         local_only=local_data_only,
+        include_open_interest=include_open_interest,
         history_readiness_state_path=(
             str(history_readiness_state_path) if history_readiness_state_path is not None else None
         ),

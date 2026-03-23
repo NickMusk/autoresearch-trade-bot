@@ -315,6 +315,7 @@ class LLMAutoresearchWorker:
             target_gate=self.config.target_gate,
             local_data_only=self.config.data_config.local_only,
             history_readiness_state_path=self.config.data_config.history_readiness_state_path,
+            include_open_interest=self.config.data_config.include_open_interest,
         )
         return campaign_path, True
 
@@ -381,6 +382,7 @@ class LLMAutoresearchWorker:
             target_gate=self.config.target_gate,
             local_data_only=self.config.data_config.local_only,
             history_readiness_state_path=self.config.data_config.history_readiness_state_path,
+            include_open_interest=self.config.data_config.include_open_interest,
         )
         return campaign_path, True
 
