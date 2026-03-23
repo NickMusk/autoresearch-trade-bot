@@ -36,12 +36,12 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260323t100000z",
-  "latest_cycle_completed_at": "2026-03-23T19:00:53.902153+00:00",
-  "last_processed_bar": "2026-03-23T19:00:00+00:00",
-  "recent_acceptance_rate": 0.2857142857142857,
-  "evaluation_acceptance_rate": 0.2857142857142857,
-  "generation_validity_rate": 0.7,
-  "mutation_win_rate": 0.2857142857142857,
+  "latest_cycle_completed_at": "2026-03-23T20:00:53.902567+00:00",
+  "last_processed_bar": "2026-03-23T20:00:00+00:00",
+  "recent_acceptance_rate": 0.25,
+  "evaluation_acceptance_rate": 0.25,
+  "generation_validity_rate": 0.8,
+  "mutation_win_rate": 0.25,
   "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
@@ -140,7 +140,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-7bc66d58",
+      "mutation_label": "llm-a1235195",
       "baseline_score": 3.3936106455878114,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -240,7 +240,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-74dbe096",
+      "strategy_name": "llm-a1235195",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -248,12 +248,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -22.721133,
+      "score": 0.0,
       "metrics": {
-        "total_return": -0.019365,
-        "sharpe": -22.512325,
-        "max_drawdown": 0.022227,
-        "average_turnover": 0.023077
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
       },
       "rejection_reasons": []
     }
@@ -261,7 +261,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-7bc66d58",
+    "mutation_label": "llm-a1235195",
     "baseline_score": 3.3936106455878114,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -295,13 +295,13 @@
       "regime_threshold": 0.015,
       "top_k": 1,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.06,
-      "volatility_floor": 0.02,
-      "reversal_bias_weight": 0.03,
-      "funding_penalty_weight": 0.01,
-      "persistence_bars": 3,
+      "min_cross_sectional_spread": 0.05,
+      "volatility_floor": 0.03,
+      "reversal_bias_weight": 0.02,
+      "funding_penalty_weight": 0.005,
+      "persistence_bars": 4,
       "persistence_min_mean_return": 0.002,
-      "max_gross_scaling": 1.2
+      "max_gross_scaling": 1.1
     },
     "gate_failures": [
       "no_trades_executed",
