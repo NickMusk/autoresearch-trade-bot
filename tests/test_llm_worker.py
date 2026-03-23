@@ -1631,6 +1631,18 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             "/tmp/autoresearch/llm/history_refresh_state.json",
         )
 
+    def test_llm_worker_config_from_env_supports_disabling_open_interest(self) -> None:
+        previous = dict(os.environ)
+        try:
+            os.environ["AUTORESEARCH_INCLUDE_OPEN_INTEREST"] = "0"
+            with patch.object(llm_worker_module, "_discover_repo_url", return_value="https://example.com/repo.git"):
+                config = llm_worker_module.llm_worker_config_from_env()
+        finally:
+            os.environ.clear()
+            os.environ.update(previous)
+
+        self.assertFalse(config.data_config.include_open_interest)
+
     def test_llm_worker_config_from_env_falls_back_to_default_repo_url(self) -> None:
         previous = dict(os.environ)
         try:

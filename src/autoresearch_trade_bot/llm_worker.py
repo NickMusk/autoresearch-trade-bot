@@ -1332,6 +1332,10 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
             timeframe=os.environ.get("AUTORESEARCH_TIMEFRAME", "5m"),
             storage_root=data_root,
             strict_validation=True,
+            include_open_interest=_env_flag(
+                "AUTORESEARCH_INCLUDE_OPEN_INTEREST",
+                default=True,
+            ),
             max_batch_size=int(os.environ.get("AUTORESEARCH_MAX_BATCH_SIZE", "1000")),
             request_timeout_seconds=int(
                 os.environ.get("AUTORESEARCH_REQUEST_TIMEOUT_SECONDS", "30")
