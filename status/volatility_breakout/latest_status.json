@@ -1,9 +1,16 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker transient error",
+  "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "HTTP Error 429: Too Many Requests"
+    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest LLM candidate produced no trades on the evaluation window.",
+    "Latest kept candidate still fails gate: no_trades_executed.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
+    "Research champion still fails paper gate: no_trades_executed.",
+    "Research champion still fails paper gate: sharpe_below_gate.",
+    "No rollout champion has cleared holdout validation yet."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -13,28 +20,30 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": 0.002,
-    "sharpe": 6.3884,
-    "max_drawdown": 0.0002,
-    "average_turnover": 0.0005,
+    "total_return": 0.0,
+    "sharpe": 0.0,
+    "max_drawdown": 0.0,
+    "average_turnover": 0.0,
     "bars_processed": 2015,
-    "score": 6.397
+    "score": 0.0
   },
-  "accepted_for_paper": true,
-  "current_best_ready_for_paper": true,
+  "accepted_for_paper": false,
+  "current_best_ready_for_paper": false,
   "latest_cycle_rollout_ready": false,
   "next_milestones": [
-    "Wait for the worker to recover from the latest transient API, repo, or campaign failure."
+    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
+    "Accumulate multiple kept improvements in the research branch.",
+    "Promote only candidates that satisfy the hard rollout gates."
   ],
-  "loop_state": "transient_error",
-  "latest_dataset_id": "render-binance-usdm-futures-5m-20260323t100000z",
-  "latest_cycle_completed_at": "2026-03-24T09:00:53.916082+00:00",
-  "last_processed_bar": "2026-03-24T09:00:00+00:00",
+  "loop_state": "searching",
+  "latest_dataset_id": "render-binance-usdm-futures-5m-20260324t101500z",
+  "latest_cycle_completed_at": "2026-03-24T10:15:56.880780+00:00",
+  "last_processed_bar": "2026-03-24T10:15:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
   "mutation_win_rate": 0.0,
-  "consecutive_failures": 1,
+  "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.3333333333333333,
   "current_best_fast_holdout_passed": false,
   "current_best_validation_pass_rate": 0.0,
@@ -75,18 +84,25 @@
     "strategy_name": "selective-momentum-v3",
     "git_commit": "74d63dc009ac9d25e91832d8c41baa805cce5ffe",
     "train_sha1": "8b43541d59893c295fba0693165e58bf85ada522",
-    "research_score": 6.396968862131755,
+    "research_score": 0.0,
     "average_metrics": {
-      "total_return": 0.0020153718422724065,
-      "sharpe": 6.3883882808360255,
-      "max_drawdown": 0.00024999999999997247,
-      "average_turnover": 0.0004962779156327543,
+      "total_return": 0.0,
+      "sharpe": 0.0,
+      "max_drawdown": 0.0,
+      "average_turnover": 0.0,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 2
+      "nonzero_turnover_steps": 0
     },
-    "gate_failures": [],
-    "paper_gate_failures": [],
-    "paper_gate_ready": true,
+    "gate_failures": [
+      "no_trades_executed",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ],
+    "paper_gate_failures": [
+      "no_trades_executed",
+      "sharpe_below_gate"
+    ],
+    "paper_gate_ready": false,
     "fast_validation_summary": {
       "validated_at": "2026-03-24T04:00:00+00:00",
       "campaign_id": "render-binance-usdm-futures-5m-holdout-20260317t040000z",
@@ -123,13 +139,13 @@
   "rollout_champion_summary": {},
   "rollout_candidate_shortlist": [],
   "multi_window_summary": {
-    "campaign_path": "/var/data/autoresearch/llm/campaigns/render-binance-usdm-futures-5m-20260323t100000z.json",
-    "campaign_refreshed_this_cycle": false,
+    "campaign_path": "/var/data/autoresearch/llm/campaigns/render-binance-usdm-futures-5m-20260324t101500z.json",
+    "campaign_refreshed_this_cycle": true,
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-2b3718b7",
-      "baseline_score": 6.396968862131755,
+      "mutation_label": "llm-95cf2e73",
+      "baseline_score": 0.0,
       "candidate_score": 0.0,
       "kept_commit": null,
       "failure_reason": "",
@@ -142,10 +158,10 @@
       ]
     },
     "baseline_strategy_name": "selective-momentum-v3",
-    "baseline_score": 6.396968862131755,
+    "baseline_score": 0.0,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm",
-    "current_best_ready_for_paper": true,
+    "current_best_ready_for_paper": false,
     "current_best_fast_validation_pass_rate": 0.3333333333333333,
     "current_best_fast_holdout_passed": false,
     "current_best_validation_pass_rate": 0.0,
@@ -192,24 +208,6 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-fd965673",
-      "params": {
-        "decision": "keep",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": true,
-      "score": 3.393611,
-      "metrics": {
-        "total_return": 0.001117,
-        "sharpe": 3.392605,
-        "max_drawdown": 0.000897,
-        "average_turnover": 0.000993
-      },
-      "rejection_reasons": []
-    },
-    {
       "strategy_name": "llm-76b5c07b",
       "params": {
         "decision": "discard_screen",
@@ -244,13 +242,31 @@
         "average_turnover": 0.0
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-a1235195",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-2b3718b7",
-    "baseline_score": 6.396968862131755,
+    "mutation_label": "llm-95cf2e73",
+    "baseline_score": 0.0,
     "candidate_score": 0.0,
     "kept_commit": null,
     "failure_reason": "",
@@ -277,17 +293,17 @@
     "train_config": {
       "gross_target": 0.5,
       "lookback_bars": 24,
-      "min_signal_strength": 0.055,
+      "min_signal_strength": 0.06,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 36,
       "regime_threshold": 0.015,
-      "top_k": 2,
+      "top_k": 1,
       "use_regime_filter": false,
       "min_cross_sectional_spread": 0.06,
-      "volatility_floor": 0.025,
-      "reversal_bias_weight": 0.02,
-      "funding_penalty_weight": 0.0075,
-      "persistence_bars": 4,
+      "volatility_floor": 0.03,
+      "reversal_bias_weight": 0.04,
+      "funding_penalty_weight": 0.005,
+      "persistence_bars": 3,
       "persistence_min_mean_return": 0.0015,
       "max_gross_scaling": 1.1
     },
