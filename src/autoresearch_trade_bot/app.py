@@ -92,9 +92,9 @@ def render_dashboard(payload: dict) -> str:
     )
 
     current_best_ready_label = "YES" if snapshot.get("current_best_ready_for_paper", False) else "NO"
-    current_best_validated_label = "YES" if snapshot.get("current_best_validated_for_rollout", snapshot["accepted_for_paper"]) else "NO"
+    current_best_validated_label = "YES" if snapshot.get("current_best_validated_for_rollout", False) else "NO"
     current_best_fast_holdout_label = "YES" if snapshot.get("current_best_fast_holdout_passed", False) else "NO"
-    latest_cycle_ready_label = "YES" if snapshot.get("latest_cycle_rollout_ready", snapshot["research_rollout_ready"]) else "NO"
+    latest_cycle_ready_label = "YES" if snapshot.get("latest_cycle_rollout_ready", False) else "NO"
     rollout_ready_label = "READY" if snapshot["research_rollout_ready"] else "NOT READY"
     cycle_completed_label = snapshot.get("latest_cycle_completed_at") or "n/a"
     processed_bar_label = snapshot.get("last_processed_bar") or "n/a"
@@ -361,9 +361,9 @@ def render_dashboard(payload: dict) -> str:
           <li><code>current_best_fast_holdout_passed</code>: {html.escape(str(snapshot.get("current_best_fast_holdout_passed", False)))}</li>
           <li><code>current_best_validation_pass_rate</code>: {html.escape(str(current_best_validation_pass_rate_label))}</li>
           <li><code>generation_validity_rate</code>: {html.escape(str(snapshot.get("generation_validity_rate", 0.0)))}</li>
-          <li><code>current_best_ready_for_paper</code>: {html.escape(str(snapshot.get("current_best_ready_for_paper", snapshot.get("accepted_for_paper", False))))}</li>
-          <li><code>current_best_validated_for_rollout</code>: {html.escape(str(snapshot.get("current_best_validated_for_rollout", snapshot.get("accepted_for_paper", False))))}</li>
-          <li><code>latest_cycle_rollout_ready</code>: {html.escape(str(snapshot.get("latest_cycle_rollout_ready", snapshot.get("research_rollout_ready", False))))}</li>
+          <li><code>current_best_ready_for_paper</code>: {html.escape(str(snapshot.get("current_best_ready_for_paper", False)))}</li>
+          <li><code>current_best_validated_for_rollout</code>: {html.escape(str(snapshot.get("current_best_validated_for_rollout", False)))}</li>
+          <li><code>latest_cycle_rollout_ready</code>: {html.escape(str(snapshot.get("latest_cycle_rollout_ready", False)))}</li>
           <li><code>consecutive_failures</code>: {html.escape(str(snapshot.get("consecutive_failures", 0)))}</li>
           <li><code>latest_decision</code>: {html.escape(str(latest_decision.get("decision", "n/a")))}</li>
           <li><code>latest_candidate_score</code>: {html.escape(str(latest_decision.get("candidate_score", "n/a")))}</li>
@@ -482,9 +482,9 @@ def _render_family_tab_panel(item: dict, *, is_active: bool) -> str:
           <div class="family-chip"><span class="label">Research Champion</span><strong>{html.escape(str((snapshot.get("research_champion_summary") or {}).get("strategy_name") or snapshot.get("current_best_strategy_name") or "n/a"))}</strong></div>
           <div class="family-chip"><span class="label">Rollout Champion</span><strong>{html.escape(str((snapshot.get("rollout_champion_summary") or {}).get("strategy_name") or "n/a"))}</strong></div>
           <div class="family-chip"><span class="label">Baseline Score</span><strong>{html.escape(str(snapshot.get("baseline_metrics", {}).get("score", "n/a")))}</strong></div>
-          <div class="family-chip"><span class="label">Research Champion Paper Ready</span><strong>{html.escape(str(snapshot.get("current_best_ready_for_paper", snapshot.get("accepted_for_paper", False))))}</strong></div>
+          <div class="family-chip"><span class="label">Research Champion Paper Ready</span><strong>{html.escape(str(snapshot.get("current_best_ready_for_paper", False)))}</strong></div>
           <div class="family-chip"><span class="label">Research Champion Fast Holdout</span><strong>{html.escape(str(snapshot.get("current_best_fast_holdout_passed", False)))}</strong></div>
-          <div class="family-chip"><span class="label">Research Champion Rollout Certified</span><strong>{html.escape(str(snapshot.get("current_best_validated_for_rollout", snapshot.get("accepted_for_paper", False))))}</strong></div>
+          <div class="family-chip"><span class="label">Research Champion Rollout Certified</span><strong>{html.escape(str(snapshot.get("current_best_validated_for_rollout", False)))}</strong></div>
           <div class="family-chip"><span class="label">Latest Decision</span><strong>{html.escape(str(latest_decision.get("decision", "n/a")))}</strong></div>
           <div class="family-chip"><span class="label">Cycle Completed</span><strong>{html.escape(str(snapshot.get("latest_cycle_completed_at") or "n/a"))}</strong></div>
         </div>

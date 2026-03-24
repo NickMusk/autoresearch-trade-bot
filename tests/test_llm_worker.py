@@ -13,7 +13,12 @@ from unittest.mock import patch
 import autoresearch_trade_bot.llm_worker as llm_worker_module
 from autoresearch_trade_bot.config import DataConfig, LLMWorkerConfig, ResearchTargetGate
 from autoresearch_trade_bot.llm_worker import LLMAutoresearchWorker, publisher_from_env
-from autoresearch_trade_bot.state import CycleSummary, FilesystemResearchStateStore
+from autoresearch_trade_bot.state import (
+    CycleSummary,
+    FilesystemResearchStateStore,
+    LLMWorkerCheckpoint,
+    ResearchStatusSnapshot,
+)
 
 
 def make_fake_decision(
@@ -1328,6 +1333,84 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
 
             self.assertEqual(snapshot.loop_state, "degraded")
             self.assertEqual(snapshot.phase, "LLM autoresearch worker degraded")
+
+    def test_failure_snapshot_clears_stale_rollout_ready_but_keeps_champion_certification(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                now_fn=lambda: datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                sleep_fn=lambda _seconds: None,
+            )
+            previous_snapshot = ResearchStatusSnapshot(
+                mission="mission",
+                phase="active",
+                research_rollout_ready=True,
+                research_blockers=[],
+                baseline_strategy="baseline",
+                promotion_gate={"min_sharpe": 1.0},
+                baseline_metrics={"score": 4.5},
+                accepted_for_paper=True,
+                current_best_ready_for_paper=True,
+                current_best_fast_validation_pass_rate=1.0,
+                current_best_fast_holdout_passed=True,
+                current_best_validation_pass_rate=0.8,
+                current_best_validated_for_rollout=True,
+                latest_cycle_rollout_ready=True,
+                next_milestones=[],
+                loop_state="holding",
+                latest_dataset_id="dataset",
+                latest_cycle_completed_at="2026-03-17T11:55:00+00:00",
+                last_processed_bar="2026-03-17T11:50:00+00:00",
+                recent_acceptance_rate=0.5,
+                evaluation_acceptance_rate=0.5,
+                generation_validity_rate=1.0,
+                mutation_win_rate=0.5,
+                consecutive_failures=0,
+                current_best_fast_validation_summary={"passes_stage_gate": True},
+                current_best_validation_summary={"validated_for_rollout": True},
+                research_champion_summary={"strategy_name": "research-champion"},
+                rollout_champion_summary={
+                    "strategy_name": "rollout-champion",
+                    "rollout_validation_summary": {"validated_for_rollout": True},
+                },
+                rollout_candidate_shortlist=[],
+                multi_window_summary={},
+                leaderboard=[],
+                latest_decision={"decision": "keep"},
+                latest_candidate_summary={},
+                current_best_strategy_name="research-champion",
+                latest_kept_summary={},
+            )
+
+            snapshot = worker._build_failure_snapshot(  # type: ignore[attr-defined]
+                checkpoint=LLMWorkerCheckpoint(consecutive_failures=1),
+                failure_message="OpenAI request timed out",
+                previous_snapshot=previous_snapshot,
+            )
+
+            self.assertFalse(snapshot.research_rollout_ready)
+            self.assertTrue(snapshot.current_best_validated_for_rollout)
+            self.assertTrue(snapshot.current_best_ready_for_paper)
+            self.assertTrue(snapshot.accepted_for_paper)
+            self.assertFalse(snapshot.latest_cycle_rollout_ready)
 
     def test_persist_snapshot_suppresses_publish_timeout_for_degraded_status(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

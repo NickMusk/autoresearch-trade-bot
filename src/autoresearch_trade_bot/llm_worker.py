@@ -75,6 +75,14 @@ def _maybe_bootstrap_history() -> None:
     )
 
 
+def _derive_research_rollout_ready(
+    *,
+    rollout_champion_summary: dict[str, object],
+    worker_healthy: bool,
+) -> bool:
+    return bool(rollout_champion_summary) and worker_healthy
+
+
 @dataclass(frozen=True)
 class LLMCycleResult:
     cycle_id: str
@@ -556,7 +564,10 @@ class LLMAutoresearchWorker:
         latest_cycle_rollout_ready = (
             latest_decision.decision == "keep" and current_best_validated_for_rollout
         )
-        research_rollout_ready = bool(rollout_champion_summary)
+        research_rollout_ready = _derive_research_rollout_ready(
+            rollout_champion_summary=rollout_champion_summary,
+            worker_healthy=True,
+        )
         leaderboard = self._build_leaderboard(recent_results)
         self.state_store.save_leaderboard(
             [LeaderboardEntry.from_dict(item) for item in leaderboard]
@@ -707,7 +718,7 @@ class LLMAutoresearchWorker:
                 "bars_processed": int(baseline_metrics.get("bars_processed", 0)),
                 "score": round(float(baseline_report["research_score"]), 4),
             },
-            accepted_for_paper=cycle_result.research_rollout_ready,
+            accepted_for_paper=cycle_result.current_best_ready_for_paper,
             current_best_ready_for_paper=cycle_result.current_best_ready_for_paper,
             current_best_fast_validation_pass_rate=cycle_result.current_best_fast_validation_pass_rate,
             current_best_fast_holdout_passed=cycle_result.current_best_fast_holdout_passed,
@@ -898,13 +909,17 @@ class LLMAutoresearchWorker:
             if previous_snapshot is not None
             else {}
         )
-        preserved_rollout_ready = (
-            previous_snapshot.research_rollout_ready if previous_snapshot is not None else False
-        )
         return ResearchStatusSnapshot(
             mission="Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
             phase=phase,
-            research_rollout_ready=preserved_rollout_ready,
+            research_rollout_ready=_derive_research_rollout_ready(
+                rollout_champion_summary=(
+                    dict(previous_snapshot.rollout_champion_summary)
+                    if previous_snapshot is not None
+                    else {}
+                ),
+                worker_healthy=False,
+            ),
             research_blockers=[failure_message],
             baseline_strategy=baseline_strategy,
             promotion_gate={
@@ -914,11 +929,7 @@ class LLMAutoresearchWorker:
                 "min_acceptance_rate": self.config.target_gate.min_acceptance_rate,
             },
             baseline_metrics=baseline_metrics,
-            accepted_for_paper=(
-                bool(previous_snapshot.accepted_for_paper)
-                if previous_snapshot is not None
-                else current_best_validated_for_rollout
-            ),
+            accepted_for_paper=current_best_ready_for_paper,
             current_best_ready_for_paper=current_best_ready_for_paper,
             current_best_fast_validation_pass_rate=current_best_fast_validation_pass_rate,
             current_best_fast_holdout_passed=current_best_fast_holdout_passed,

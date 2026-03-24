@@ -124,6 +124,8 @@ class AppRenderTests(unittest.TestCase):
         self.assertIn("Research Champion Paper Ready", html)
         self.assertIn("Research Champion Fast Holdout", html)
         self.assertIn("Research Champion Rollout Certified", html)
+        self.assertIn("Research Champion Rollout Certified: YES", html)
+        self.assertIn("Research Rollout: NOT READY", html)
         self.assertIn("Rollout Champion", html)
         self.assertIn("Rollout Shortlist", html)
         self.assertIn("current_best_fast_validation_pass_rate", html)
