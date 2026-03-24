@@ -226,8 +226,9 @@ class LLMAutoresearchWorker:
             checkpoint=checkpoint,
             latest_decision=latest_decision,
         )
+        completion_time = self._ensure_utc(self.now_fn())
         updated_checkpoint = LLMWorkerCheckpoint(
-            last_cycle_completed_at=cycle_now,
+            last_cycle_completed_at=completion_time,
             last_campaign_refreshed_at=(
                 latest_closed_bar if refreshed_campaign else checkpoint.last_campaign_refreshed_at
             ),
@@ -572,11 +573,12 @@ class LLMAutoresearchWorker:
         self.state_store.save_leaderboard(
             [LeaderboardEntry.from_dict(item) for item in leaderboard]
         )
+        completion_time = self._ensure_utc(self.now_fn())
         return LLMCycleResult(
             cycle_id=summary.cycle_id,
             campaign_id=Path(campaign_path).stem,
             campaign_path=str(campaign_path),
-            completed_at=cycle_now,
+            completed_at=completion_time,
             latest_closed_bar=latest_closed_bar,
             refreshed_campaign=refreshed_campaign,
             decisions=[

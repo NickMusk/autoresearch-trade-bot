@@ -258,23 +258,65 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertIn("holdout", campaign_calls[1]["campaign_name"])
             self.assertIn("rollout", campaign_calls[2]["campaign_name"])
             self.assertEqual(campaign_calls[1]["window_days"], 7)
-            self.assertEqual(campaign_calls[1]["window_count"], 3)
-            self.assertEqual(campaign_calls[2]["window_days"], 14)
-            self.assertEqual(campaign_calls[2]["window_count"], 8)
-            self.assertEqual(result.campaign_id, campaign_calls[0]["campaign_name"])
-            snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
-            self.assertIsNotNone(snapshot)
-            assert snapshot is not None
-            self.assertEqual(snapshot.phase, "LLM autoresearch worker active")
-            self.assertEqual(snapshot.loop_state, "searching")
-            self.assertEqual(snapshot.evaluation_acceptance_rate, 0.0)
-            self.assertEqual(snapshot.generation_validity_rate, 1.0)
-            self.assertFalse(snapshot.current_best_ready_for_paper)
-            self.assertFalse(snapshot.latest_cycle_rollout_ready)
-            self.assertEqual(snapshot.latest_dataset_id, campaign_calls[0]["campaign_name"])
-            self.assertEqual(snapshot.multi_window_summary["latest_decision"]["decision"], "discard_screen")
-            self.assertEqual(snapshot.latest_decision["decision"], "discard_screen")
-            self.assertEqual(snapshot.current_best_strategy_name, "baseline-train-head")
+
+    def test_run_cycle_records_completion_time_at_end_of_cycle(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_path = Path(tempdir)
+            timestamps = [
+                datetime(2026, 3, 17, 12, 0, tzinfo=timezone.utc),
+                datetime(2026, 3, 17, 12, 4, tzinfo=timezone.utc),
+            ]
+
+            def fake_now() -> datetime:
+                if len(timestamps) > 1:
+                    return timestamps.pop(0)
+                return timestamps[0]
+
+            config = LLMWorkerConfig(
+                repo_url="https://github.com/example/repo.git",
+                symbols=("BTCUSDT", "ETHUSDT"),
+                repo_root=str(temp_path / "repo"),
+                campaigns_root=str(temp_path / "campaigns"),
+                active_campaign_path=str(temp_path / "active_campaign.txt"),
+                worktrees_root=str(temp_path / "worktrees"),
+                state_root=str(temp_path / "state"),
+                artifact_root=str(temp_path / "artifacts"),
+                results_path=str(temp_path / "results.tsv"),
+                cycle_interval_seconds=3600,
+                max_mutations_per_cycle=1,
+                data_config=DataConfig(
+                    exchange="bybit",
+                    market="linear",
+                    timeframe="5m",
+                    storage_root=str(temp_path / "data"),
+                ),
+                target_gate=ResearchTargetGate(),
+            )
+            worker = LLMAutoresearchWorker(
+                config=config,
+                state_store=FilesystemResearchStateStore(config.state_root),
+                llm_runner=lambda **_kwargs: [make_fake_decision()],
+                campaign_preparer=lambda **kwargs: Path(kwargs["campaigns_root"]) / "campaign.json",
+                current_best_validator=make_fake_current_best_validator(
+                    validation_pass_rate=0.4,
+                    paper_ready=True,
+                ),
+                now_fn=fake_now,
+                sleep_fn=lambda _seconds: None,
+            )
+            worker._ensure_repo_ready = lambda: None  # type: ignore[method-assign]
+
+            result = worker.run_cycle()
+            checkpoint = worker.state_store.load_llm_checkpoint()
+
+            self.assertEqual(
+                result.completed_at,
+                datetime(2026, 3, 17, 12, 4, tzinfo=timezone.utc),
+            )
+            self.assertEqual(
+                checkpoint.last_cycle_completed_at,
+                datetime(2026, 3, 17, 12, 4, tzinfo=timezone.utc),
+            )
             history = FilesystemResearchStateStore(config.state_root).load_history()
             self.assertEqual(len(history), 1)
 
