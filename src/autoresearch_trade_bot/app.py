@@ -91,11 +91,14 @@ def render_dashboard(payload: dict) -> str:
         for key, value in snapshot["promotion_gate"].items()
     )
 
+    effective_rollout_ready = bool(snapshot.get("research_rollout_ready", False)) and (
+        snapshot.get("loop_state") == "holding"
+    )
     current_best_ready_label = "YES" if snapshot.get("current_best_ready_for_paper", False) else "NO"
     current_best_validated_label = "YES" if snapshot.get("current_best_validated_for_rollout", False) else "NO"
     current_best_fast_holdout_label = "YES" if snapshot.get("current_best_fast_holdout_passed", False) else "NO"
     latest_cycle_ready_label = "YES" if snapshot.get("latest_cycle_rollout_ready", False) else "NO"
-    rollout_ready_label = "READY" if snapshot["research_rollout_ready"] else "NOT READY"
+    rollout_ready_label = "READY" if effective_rollout_ready else "NOT READY"
     cycle_completed_label = snapshot.get("latest_cycle_completed_at") or "n/a"
     processed_bar_label = snapshot.get("last_processed_bar") or "n/a"
     loop_state_label = snapshot.get("loop_state", "idle")

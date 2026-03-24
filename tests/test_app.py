@@ -133,6 +133,53 @@ class AppRenderTests(unittest.TestCase):
         self.assertIn("mutation_win_rate", html)
         self.assertIn("latest_cycle_rollout_ready", html)
 
+    def test_render_dashboard_hides_ready_when_snapshot_is_in_error_state(self) -> None:
+        html = render_dashboard(
+            {
+                "primary_snapshot": {
+                    "mission": "mission",
+                    "phase": "degraded",
+                    "research_rollout_ready": True,
+                    "research_blockers": ["timeout"],
+                    "baseline_strategy": "baseline",
+                    "promotion_gate": {"min_sharpe": 1.0},
+                    "baseline_metrics": {"score": 1.2},
+                    "accepted_for_paper": True,
+                    "current_best_ready_for_paper": True,
+                    "current_best_fast_validation_pass_rate": 1.0,
+                    "current_best_fast_holdout_passed": True,
+                    "current_best_validation_pass_rate": 0.75,
+                    "current_best_validated_for_rollout": True,
+                    "latest_cycle_rollout_ready": False,
+                    "next_milestones": ["recover"],
+                    "loop_state": "transient_error",
+                    "latest_dataset_id": "dataset",
+                    "latest_cycle_completed_at": "2026-03-19T09:00:00+00:00",
+                    "last_processed_bar": "2026-03-19T08:55:00+00:00",
+                    "recent_acceptance_rate": 0.1,
+                    "evaluation_acceptance_rate": 0.1,
+                    "generation_validity_rate": 0.8,
+                    "mutation_win_rate": 0.1,
+                    "consecutive_failures": 1,
+                    "multi_window_summary": {},
+                    "leaderboard": [],
+                    "latest_decision": {"decision": "discard_error"},
+                    "latest_candidate_summary": {},
+                    "current_best_fast_validation_summary": {},
+                    "current_best_validation_summary": {},
+                    "research_champion_summary": {"strategy_name": "winner"},
+                    "rollout_champion_summary": {"strategy_name": "stable-winner"},
+                    "rollout_candidate_shortlist": [],
+                    "current_best_strategy_name": "winner",
+                    "latest_kept_summary": {},
+                },
+                "family_tabs": [],
+            }
+        )
+
+        self.assertIn("Research Champion Rollout Certified: YES", html)
+        self.assertIn("Research Rollout: NOT READY", html)
+
 
 if __name__ == "__main__":
     unittest.main()
