@@ -1,6 +1,26 @@
 {
   "leaderboard": [
     {
+      "strategy_name": "llm-4552e41f",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 1.0
+      },
+      "rejection_reasons": [
+        "[\"no_op_train_config\"]"
+      ]
+    },
+    {
       "strategy_name": "llm-0098611d",
       "params": {
         "decision": "discard_screen",
@@ -15,6 +35,26 @@
         "sharpe": 1.3e-05,
         "max_drawdown": 3.209998,
         "average_turnover": 3e-05
+      },
+      "rejection_reasons": [
+        "[]"
+      ]
+    },
+    {
+      "strategy_name": "llm-308a21da",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -7.170616,
+      "metrics": {
+        "total_return": 1.0,
+        "sharpe": 1.1e-05,
+        "max_drawdown": 2.147884,
+        "average_turnover": 3.5e-05
       },
       "rejection_reasons": [
         "[]"
@@ -58,46 +98,6 @@
       },
       "rejection_reasons": [
         "[\"sharpe_below_gate\"]"
-      ]
-    },
-    {
-      "strategy_name": "llm-1b72316c",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -9.318412,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": [
-        "[\"no_trades_executed\", \"sharpe_below_gate\", \"acceptance_rate_below_gate\"]"
-      ]
-    },
-    {
-      "strategy_name": "llm-c153681b",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -9.697497,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": -1e-06,
-        "max_drawdown": -0.379034,
-        "average_turnover": 1.2e-05
-      },
-      "rejection_reasons": [
-        "[\"total_return_below_gate\", \"sharpe_below_gate\", \"acceptance_rate_below_gate\"]"
       ]
     }
   ]
