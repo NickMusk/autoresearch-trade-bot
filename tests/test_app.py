@@ -87,6 +87,10 @@ class AppRenderTests(unittest.TestCase):
                     "current_best_strategy_name": "winner",
                     "latest_kept_summary": {},
                 },
+                "primary_freshness": {
+                    "is_stale": False,
+                    "age_label": "5m",
+                },
                 "family_tabs": [
                     {
                         "family_id": "mean_reversion",
@@ -126,6 +130,7 @@ class AppRenderTests(unittest.TestCase):
         self.assertIn("Research Champion Rollout Certified", html)
         self.assertIn("Research Champion Rollout Certified: YES", html)
         self.assertIn("Research Rollout: NOT READY", html)
+        self.assertIn("Primary Status: FRESH (5m old)", html)
         self.assertIn("Rollout Champion", html)
         self.assertIn("Rollout Shortlist", html)
         self.assertIn("current_best_fast_validation_pass_rate", html)
@@ -173,12 +178,17 @@ class AppRenderTests(unittest.TestCase):
                     "current_best_strategy_name": "winner",
                     "latest_kept_summary": {},
                 },
+                "primary_freshness": {
+                    "is_stale": True,
+                    "age_label": "2d 3h",
+                },
                 "family_tabs": [],
             }
         )
 
         self.assertIn("Research Champion Rollout Certified: YES", html)
         self.assertIn("Research Rollout: NOT READY", html)
+        self.assertIn("Primary Status: STALE (2d 3h old)", html)
 
 
 if __name__ == "__main__":

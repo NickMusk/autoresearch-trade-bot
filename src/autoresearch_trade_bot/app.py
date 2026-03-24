@@ -46,6 +46,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
 def render_dashboard(payload: dict) -> str:
     snapshot = payload["primary_snapshot"]
+    primary_freshness = payload.get("primary_freshness", {})
     family_tabs = payload.get("family_tabs", [])
     blockers = "".join(
         f"<li>{html.escape(blocker)}</li>" for blocker in snapshot["research_blockers"]
@@ -99,6 +100,8 @@ def render_dashboard(payload: dict) -> str:
     current_best_fast_holdout_label = "YES" if snapshot.get("current_best_fast_holdout_passed", False) else "NO"
     latest_cycle_ready_label = "YES" if snapshot.get("latest_cycle_rollout_ready", False) else "NO"
     rollout_ready_label = "READY" if effective_rollout_ready else "NOT READY"
+    freshness_label = "STALE" if primary_freshness.get("is_stale", True) else "FRESH"
+    freshness_age_label = primary_freshness.get("age_label", "unknown")
     cycle_completed_label = snapshot.get("latest_cycle_completed_at") or "n/a"
     processed_bar_label = snapshot.get("last_processed_bar") or "n/a"
     loop_state_label = snapshot.get("loop_state", "idle")
@@ -312,6 +315,7 @@ def render_dashboard(payload: dict) -> str:
         <span class="badge">Rollout Champion: {html.escape(str(rollout_champion.get("strategy_name") or "none"))}</span>
         <span class="badge">Latest Cycle Rollout Ready: {latest_cycle_ready_label}</span>
         <span class="badge">Research Rollout: {rollout_ready_label}</span>
+        <span class="badge">Primary Status: {html.escape(str(freshness_label))} ({html.escape(str(freshness_age_label))} old)</span>
         <span class="badge">Loop State: {html.escape(str(loop_state_label))}</span>
       </div>
     </section>

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from datetime import datetime, timezone
 import os
 from pathlib import Path
 from .config import ExperimentConfig, PromotionGate, RiskLimits
@@ -75,6 +76,7 @@ def build_family_dashboard_data(snapshot: DashboardSnapshot) -> dict[str, object
         )
     return {
         "primary_snapshot": snapshot.to_dict(),
+        "primary_freshness": _snapshot_freshness(snapshot),
         "family_tabs": families,
     }
 
@@ -111,6 +113,57 @@ def _family_status_path(family_id: str) -> Path | None:
     if not root:
         return None
     return Path(root) / family_id / ".autoresearch" / "runs" / "latest_status.json"
+
+
+def _snapshot_freshness(
+    snapshot: ResearchStatusSnapshot,
+    *,
+    now: datetime | None = None,
+    stale_after_seconds: int = 30 * 60,
+) -> dict[str, object]:
+    completed_at = _parse_snapshot_timestamp(snapshot.latest_cycle_completed_at)
+    if completed_at is None:
+        return {
+            "is_stale": True,
+            "age_seconds": None,
+            "age_label": "unknown",
+            "last_completed_at": snapshot.latest_cycle_completed_at,
+        }
+    current_time = now or datetime.now(timezone.utc)
+    age_seconds = max(0, int((current_time - completed_at).total_seconds()))
+    return {
+        "is_stale": age_seconds > stale_after_seconds,
+        "age_seconds": age_seconds,
+        "age_label": _format_age_label(age_seconds),
+        "last_completed_at": snapshot.latest_cycle_completed_at,
+    }
+
+
+def _parse_snapshot_timestamp(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    normalized = value.replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _format_age_label(age_seconds: int) -> str:
+    if age_seconds < 60:
+        return f"{age_seconds}s"
+    if age_seconds < 3600:
+        return f"{age_seconds // 60}m"
+    if age_seconds < 86400:
+        hours = age_seconds // 3600
+        minutes = (age_seconds % 3600) // 60
+        return f"{hours}h {minutes}m" if minutes else f"{hours}h"
+    days = age_seconds // 86400
+    hours = (age_seconds % 86400) // 3600
+    return f"{days}d {hours}h" if hours else f"{days}d"
 
 
 def _build_demo_snapshot() -> DashboardSnapshot:

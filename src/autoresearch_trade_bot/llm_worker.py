@@ -999,7 +999,15 @@ class LLMAutoresearchWorker:
                     leaderboard,
                     message=message,
                 )
-            except Exception:
+            except Exception as exc:
+                _log_runtime_event(
+                    "LLM worker status publish failed (branch=%s, path=%s): %s"
+                    % (
+                        getattr(self.publisher, "branch", "unknown"),
+                        getattr(self.publisher, "base_path", "unknown"),
+                        exc,
+                    )
+                )
                 if not suppress_publish_errors:
                     raise
 
@@ -1430,10 +1438,24 @@ def main() -> None:
     )
     _log_runtime_event("LLM worker startup: initializing state store and worker")
     state_store = FilesystemResearchStateStore(config.state_root)
+    publisher = publisher_from_env()
+    if publisher is None:
+        _log_runtime_event(
+            "LLM worker startup: status publisher disabled (repo_configured=%s, token_present=%s)"
+            % (
+                bool(os.environ.get("AUTORESEARCH_STATUS_GITHUB_REPO")),
+                bool(os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")),
+            )
+        )
+    else:
+        _log_runtime_event(
+            "LLM worker startup: status publisher enabled (repo=%s, branch=%s, path=%s)"
+            % (publisher.repo, publisher.branch, publisher.base_path)
+        )
     worker = LLMAutoresearchWorker(
         config=config,
         state_store=state_store,
-        publisher=publisher_from_env(),
+        publisher=publisher,
     )
     _log_runtime_event(
         "Starting LLM autoresearch worker for %s on %s with model %s"

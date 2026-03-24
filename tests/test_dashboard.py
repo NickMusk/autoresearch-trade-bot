@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import os
 import tempfile
 import unittest
 from unittest.mock import patch
 
-from autoresearch_trade_bot.dashboard import build_dashboard_snapshot, build_family_dashboard_data
+from autoresearch_trade_bot.dashboard import (
+    _snapshot_freshness,
+    build_dashboard_snapshot,
+    build_family_dashboard_data,
+)
 from autoresearch_trade_bot.state import FilesystemResearchStateStore, ResearchStatusSnapshot
 
 
@@ -146,6 +151,57 @@ class DashboardSnapshotTests(unittest.TestCase):
             mean_reversion_tab = next(item for item in family_tabs if item["family_id"] == "mean_reversion")
             self.assertIsNotNone(mean_reversion_tab["snapshot"])
             self.assertEqual(mean_reversion_tab["snapshot"]["phase"], "Family worker active")
+
+    def test_family_dashboard_data_includes_primary_snapshot_freshness(self) -> None:
+        snapshot = ResearchStatusSnapshot(
+            mission="mission",
+            phase="active",
+            research_rollout_ready=False,
+            research_blockers=[],
+            baseline_strategy="baseline",
+            promotion_gate={"min_sharpe": 1.0},
+            baseline_metrics={"score": 1.23},
+            accepted_for_paper=False,
+            next_milestones=[],
+            loop_state="searching",
+            latest_dataset_id="dataset-1",
+            latest_cycle_completed_at="2026-03-24T10:00:00+00:00",
+            last_processed_bar="2026-03-24T09:55:00+00:00",
+            recent_acceptance_rate=0.0,
+            consecutive_failures=0,
+            multi_window_summary={},
+            leaderboard=[],
+        )
+
+        freshness = build_family_dashboard_data(snapshot)["primary_freshness"]
+        self.assertIn("is_stale", freshness)
+        self.assertIn("age_seconds", freshness)
+        self.assertIsInstance(freshness["age_label"], str)
+
+    def test_snapshot_freshness_marks_missing_completion_time_as_stale(self) -> None:
+        snapshot = ResearchStatusSnapshot(
+            mission="mission",
+            phase="active",
+            research_rollout_ready=False,
+            research_blockers=[],
+            baseline_strategy="baseline",
+            promotion_gate={"min_sharpe": 1.0},
+            baseline_metrics={"score": 1.23},
+            accepted_for_paper=False,
+            next_milestones=[],
+            loop_state="searching",
+            latest_dataset_id="dataset-1",
+            latest_cycle_completed_at=None,
+            last_processed_bar=None,
+            recent_acceptance_rate=0.0,
+            consecutive_failures=0,
+            multi_window_summary={},
+            leaderboard=[],
+        )
+
+        freshness = _snapshot_freshness(snapshot, now=datetime(2026, 3, 24, 10, 5, tzinfo=timezone.utc))
+        self.assertTrue(freshness["is_stale"])
+        self.assertEqual(freshness["age_label"], "unknown")
 
 
 if __name__ == "__main__":

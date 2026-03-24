@@ -1449,16 +1449,19 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
                 failure_message="GitHub status publish timed out",
                 previous_snapshot=None,
             )
-            worker._persist_snapshot(  # type: ignore[attr-defined]
-                snapshot,
-                message="Publish degraded LLM autoresearch status",
-                suppress_publish_errors=True,
-            )
+            with patch("autoresearch_trade_bot.llm_worker._log_runtime_event") as mocked_log:
+                worker._persist_snapshot(  # type: ignore[attr-defined]
+                    snapshot,
+                    message="Publish degraded LLM autoresearch status",
+                    suppress_publish_errors=True,
+                )
 
             stored_snapshot = FilesystemResearchStateStore(config.state_root).load_snapshot()
             self.assertIsNotNone(stored_snapshot)
             assert stored_snapshot is not None
             self.assertIn("GitHub status publish timed out", stored_snapshot.research_blockers[0])
+            mocked_log.assert_called()
+            self.assertIn("LLM worker status publish failed", mocked_log.call_args.args[0])
 
     def test_ensure_repo_ready_seeds_configured_family_branch(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

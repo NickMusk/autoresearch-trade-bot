@@ -14,7 +14,7 @@ services:
   - type: worker
     name: autoresearch-trade-bot-llm-worker
     runtime: python
-    plan: starter
+    plan: pro
     region: frankfurt
     buildCommand: pip install '.[data]'
     startCommand: PYTHONPATH=src python -m autoresearch_trade_bot.llm_worker
@@ -84,9 +84,11 @@ services:
       - key: AUTORESEARCH_SYMBOLS
         value: BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT
       - key: AUTORESEARCH_EXCHANGE
-        value: bybit
+        value: binance
       - key: AUTORESEARCH_MARKET
-        value: linear
+        value: usdm_futures
+      - key: AUTORESEARCH_INCLUDE_OPEN_INTEREST
+        value: "0"
       - key: AUTORESEARCH_TIMEFRAME
         value: 5m
       - key: AUTORESEARCH_MIN_REQUEST_INTERVAL_SECONDS
@@ -188,9 +190,11 @@ services:
       - key: AUTORESEARCH_SYMBOLS
         value: BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT
       - key: AUTORESEARCH_EXCHANGE
-        value: bybit
+        value: binance
       - key: AUTORESEARCH_MARKET
-        value: linear
+        value: usdm_futures
+      - key: AUTORESEARCH_INCLUDE_OPEN_INTEREST
+        value: "0"
       - key: AUTORESEARCH_TIMEFRAME
         value: 5m
       - key: AUTORESEARCH_MIN_REQUEST_INTERVAL_SECONDS
@@ -292,9 +296,11 @@ services:
       - key: AUTORESEARCH_SYMBOLS
         value: BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT
       - key: AUTORESEARCH_EXCHANGE
-        value: bybit
+        value: binance
       - key: AUTORESEARCH_MARKET
-        value: linear
+        value: usdm_futures
+      - key: AUTORESEARCH_INCLUDE_OPEN_INTEREST
+        value: "0"
       - key: AUTORESEARCH_TIMEFRAME
         value: 5m
       - key: AUTORESEARCH_MIN_REQUEST_INTERVAL_SECONDS
@@ -396,9 +402,11 @@ services:
       - key: AUTORESEARCH_SYMBOLS
         value: BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,XRPUSDT
       - key: AUTORESEARCH_EXCHANGE
-        value: bybit
+        value: binance
       - key: AUTORESEARCH_MARKET
-        value: linear
+        value: usdm_futures
+      - key: AUTORESEARCH_INCLUDE_OPEN_INTEREST
+        value: "0"
       - key: AUTORESEARCH_TIMEFRAME
         value: 5m
       - key: AUTORESEARCH_MIN_REQUEST_INTERVAL_SECONDS
