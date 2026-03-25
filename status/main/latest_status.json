@@ -32,8 +32,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260325t074000z",
-  "latest_cycle_completed_at": "2026-03-25T21:45:23.603973+00:00",
-  "last_processed_bar": "2026-03-25T21:35:00+00:00",
+  "latest_cycle_completed_at": "2026-03-25T22:05:22.099612+00:00",
+  "last_processed_bar": "2026-03-25T21:55:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -100,7 +100,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-8aa74b3b",
+      "mutation_label": "llm-cacf3343",
       "baseline_score": 3.9318659201037534,
       "candidate_score": 1.527405708300149,
       "kept_commit": null,
@@ -227,7 +227,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-8aa74b3b",
+    "mutation_label": "llm-cacf3343",
     "baseline_score": 3.9318659201037534,
     "candidate_score": 1.527405708300149,
     "kept_commit": null,
@@ -237,7 +237,7 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v9-selective-cap-paired-balance-vol-bias-v1",
+    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2",
     "research_score": 1.527405708300149,
     "ready_for_paper": true,
     "average_metrics": {
@@ -251,13 +251,13 @@
     "train_config": {
       "gross_target": 0.05,
       "lookback_bars": 30,
-      "min_signal_strength": 0.085,
+      "min_signal_strength": 0.095,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 60,
       "regime_threshold": 0.02,
       "top_k": 2,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.03,
+      "min_cross_sectional_spread": 0.035,
       "volatility_floor": 0.0012,
       "reversal_bias_weight": 0.14,
       "funding_penalty_weight": 0.0,
@@ -267,8 +267,8 @@
       "drawdown_cut": 0.16,
       "max_vol_for_full": 0.02,
       "initial_leg_fraction": 0.05,
-      "consistency_threshold": 0.5,
-      "relative_strength_threshold": 0.68,
+      "consistency_threshold": 0.45,
+      "relative_strength_threshold": 0.6,
       "crowding_threshold": 2.2,
       "crowding_penalty": 0.7,
       "paired_balance_threshold": 2.2
