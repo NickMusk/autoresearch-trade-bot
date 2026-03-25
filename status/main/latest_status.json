@@ -32,8 +32,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260325t074000z",
-  "latest_cycle_completed_at": "2026-03-25T13:15:07.482536+00:00",
-  "last_processed_bar": "2026-03-25T13:05:00+00:00",
+  "latest_cycle_completed_at": "2026-03-25T13:34:41.450465+00:00",
+  "last_processed_bar": "2026-03-25T13:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -100,9 +100,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-35db804d",
+      "mutation_label": "llm-a5786a18",
       "baseline_score": 3.919406925728218,
-      "candidate_score": 1.541401711308264,
+      "candidate_score": 1.5379312477487652,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -123,26 +123,6 @@
     "rollout_champion_strategy_name": ""
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-f2dd7a54",
-      "params": {
-        "decision": "discard_error",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "validation"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 1.0
-      },
-      "rejection_reasons": [
-        "[\"no_op_train_config\"]"
-      ]
-    },
     {
       "strategy_name": "llm-12f3fa69",
       "params": {
@@ -222,14 +202,34 @@
       "rejection_reasons": [
         "[]"
       ]
+    },
+    {
+      "strategy_name": "llm-f66b7614",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -1.983142,
+      "metrics": {
+        "total_return": 1.0,
+        "sharpe": 1.1e-05,
+        "max_drawdown": 1.936303,
+        "average_turnover": 2.3e-05
+      },
+      "rejection_reasons": [
+        "[]"
+      ]
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-35db804d",
+    "mutation_label": "llm-a5786a18",
     "baseline_score": 3.919406925728218,
-    "candidate_score": 1.541401711308264,
+    "candidate_score": 1.5379312477487652,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -237,21 +237,21 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-explore-v2",
-    "research_score": 1.541401711308264,
+    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-selectivity2",
+    "research_score": 1.5379312477487652,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 8.425120944899334e-06,
-      "sharpe": 1.5414531704078556,
-      "max_drawdown": 2.306717365974098e-05,
-      "average_turnover": 1.3160096770868402e-06,
+      "total_return": 1.1198795172973064e-05,
+      "sharpe": 1.5380001955146947,
+      "max_drawdown": 3.0797275736849095e-05,
+      "average_turnover": 1.7526388470507995e-06,
       "bars_processed": 2015,
       "nonzero_turnover_steps": 7
     },
     "train_config": {
       "gross_target": 0.05,
       "lookback_bars": 30,
-      "min_signal_strength": 0.085,
+      "min_signal_strength": 0.095,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 60,
       "regime_threshold": 0.02,
@@ -261,16 +261,16 @@
       "volatility_floor": 0.0012,
       "reversal_bias_weight": 0.12,
       "funding_penalty_weight": 0.0,
-      "hold_bars": 180,
-      "turn_threshold": 0.1,
+      "hold_bars": 160,
+      "turn_threshold": 0.12,
       "drawdown_reduce": 0.08,
       "drawdown_cut": 0.16,
       "max_vol_for_full": 0.02,
-      "initial_leg_fraction": 0.05,
-      "consistency_threshold": 0.45,
+      "initial_leg_fraction": 0.04,
+      "consistency_threshold": 0.48,
       "relative_strength_threshold": 0.6,
       "crowding_threshold": 2.2,
-      "crowding_penalty": 0.72,
+      "crowding_penalty": 0.6,
       "paired_balance_threshold": 2.2
     },
     "gate_failures": [],
