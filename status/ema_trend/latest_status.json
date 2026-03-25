@@ -37,8 +37,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260324t095500z",
-  "latest_cycle_completed_at": "2026-03-25T04:16:47.207652+00:00",
-  "last_processed_bar": "2026-03-25T04:15:00+00:00",
+  "latest_cycle_completed_at": "2026-03-25T05:18:06.962376+00:00",
+  "last_processed_bar": "2026-03-25T05:15:00+00:00",
   "recent_acceptance_rate": 0.3333333333333333,
   "evaluation_acceptance_rate": 0.3333333333333333,
   "generation_validity_rate": 0.9,
@@ -84,7 +84,7 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-2331fb4e",
+      "mutation_label": "llm-69a04fef",
       "baseline_score": -5.867091724033108,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -205,7 +205,7 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-2331fb4e",
+    "mutation_label": "llm-69a04fef",
     "baseline_score": -5.867091724033108,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -219,7 +219,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "selective-momentum-v10-top2",
+    "strategy_name": "selective-momentum-v10",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -231,22 +231,22 @@
       "nonzero_turnover_steps": 0
     },
     "train_config": {
-      "gross_target": 0.5,
+      "gross_target": 0.45,
       "lookback_bars": 24,
-      "min_signal_strength": 0.05,
+      "min_signal_strength": 0.06,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 36,
       "regime_threshold": 0.015,
       "top_k": 2,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.13,
-      "volatility_floor": 0.03,
-      "reversal_bias_weight": 0.26,
+      "min_cross_sectional_spread": 0.14,
+      "volatility_floor": 0.02,
+      "reversal_bias_weight": 0.28,
       "funding_penalty_weight": 0.04,
       "persistence_penalty_weight": 0.12,
       "persistence_lookback": 3,
       "persistence_confirmation_threshold": 0.001,
-      "cross_section_multiplier": 2.0
+      "cross_sectional_multiplier": 2.0
     },
     "gate_failures": [
       "no_trades_executed",
