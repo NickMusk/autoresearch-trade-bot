@@ -1,26 +1,6 @@
 {
   "leaderboard": [
     {
-      "strategy_name": "llm-9ba92674",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -3.821614,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 2.5e-05,
-        "max_drawdown": 5.4968,
-        "average_turnover": 3.1e-05
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
       "strategy_name": "llm-3ada5883",
       "params": {
         "decision": "discard_screen",
@@ -98,6 +78,26 @@
       },
       "rejection_reasons": [
         "[]"
+      ]
+    },
+    {
+      "strategy_name": "llm-e4fe207f",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -10.034865,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": -6e-06,
+        "max_drawdown": -0.716194,
+        "average_turnover": 5.7e-05
+      },
+      "rejection_reasons": [
+        "[\"total_return_below_gate\", \"sharpe_below_gate\", \"acceptance_rate_below_gate\"]"
       ]
     }
   ]
