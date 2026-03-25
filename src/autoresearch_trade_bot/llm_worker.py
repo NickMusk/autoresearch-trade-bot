@@ -1306,14 +1306,14 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
             os.environ.get("AUTORESEARCH_LLM_MAX_MUTATIONS_PER_CYCLE", "1")
         ),
         recent_results_limit=int(os.environ.get("AUTORESEARCH_LLM_RECENT_RESULTS_LIMIT", "5")),
-        history_window_days=int(os.environ.get("AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS", "7")),
+        history_window_days=int(os.environ.get("AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS", "30")),
         campaign_window_count=int(os.environ.get("AUTORESEARCH_LLM_CAMPAIGN_WINDOW_COUNT", "1")),
         campaigns_root=campaigns_root,
         active_campaign_path=active_campaign_path,
         fast_validation_window_days=int(
             os.environ.get(
                 "AUTORESEARCH_LLM_FAST_VALIDATION_WINDOW_DAYS",
-                os.environ.get("AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS", "7"),
+                os.environ.get("AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS", "30"),
             )
         ),
         fast_validation_window_count=int(
@@ -1331,10 +1331,10 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
         fast_validation_campaigns_root=fast_validation_campaigns_root,
         fast_validation_active_campaign_path=fast_validation_active_campaign_path,
         rollout_validation_window_days=int(
-            os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_DAYS", "14")
+            os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_DAYS", "30")
         ),
         rollout_validation_window_count=int(
-            os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_COUNT", "8")
+            os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_COUNT", "12")
         ),
         rollout_validation_refresh_interval_seconds=int(
             os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_REFRESH_INTERVAL_SECONDS", "86400")

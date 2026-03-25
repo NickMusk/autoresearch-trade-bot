@@ -257,7 +257,11 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertEqual(len(campaign_calls), 3)
             self.assertIn("holdout", campaign_calls[1]["campaign_name"])
             self.assertIn("rollout", campaign_calls[2]["campaign_name"])
-            self.assertEqual(campaign_calls[1]["window_days"], 7)
+            self.assertEqual(campaign_calls[0]["window_days"], 30)
+            self.assertEqual(campaign_calls[1]["window_days"], 30)
+            self.assertEqual(campaign_calls[1]["window_count"], 3)
+            self.assertEqual(campaign_calls[2]["window_days"], 30)
+            self.assertEqual(campaign_calls[2]["window_count"], 12)
 
     def test_run_cycle_records_completion_time_at_end_of_cycle(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

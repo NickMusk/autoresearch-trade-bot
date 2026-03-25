@@ -22,17 +22,17 @@ class HistoryRefreshTests(unittest.TestCase):
         with patch.dict(
             os.environ,
             {
-                "AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS": "7",
+                "AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS": "30",
                 "AUTORESEARCH_LLM_CAMPAIGN_WINDOW_COUNT": "1",
-                "AUTORESEARCH_LLM_FAST_VALIDATION_WINDOW_DAYS": "7",
+                "AUTORESEARCH_LLM_FAST_VALIDATION_WINDOW_DAYS": "30",
                 "AUTORESEARCH_LLM_FAST_VALIDATION_WINDOW_COUNT": "3",
-                "AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_DAYS": "14",
-                "AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_COUNT": "8",
+                "AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_DAYS": "30",
+                "AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_COUNT": "12",
             },
             clear=False,
         ):
             config = history_refresh_config_from_env()
-        self.assertEqual(config.bootstrap_lookback_days, 112)
+        self.assertEqual(config.bootstrap_lookback_days, 360)
 
     def test_run_history_refresh_once_writes_state_and_can_skip_open_interest(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
@@ -44,7 +44,7 @@ class HistoryRefreshTests(unittest.TestCase):
                 symbols=("BTCUSDT", "ETHUSDT"),
                 storage_root=str(temp_path / "data"),
                 full_lookback_days=365,
-                bootstrap_lookback_days=112,
+                bootstrap_lookback_days=360,
                 refresh_interval_seconds=86400,
                 state_path=str(temp_path / "state.json"),
                 min_request_interval_seconds=0.25,
@@ -74,7 +74,7 @@ class HistoryRefreshTests(unittest.TestCase):
                 ):
                     returned = run_history_refresh_once(
                         config=config,
-                        lookback_days=112,
+                        lookback_days=360,
                         skip_open_interest=True,
                         now_fn=lambda: datetime(2026, 3, 22, 12, 0, tzinfo=timezone.utc),
                     )
@@ -83,7 +83,7 @@ class HistoryRefreshTests(unittest.TestCase):
             self.assertFalse(captured["include_open_interest"])
             state = json.loads(Path(config.state_path).read_text(encoding="utf-8"))
             self.assertEqual(state["manifest_path"], str(manifest_path))
-            self.assertEqual(state["lookback_days"], 112)
+            self.assertEqual(state["lookback_days"], 360)
             self.assertTrue(state["skip_open_interest"])
 
 

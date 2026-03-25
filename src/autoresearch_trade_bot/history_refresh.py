@@ -48,7 +48,7 @@ class HistoryRefreshConfig:
 
 
 def history_refresh_config_from_env() -> HistoryRefreshConfig:
-    history_window_days = int(os.environ.get("AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS", "7"))
+    history_window_days = int(os.environ.get("AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS", "30"))
     campaign_window_count = int(os.environ.get("AUTORESEARCH_LLM_CAMPAIGN_WINDOW_COUNT", "1"))
     fast_validation_window_days = int(
         os.environ.get("AUTORESEARCH_LLM_FAST_VALIDATION_WINDOW_DAYS", str(history_window_days))
@@ -57,10 +57,10 @@ def history_refresh_config_from_env() -> HistoryRefreshConfig:
         os.environ.get("AUTORESEARCH_LLM_FAST_VALIDATION_WINDOW_COUNT", "3")
     )
     rollout_validation_window_days = int(
-        os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_DAYS", "14")
+        os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_DAYS", "30")
     )
     rollout_validation_window_count = int(
-        os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_COUNT", "8")
+        os.environ.get("AUTORESEARCH_LLM_ROLLOUT_VALIDATION_WINDOW_COUNT", "12")
     )
     bootstrap_default_days = max(
         history_window_days * max(campaign_window_count, 1),
