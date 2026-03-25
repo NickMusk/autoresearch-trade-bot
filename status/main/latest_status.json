@@ -32,8 +32,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260325t074000z",
-  "latest_cycle_completed_at": "2026-03-25T23:09:21.323055+00:00",
-  "last_processed_bar": "2026-03-25T22:55:00+00:00",
+  "latest_cycle_completed_at": "2026-03-25T23:30:29.251801+00:00",
+  "last_processed_bar": "2026-03-25T23:20:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -100,9 +100,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-699cb4da",
+      "mutation_label": "llm-46641f47",
       "baseline_score": 3.9318659201037534,
-      "candidate_score": 3.2158966206577184,
+      "candidate_score": 1.527405708300149,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -204,7 +204,7 @@
       ]
     },
     {
-      "strategy_name": "llm-9a3aacfd",
+      "strategy_name": "llm-cf0120d9",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -212,12 +212,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -2.079928,
+      "score": -2.395039,
       "metrics": {
         "total_return": 1.0,
-        "sharpe": 1.1e-05,
-        "max_drawdown": 1.851986,
-        "average_turnover": 2.5e-05
+        "sharpe": 8e-06,
+        "max_drawdown": 1.536878,
+        "average_turnover": 2.3e-05
       },
       "rejection_reasons": [
         "[]"
@@ -227,9 +227,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-699cb4da",
+    "mutation_label": "llm-46641f47",
     "baseline_score": 3.9318659201037534,
-    "candidate_score": 3.2158966206577184,
+    "candidate_score": 1.527405708300149,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -238,26 +238,26 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2",
-    "research_score": 3.2158966206577184,
+    "research_score": 1.527405708300149,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 1.1898153448264281e-05,
-      "sharpe": 3.215904530073579,
-      "max_drawdown": 1.6105403884858482e-05,
-      "average_turnover": 2.9785675625327676e-06,
+      "total_return": 8.30970624909888e-06,
+      "sharpe": 1.527457411414048,
+      "max_drawdown": 2.2984423849736757e-05,
+      "average_turnover": 1.3139497453671178e-06,
       "bars_processed": 2015,
-      "nonzero_turnover_steps": 13
+      "nonzero_turnover_steps": 7
     },
     "train_config": {
       "gross_target": 0.05,
       "lookback_bars": 30,
-      "min_signal_strength": 0.07,
+      "min_signal_strength": 0.085,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 60,
       "regime_threshold": 0.02,
       "top_k": 2,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.03,
+      "min_cross_sectional_spread": 0.02,
       "volatility_floor": 0.0012,
       "reversal_bias_weight": 0.14,
       "funding_penalty_weight": 0.0,
@@ -266,9 +266,9 @@
       "drawdown_reduce": 0.08,
       "drawdown_cut": 0.16,
       "max_vol_for_full": 0.02,
-      "initial_leg_fraction": 0.035,
+      "initial_leg_fraction": 0.04,
       "consistency_threshold": 0.45,
-      "relative_strength_threshold": 0.6,
+      "relative_strength_threshold": 0.62,
       "crowding_threshold": 2.2,
       "crowding_penalty": 0.7,
       "paired_balance_threshold": 2.2
