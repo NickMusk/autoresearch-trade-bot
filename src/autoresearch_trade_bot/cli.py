@@ -521,7 +521,7 @@ def build_parser() -> argparse.ArgumentParser:
     llm.add_argument("--worktrees-root", default=".autoresearch/worktrees")
     llm.add_argument("--model-name", default="gpt-5-mini")
     llm.add_argument("--max-mutations", type=int, default=1)
-    llm.add_argument("--recent-results-limit", type=int, default=5)
+    llm.add_argument("--recent-results-limit", type=int, default=12)
     llm.set_defaults(func=cmd_run_llm_autoresearch)
 
     family_wave = subparsers.add_parser(
@@ -538,7 +538,7 @@ def build_parser() -> argparse.ArgumentParser:
     family_wave.add_argument("--max-parallel", type=int)
     family_wave.add_argument("--model-name", default="gpt-5-mini")
     family_wave.add_argument("--max-mutations", type=int, default=1)
-    family_wave.add_argument("--recent-results-limit", type=int, default=5)
+    family_wave.add_argument("--recent-results-limit", type=int, default=12)
     family_wave.set_defaults(func=cmd_run_llm_family_wave)
 
     return parser

@@ -1305,7 +1305,7 @@ def llm_worker_config_from_env() -> LLMWorkerConfig:
         max_mutations_per_cycle=int(
             os.environ.get("AUTORESEARCH_LLM_MAX_MUTATIONS_PER_CYCLE", "1")
         ),
-        recent_results_limit=int(os.environ.get("AUTORESEARCH_LLM_RECENT_RESULTS_LIMIT", "5")),
+        recent_results_limit=int(os.environ.get("AUTORESEARCH_LLM_RECENT_RESULTS_LIMIT", "12")),
         history_window_days=int(os.environ.get("AUTORESEARCH_LLM_HISTORY_WINDOW_DAYS", "30")),
         campaign_window_count=int(os.environ.get("AUTORESEARCH_LLM_CAMPAIGN_WINDOW_COUNT", "1")),
         campaigns_root=campaigns_root,

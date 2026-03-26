@@ -31,6 +31,8 @@ from autoresearch_trade_bot.mutations import (
 from autoresearch_trade_bot.strategy_families import (
     FAMILY_EMA_TREND,
     FAMILY_MEAN_REVERSION,
+    FAMILY_VOLATILITY_BREAKOUT,
+    deterministic_mutation_specs,
     extract_strategy_family,
     family_mutation_bounds,
     render_train_file as render_family_train_file,
@@ -436,6 +438,213 @@ class MutationTests(unittest.TestCase):
                 symbol_count=5,
             ),
             (False, "likely_no_trade_reversion_stack"),
+        )
+
+    def test_family_specific_memory_guidance_surfaces_ema_dead_zones(self) -> None:
+        current_train = render_family_train_file(
+            {
+                "gross_target": 0.5,
+                "fast_ema_bars": 12,
+                "slow_ema_bars": 48,
+                "trend_ema_bars": 96,
+                "top_k": 1,
+                "min_signal_strength": 0.0,
+                "use_trend_filter": True,
+                "volume_confirmation": 0.0,
+                "volatility_floor": 0.0,
+            },
+            strategy_family=FAMILY_EMA_TREND,
+        )
+        recent_results = (
+            {
+                "mutation_label": "ema-a",
+                "decision": "discard_full",
+                "stage": "full",
+                "research_score": "0.0",
+                "delta_score": "-0.9",
+                "failure_reason": "",
+                "gate_failures_json": "[\"no_trades_executed\",\"sharpe_below_gate\"]",
+                "train_config_json": json.dumps(
+                    {
+                        "gross_target": 0.5,
+                        "fast_ema_bars": 16,
+                        "slow_ema_bars": 64,
+                        "trend_ema_bars": 144,
+                        "top_k": 1,
+                        "min_signal_strength": 0.08,
+                        "use_trend_filter": True,
+                        "volume_confirmation": 1.5,
+                        "volatility_floor": 0.02,
+                    }
+                ),
+            },
+            {
+                "mutation_label": "ema-b",
+                "decision": "discard_screen",
+                "stage": "screen",
+                "research_score": "-3.0",
+                "delta_score": "-2.1",
+                "failure_reason": "",
+                "gate_failures_json": "[\"no_trades_executed\"]",
+                "train_config_json": json.dumps(
+                    {
+                        "gross_target": 0.5,
+                        "fast_ema_bars": 16,
+                        "slow_ema_bars": 64,
+                        "trend_ema_bars": 144,
+                        "top_k": 1,
+                        "min_signal_strength": 0.06,
+                        "use_trend_filter": True,
+                        "volume_confirmation": 1.2,
+                        "volatility_floor": 0.02,
+                    }
+                ),
+            },
+        )
+        artifact = build_experiment_memory_artifact(
+            recent_results,
+            current_train_text=current_train,
+            strategy_family=FAMILY_EMA_TREND,
+        )
+        dead_zone_traits = {item["trait"] for item in artifact["dead_zones"]}
+        self.assertIn("signal_floor=high", dead_zone_traits)
+        self.assertIn("volume_confirmation=high", dead_zone_traits)
+        self.assertIn("ema_stack=wide", dead_zone_traits)
+        directions = artifact["promising_directions"]
+        self.assertTrue(any("volume_confirmation mild" in item for item in directions))
+        self.assertTrue(any("Avoid high min_signal_strength" in item for item in directions))
+
+    def test_deterministic_mutation_specs_cover_family_specific_knobs(self) -> None:
+        mean_reversion_specs = deterministic_mutation_specs(
+            FAMILY_MEAN_REVERSION,
+            {
+                "lookback_bars": 24,
+                "rsi_period": 14,
+                "rsi_lower": 35.0,
+                "rsi_upper": 65.0,
+                "band_std_mult": 1.5,
+                "top_k": 1,
+                "gross_target": 0.5,
+                "min_reversion_score": 0.0,
+                "volatility_floor": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 48,
+            },
+        )
+        mean_reversion_keys = {next(iter(item["config_updates"])) for item in mean_reversion_specs}
+        self.assertIn("min_reversion_score", mean_reversion_keys)
+        self.assertIn("volatility_floor", mean_reversion_keys)
+        self.assertIn("trend_lookback_bars", mean_reversion_keys)
+
+        ema_specs = deterministic_mutation_specs(
+            FAMILY_EMA_TREND,
+            {
+                "gross_target": 0.5,
+                "fast_ema_bars": 12,
+                "slow_ema_bars": 48,
+                "trend_ema_bars": 96,
+                "top_k": 1,
+                "min_signal_strength": 0.0,
+                "use_trend_filter": True,
+                "volume_confirmation": 0.0,
+                "volatility_floor": 0.0,
+            },
+        )
+        ema_keys = {next(iter(item["config_updates"])) for item in ema_specs}
+        self.assertIn("volume_confirmation", ema_keys)
+        self.assertIn("volatility_floor", ema_keys)
+
+        breakout_specs = deterministic_mutation_specs(
+            FAMILY_VOLATILITY_BREAKOUT,
+            {
+                "gross_target": 0.5,
+                "channel_bars": 24,
+                "atr_lookback_bars": 14,
+                "atr_multiplier": 1.0,
+                "breakout_buffer": 0.0,
+                "top_k": 1,
+                "min_breakout_score": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 72,
+            },
+        )
+        breakout_keys = {next(iter(item["config_updates"])) for item in breakout_specs}
+        self.assertIn("min_breakout_score", breakout_keys)
+        self.assertIn("trend_lookback_bars", breakout_keys)
+
+    def test_validate_train_candidate_semantics_rejects_family_specific_no_trade_stacks(self) -> None:
+        current_ema = render_family_train_file(
+            {
+                "gross_target": 0.5,
+                "fast_ema_bars": 12,
+                "slow_ema_bars": 48,
+                "trend_ema_bars": 96,
+                "top_k": 1,
+                "min_signal_strength": 0.0,
+                "use_trend_filter": True,
+                "volume_confirmation": 0.0,
+                "volatility_floor": 0.0,
+            },
+            strategy_family=FAMILY_EMA_TREND,
+        )
+        risky_ema = render_family_train_file(
+            {
+                "gross_target": 0.5,
+                "fast_ema_bars": 16,
+                "slow_ema_bars": 64,
+                "trend_ema_bars": 144,
+                "top_k": 1,
+                "min_signal_strength": 0.05,
+                "use_trend_filter": True,
+                "volume_confirmation": 1.5,
+                "volatility_floor": 0.0,
+            },
+            strategy_family=FAMILY_EMA_TREND,
+        )
+        self.assertEqual(
+            validate_train_candidate_semantics(
+                risky_ema,
+                current_train_text=current_ema,
+                symbol_count=5,
+            ),
+            (False, "likely_no_trade_confirmation_stack"),
+        )
+
+        current_breakout = render_family_train_file(
+            {
+                "gross_target": 0.5,
+                "channel_bars": 24,
+                "atr_lookback_bars": 14,
+                "atr_multiplier": 1.0,
+                "breakout_buffer": 0.0,
+                "top_k": 1,
+                "min_breakout_score": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 72,
+            },
+            strategy_family=FAMILY_VOLATILITY_BREAKOUT,
+        )
+        risky_breakout = render_family_train_file(
+            {
+                "gross_target": 0.5,
+                "channel_bars": 36,
+                "atr_lookback_bars": 14,
+                "atr_multiplier": 1.5,
+                "breakout_buffer": 0.25,
+                "top_k": 1,
+                "min_breakout_score": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 72,
+            },
+            strategy_family=FAMILY_VOLATILITY_BREAKOUT,
+        )
+        self.assertEqual(
+            validate_train_candidate_semantics(
+                risky_breakout,
+                current_train_text=current_breakout,
+                symbol_count=5,
+            ),
+            (False, "likely_no_trade_breakout_threshold_stack"),
         )
 
     def test_attempt_prompt_uses_family_specific_role_specs(self) -> None:

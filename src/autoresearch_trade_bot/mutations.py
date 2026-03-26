@@ -26,7 +26,10 @@ from .autoresearch import (
     load_campaign,
 )
 from .strategy_families import (
+    FAMILY_EMA_TREND,
+    FAMILY_MEAN_REVERSION,
     FAMILY_MOMENTUM,
+    FAMILY_VOLATILITY_BREAKOUT,
     config_traits as family_config_traits,
     extract_strategy_family,
     family_attempt_role_specs,
@@ -369,7 +372,7 @@ def build_mutation_context(
     train_path: Path,
     results_path: Path,
     artifact_root: Path,
-    recent_results_limit: int = 5,
+    recent_results_limit: int = 12,
 ) -> MutationContext:
     campaign = load_campaign(campaign_path)
     current_train_text = train_path.read_text(encoding="utf-8")
@@ -472,7 +475,7 @@ def build_experiment_memory_artifact(
 
     dead_zones = [
         {"trait": trait, "count": count}
-        for trait, count in no_trade_traits.most_common(6)
+        for trait, count in no_trade_traits.most_common(8)
     ]
     if duplicate_traits:
         dead_zones.extend(
@@ -882,6 +885,57 @@ def _promising_directions_from_memory(
         directions.append(
             "Only turn on use_regime_filter if paired with a clear reason and conservative threshold."
         )
+    if strategy_family == FAMILY_MEAN_REVERSION:
+        if "band_std_mult=high" in dead_zone_traits:
+            directions.append(
+                "Avoid very wide band_std_mult settings unless RSI thresholds stay moderate and the strategy remains active."
+            )
+        if "rsi_width=narrow" in dead_zone_traits:
+            directions.append(
+                "Avoid overly narrow RSI bands. Keep mean-reversion entries active enough to trade."
+            )
+        if "min_reversion_score=high" in dead_zone_traits:
+            directions.append(
+                "Keep min_reversion_score modest. Aggressive reversion-score floors have recently killed trade frequency."
+            )
+        if "trend_filter=on" in dead_zone_traits:
+            directions.append(
+                "Trend-filtered mean reversion has looked fragile. Only use a mild trend filter with a moderate lookback."
+            )
+    elif strategy_family == FAMILY_EMA_TREND:
+        if "signal_floor=high" in dead_zone_traits:
+            directions.append(
+                "Avoid high min_signal_strength. Trend candidates need a low or modest signal floor to stay active."
+            )
+        if "volume_confirmation=high" in dead_zone_traits:
+            directions.append(
+                "Keep volume_confirmation mild. Recent high-confirmation EMA candidates have stopped trading."
+            )
+        if "ema_stack=wide" in dead_zone_traits:
+            directions.append(
+                "Avoid extremely wide EMA spacing when using confirmation filters. Prefer tighter but still ordered EMA stacks."
+            )
+        if "volatility_floor=high" in dead_zone_traits:
+            directions.append(
+                "Use volatility_floor conservatively. High floors have recently suppressed too many trend entries."
+            )
+    elif strategy_family == FAMILY_VOLATILITY_BREAKOUT:
+        if "channel=long" in dead_zone_traits:
+            directions.append(
+                "Avoid very long breakout channels unless the breakout buffer stays near zero."
+            )
+        if "breakout_buffer=high" in dead_zone_traits:
+            directions.append(
+                "Keep breakout_buffer modest. Large buffers have repeatedly created no-trade breakout candidates."
+            )
+        if "atr_multiplier=high" in dead_zone_traits:
+            directions.append(
+                "Keep atr_multiplier moderate. Large ATR hurdles have recently made breakout entries too rare."
+            )
+        if "min_breakout_score=high" in dead_zone_traits:
+            directions.append(
+                "Keep min_breakout_score low or modest until breakout candidates show reliable activity again."
+            )
     deduped: list[str] = []
     for direction in directions:
         if direction not in deduped:
@@ -904,7 +958,7 @@ def run_llm_mutation_campaign(
     model_name: str = "gpt-5-mini",
     max_mutations: int = 1,
     worktrees_root: str | Path = DEFAULT_WORKTREE_ROOT,
-    recent_results_limit: int = 5,
+    recent_results_limit: int = 12,
     openai_timeout_seconds: float = 60.0,
     openai_max_retries: int = 2,
     openai_retry_backoff_seconds: float = 0.0,

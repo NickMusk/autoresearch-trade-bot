@@ -334,9 +334,13 @@ def deterministic_mutation_specs(
             ("rsi_lower", (30.0, 35.0, 40.0)),
             ("rsi_upper", (60.0, 65.0, 70.0)),
             ("band_std_mult", (1.0, 1.5, 2.0)),
+            ("min_reversion_score", (0.0, 0.05, 0.10)),
+            ("volatility_floor", (0.0, 0.01, 0.02)),
             ("top_k", (1, 2)),
         ):
             proposals.extend(_mutation_specs_for_values(profile_config, key, values))
+        proposals.extend(_mutation_specs_for_values(profile_config, "use_trend_filter", (False, True)))
+        proposals.extend(_mutation_specs_for_values(profile_config, "trend_lookback_bars", (36, 48, 72)))
         return proposals
     if strategy_family == FAMILY_EMA_TREND:
         for key, values in (
@@ -345,6 +349,8 @@ def deterministic_mutation_specs(
             ("trend_ema_bars", (72, 96, 144)),
             ("top_k", (1, 2)),
             ("min_signal_strength", (0.0, 0.02, 0.05)),
+            ("volume_confirmation", (0.0, 0.5, 1.0)),
+            ("volatility_floor", (0.0, 0.01, 0.02)),
         ):
             proposals.extend(_mutation_specs_for_values(profile_config, key, values))
         proposals.extend(_mutation_specs_for_values(profile_config, "use_trend_filter", (False, True)))
@@ -355,10 +361,12 @@ def deterministic_mutation_specs(
             ("atr_lookback_bars", (10, 14, 21)),
             ("atr_multiplier", (0.5, 1.0, 1.5)),
             ("breakout_buffer", (0.0, 0.25, 0.5)),
+            ("min_breakout_score", (0.0, 0.05, 0.10)),
             ("top_k", (1, 2)),
         ):
             proposals.extend(_mutation_specs_for_values(profile_config, key, values))
         proposals.extend(_mutation_specs_for_values(profile_config, "use_trend_filter", (False, True)))
+        proposals.extend(_mutation_specs_for_values(profile_config, "trend_lookback_bars", (48, 72, 96)))
         return proposals
     for key, values, label_key in (
         ("lookback_bars", (12, 24, 36), "lookback"),
@@ -401,12 +409,25 @@ def validate_train_candidate_semantics(
             return False, "invalid_rsi_thresholds"
         if float(candidate["band_std_mult"]) <= 0.0 or float(candidate["band_std_mult"]) > 4.0:
             return False, "invalid_band_std_mult"
+        if float(candidate.get("min_reversion_score", 0.0)) > 0.25:
+            return False, "likely_no_trade_reversion_score"
         if (
             float(candidate["band_std_mult"]) > 2.5
             and float(candidate["rsi_lower"]) < 25.0
             and float(candidate["rsi_upper"]) > 75.0
         ):
             return False, "likely_no_trade_reversion_stack"
+        if (
+            float(candidate["band_std_mult"]) >= 2.0
+            and (float(candidate["rsi_upper"]) - float(candidate["rsi_lower"])) <= 25.0
+        ):
+            return False, "likely_no_trade_narrow_rsi_band_stack"
+        if (
+            bool(candidate.get("use_trend_filter", False))
+            and int(candidate.get("trend_lookback_bars", 48)) >= 72
+            and float(candidate.get("min_reversion_score", 0.0)) >= 0.10
+        ):
+            return False, "likely_no_trade_reversion_trend_stack"
         return True, ""
     if strategy_family == FAMILY_EMA_TREND:
         if not (
@@ -417,6 +438,23 @@ def validate_train_candidate_semantics(
             return False, "likely_no_trade_volume_confirmation"
         if float(candidate["min_signal_strength"]) > 0.15:
             return False, "likely_no_trade_signal_threshold"
+        if (
+            float(candidate.get("volume_confirmation", 0.0)) >= 1.5
+            and float(candidate.get("min_signal_strength", 0.0)) >= 0.05
+        ):
+            return False, "likely_no_trade_confirmation_stack"
+        if (
+            int(candidate["fast_ema_bars"]) >= 16
+            and int(candidate["slow_ema_bars"]) >= 64
+            and int(candidate["trend_ema_bars"]) >= 144
+            and float(candidate.get("min_signal_strength", 0.0)) > 0.02
+        ):
+            return False, "likely_no_trade_wide_ema_stack"
+        if (
+            float(candidate.get("volatility_floor", 0.0)) >= 0.02
+            and float(candidate.get("volume_confirmation", 0.0)) >= 1.0
+        ):
+            return False, "likely_no_trade_trend_filter_stack"
         return True, ""
     if strategy_family == FAMILY_VOLATILITY_BREAKOUT:
         if int(candidate["channel_bars"]) <= int(candidate["atr_lookback_bars"]):
@@ -427,6 +465,20 @@ def validate_train_candidate_semantics(
             return False, "likely_no_trade_breakout_buffer"
         if int(candidate["channel_bars"]) > 60 and float(candidate["breakout_buffer"]) > 0.5:
             return False, "likely_no_trade_breakout_stack"
+        if float(candidate.get("min_breakout_score", 0.0)) > 0.25:
+            return False, "likely_no_trade_breakout_score"
+        if (
+            int(candidate["channel_bars"]) >= 36
+            and float(candidate.get("breakout_buffer", 0.0)) >= 0.25
+            and float(candidate.get("atr_multiplier", 0.0)) >= 1.5
+        ):
+            return False, "likely_no_trade_breakout_threshold_stack"
+        if (
+            bool(candidate.get("use_trend_filter", False))
+            and int(candidate.get("trend_lookback_bars", 72)) >= 96
+            and float(candidate.get("breakout_buffer", 0.0)) >= 0.25
+        ):
+            return False, "likely_no_trade_breakout_trend_stack"
         return True, ""
     if str(candidate["ranking_mode"]) not in {"raw_return", "risk_adjusted"}:
         return False, "invalid_ranking_mode"
@@ -453,24 +505,42 @@ def config_traits(strategy_family: str, config: Mapping[str, Any]) -> list[str]:
             [
                 f"band_std_mult={_bucket(float(config.get('band_std_mult', 0.0)), (1.2, 2.0))}",
                 f"rsi_width={_bucket(float(config.get('rsi_upper', 0.0)) - float(config.get('rsi_lower', 0.0)), (25.0, 40.0))}",
+                f"min_reversion_score={_bucket(float(config.get('min_reversion_score', 0.0)), (0.05, 0.10))}",
             ]
         )
         if bool(config.get("use_trend_filter", False)):
             traits.append("trend_filter=on")
+        if float(config.get("volatility_floor", 0.0)) > 0.0:
+            traits.append(f"volatility_floor={_bucket(float(config.get('volatility_floor', 0.0)), (0.01, 0.02))}")
     elif strategy_family == FAMILY_EMA_TREND:
+        fast_ema = int(config.get("fast_ema_bars", 0))
+        slow_ema = int(config.get("slow_ema_bars", 0))
+        trend_ema = int(config.get("trend_ema_bars", 0))
+        ema_stack = "balanced"
+        if slow_ema >= max(fast_ema * 4, 1) and trend_ema >= max(slow_ema * 2, 1):
+            ema_stack = "wide"
+        elif slow_ema <= max(fast_ema * 2, 1) or trend_ema <= max(int(slow_ema * 1.5), 1):
+            ema_stack = "compressed"
         traits.extend(
             [
-                f"fast_ema={config.get('fast_ema_bars', '')}",
-                f"slow_ema={config.get('slow_ema_bars', '')}",
+                f"fast_ema={fast_ema}",
+                f"slow_ema={slow_ema}",
+                f"signal_floor={_bucket(float(config.get('min_signal_strength', 0.0)), (0.02, 0.05))}",
+                f"volume_confirmation={_bucket(float(config.get('volume_confirmation', 0.0)), (0.5, 1.0))}",
+                f"ema_stack={ema_stack}",
             ]
         )
         if bool(config.get("use_trend_filter", False)):
             traits.append("trend_filter=on")
+        if float(config.get("volatility_floor", 0.0)) > 0.0:
+            traits.append(f"volatility_floor={_bucket(float(config.get('volatility_floor', 0.0)), (0.01, 0.02))}")
     elif strategy_family == FAMILY_VOLATILITY_BREAKOUT:
         traits.extend(
             [
-                f"channel={config.get('channel_bars', '')}",
+                f"channel={_bucket(float(config.get('channel_bars', 0.0)), (18.0, 30.0))}",
                 f"breakout_buffer={_bucket(float(config.get('breakout_buffer', 0.0)), (0.1, 0.4))}",
+                f"atr_multiplier={_bucket(float(config.get('atr_multiplier', 0.0)), (0.75, 1.25))}",
+                f"min_breakout_score={_bucket(float(config.get('min_breakout_score', 0.0)), (0.05, 0.10))}",
             ]
         )
         if bool(config.get("use_trend_filter", False)):

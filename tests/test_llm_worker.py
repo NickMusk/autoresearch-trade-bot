@@ -1791,6 +1791,22 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
 
         self.assertEqual(config.repo_url, llm_worker_module.DEFAULT_LLM_REPO_URL)
 
+    def test_llm_worker_config_from_env_uses_expanded_recent_results_default(self) -> None:
+        previous = dict(os.environ)
+        try:
+            os.environ.pop("AUTORESEARCH_LLM_RECENT_RESULTS_LIMIT", None)
+            with patch.object(
+                llm_worker_module,
+                "_discover_repo_url",
+                return_value=llm_worker_module.DEFAULT_LLM_REPO_URL,
+            ):
+                config = llm_worker_module.llm_worker_config_from_env()
+        finally:
+            os.environ.clear()
+            os.environ.update(previous)
+
+        self.assertEqual(config.recent_results_limit, 12)
+
     def test_discover_repo_url_falls_back_to_default_when_git_lookup_fails(self) -> None:
         with patch(
             "autoresearch_trade_bot.llm_worker.subprocess.run",

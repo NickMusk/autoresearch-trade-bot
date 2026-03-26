@@ -100,7 +100,7 @@ def run_llm_family_wave(
     family_repos_root: str | Path = ".autoresearch/family_repos",
     model_name: str = "gpt-5-mini",
     max_mutations: int = 1,
-    recent_results_limit: int = 5,
+    recent_results_limit: int = 12,
     strategy_families: Sequence[str] = WAVE1_FAMILIES,
     max_parallel: int | None = None,
     family_runner: Callable[..., list[GitAutoresearchDecision]] = run_llm_mutation_campaign,

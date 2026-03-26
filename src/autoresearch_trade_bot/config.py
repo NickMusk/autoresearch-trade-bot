@@ -101,7 +101,7 @@ class LLMWorkerConfig:
     openai_max_retries: int = 3
     openai_retry_backoff_seconds: float = 2.0
     max_mutations_per_cycle: int = 1
-    recent_results_limit: int = 5
+    recent_results_limit: int = 12
     history_window_days: int = 30
     campaign_window_count: int = 1
     campaigns_root: str = "campaigns"
