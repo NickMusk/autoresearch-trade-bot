@@ -35,8 +35,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260326t075500z",
-  "latest_cycle_completed_at": "2026-03-26T15:25:28.197631+00:00",
-  "last_processed_bar": "2026-03-26T15:15:00+00:00",
+  "latest_cycle_completed_at": "2026-03-26T15:44:14.342011+00:00",
+  "last_processed_bar": "2026-03-26T15:35:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.9166666666666666,
@@ -75,9 +75,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-6985a74b",
+      "mutation_label": "llm-d177cd99",
       "baseline_score": 1.99412145629211,
-      "candidate_score": -6.904578068003161,
+      "candidate_score": -2.4362505085701835,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -206,9 +206,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-6985a74b",
+    "mutation_label": "llm-d177cd99",
     "baseline_score": 1.99412145629211,
-    "candidate_score": -6.904578068003161,
+    "candidate_score": -2.4362505085701835,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -220,16 +220,16 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2",
-    "research_score": -6.904578068003161,
+    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v1-selectivity-without-no-trade-v2",
+    "research_score": -2.4362505085701835,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.00010508381332008376,
-      "sharpe": -6.903493927260761,
-      "max_drawdown": 0.0001393999434643467,
-      "average_turnover": 1.121901941990556e-06,
+      "total_return": -7.954998008175007e-05,
+      "sharpe": -2.435152165524352,
+      "max_drawdown": 0.00017442084927443702,
+      "average_turnover": 2.9097483250310346e-06,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 17
+      "nonzero_turnover_steps": 55
     },
     "train_config": {
       "gross_target": 0.05,
@@ -240,7 +240,7 @@
       "regime_threshold": 0.02,
       "top_k": 2,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.04,
+      "min_cross_sectional_spread": 0.03,
       "volatility_floor": 0.0012,
       "reversal_bias_weight": 0.14,
       "funding_penalty_weight": 0.0,
