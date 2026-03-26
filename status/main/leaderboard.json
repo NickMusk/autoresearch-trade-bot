@@ -1,46 +1,6 @@
 {
   "leaderboard": [
     {
-      "strategy_name": "llm-d08ae04a",
-      "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.545045,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 4.2e-05,
-        "max_drawdown": 2.539082,
-        "average_turnover": 3.1e-05
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
-      "strategy_name": "llm-d08ae04a",
-      "params": {
-        "decision": "keep",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": true,
-      "score": 0.545045,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 4.2e-05,
-        "max_drawdown": 2.539082,
-        "average_turnover": 3.1e-05
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
       "strategy_name": "llm-b4a52534",
       "params": {
         "decision": "discard_screen",
@@ -98,6 +58,46 @@
       },
       "rejection_reasons": [
         "[\"no_op_train_config\"]"
+      ]
+    },
+    {
+      "strategy_name": "llm-fc26985f",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 1.0
+      },
+      "rejection_reasons": [
+        "[\"no_op_train_config\"]"
+      ]
+    },
+    {
+      "strategy_name": "llm-95d05ee7",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -0.092611,
+      "metrics": {
+        "total_return": 1.0,
+        "sharpe": 3.9e-05,
+        "max_drawdown": 2.446475,
+        "average_turnover": 2.9e-05
+      },
+      "rejection_reasons": [
+        "[]"
       ]
     }
   ]
