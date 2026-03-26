@@ -41,6 +41,46 @@
       ]
     },
     {
+      "strategy_name": "llm-7d379cb2",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 1.0
+      },
+      "rejection_reasons": [
+        "[\"no_op_train_config\"]"
+      ]
+    },
+    {
+      "strategy_name": "llm-350f73b4",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -0.014147,
+      "metrics": {
+        "total_return": 1.0,
+        "sharpe": 1e-05,
+        "max_drawdown": 3.917713,
+        "average_turnover": 1e-05
+      },
+      "rejection_reasons": [
+        "[]"
+      ]
+    },
+    {
       "strategy_name": "llm-80378577",
       "params": {
         "decision": "discard_screen",
@@ -55,46 +95,6 @@
         "sharpe": 1.4e-05,
         "max_drawdown": 3.315733,
         "average_turnover": 1.4e-05
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
-      "strategy_name": "llm-40e60286",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -1.891136,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 1.1e-05,
-        "max_drawdown": 2.040762,
-        "average_turnover": 2.2e-05
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
-      "strategy_name": "llm-b1722e92",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -2.00672,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 1.1e-05,
-        "max_drawdown": 1.925185,
-        "average_turnover": 2.2e-05
       },
       "rejection_reasons": [
         "[]"
