@@ -35,8 +35,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260326t075500z",
-  "latest_cycle_completed_at": "2026-03-26T12:36:43.829831+00:00",
-  "last_processed_bar": "2026-03-26T12:30:00+00:00",
+  "latest_cycle_completed_at": "2026-03-26T12:55:40.566840+00:00",
+  "last_processed_bar": "2026-03-26T12:45:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -75,9 +75,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-0623a825",
+      "mutation_label": "llm-0a151674",
       "baseline_score": 1.99412145629211,
-      "candidate_score": -0.9552191538839283,
+      "candidate_score": -0.9426652022115445,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -102,6 +102,26 @@
     "rollout_champion_strategy_name": ""
   },
   "leaderboard": [
+    {
+      "strategy_name": "llm-42a5f6e0",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 1.0
+      },
+      "rejection_reasons": [
+        "[\"no_op_train_config\"]"
+      ]
+    },
     {
       "strategy_name": "llm-1ac76add",
       "params": {
@@ -181,34 +201,14 @@
       "rejection_reasons": [
         "[\"total_return_below_gate\", \"sharpe_below_gate\", \"acceptance_rate_below_gate\"]"
       ]
-    },
-    {
-      "strategy_name": "llm-0623a825",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -2.949341,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": -1.5e-05,
-        "max_drawdown": -0.954895,
-        "average_turnover": 6.2e-05
-      },
-      "rejection_reasons": [
-        "[\"total_return_below_gate\", \"sharpe_below_gate\", \"acceptance_rate_below_gate\"]"
-      ]
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-0623a825",
+    "mutation_label": "llm-0a151674",
     "baseline_score": 1.99412145629211,
-    "candidate_score": -0.9552191538839283,
+    "candidate_score": -0.9426652022115445,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -220,38 +220,38 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v9-selective-persistence-paired-balance",
-    "research_score": -0.9552191538839283,
+    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2",
+    "research_score": -0.9426652022115445,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -1.51340081274709e-05,
-      "sharpe": -0.9548952996862293,
-      "max_drawdown": 6.162164626544175e-05,
-      "average_turnover": 1.697571999900073e-06,
+      "total_return": -2.9444739893524918e-05,
+      "sharpe": -0.941916647750994,
+      "max_drawdown": 0.00015015585922695251,
+      "average_turnover": 7.073241750136762e-07,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 28
+      "nonzero_turnover_steps": 9
     },
     "train_config": {
       "gross_target": 0.05,
       "lookback_bars": 30,
-      "min_signal_strength": 0.09,
+      "min_signal_strength": 0.11,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 60,
       "regime_threshold": 0.02,
       "top_k": 2,
       "use_regime_filter": false,
       "min_cross_sectional_spread": 0.05,
-      "volatility_floor": 0.0012,
-      "reversal_bias_weight": 0.16,
+      "volatility_floor": 0.002,
+      "reversal_bias_weight": 0.14,
       "funding_penalty_weight": 0.0,
       "hold_bars": 160,
-      "turn_threshold": 0.1,
+      "turn_threshold": 0.14,
       "drawdown_reduce": 0.08,
       "drawdown_cut": 0.16,
       "max_vol_for_full": 0.02,
       "initial_leg_fraction": 0.05,
-      "consistency_threshold": 0.5,
-      "relative_strength_threshold": 0.65,
+      "consistency_threshold": 0.45,
+      "relative_strength_threshold": 0.6,
       "crowding_threshold": 2.2,
       "crowding_penalty": 0.7,
       "paired_balance_threshold": 2.2
