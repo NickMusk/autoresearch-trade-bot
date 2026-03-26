@@ -1,9 +1,15 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker transient error",
+  "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "openai_http_error:500:{\n  \"error\": {\n    \"message\": \"The server had an error processing your request. Sorry about that! You can retry your request, or contact us through our help center at help.openai.com if you keep seeing this error. (Please include the request ID req_1f1241994bf847e7840d27ca95458f16 in your email.)\",\n    \"type\": \"server_error\",\n    \"param\": null,\n    \"code\": null\n  }\n}"
+    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest LLM candidate produced no trades on the evaluation window.",
+    "Latest kept candidate still fails gate: no_trades_executed.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
+    "Research champion passes paper metrics, but it still has not cleared the fast holdout screen.",
+    "No rollout champion has cleared holdout validation yet."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -24,17 +30,19 @@
   "current_best_ready_for_paper": true,
   "latest_cycle_rollout_ready": false,
   "next_milestones": [
-    "Wait for the worker to recover from the latest transient API, repo, or campaign failure."
+    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
+    "Accumulate multiple kept improvements in the research branch.",
+    "Promote only candidates that satisfy the hard rollout gates."
   ],
-  "loop_state": "transient_error",
+  "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260326t123000z",
-  "latest_cycle_completed_at": "2026-03-26T21:03:45.227317+00:00",
-  "last_processed_bar": "2026-03-26T21:00:00+00:00",
+  "latest_cycle_completed_at": "2026-03-26T22:38:43.448420+00:00",
+  "last_processed_bar": "2026-03-26T22:35:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.9166666666666666,
   "mutation_win_rate": 0.0,
-  "consecutive_failures": 2,
+  "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
   "current_best_validation_pass_rate": 0.0,
@@ -132,7 +140,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-13dd39e1",
+      "mutation_label": "llm-91d98132",
       "baseline_score": 2.4236074240801666,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -253,7 +261,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-13dd39e1",
+    "mutation_label": "llm-91d98132",
     "baseline_score": 2.4236074240801666,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -281,20 +289,19 @@
     "train_config": {
       "gross_target": 0.5,
       "lookback_bars": 24,
-      "min_signal_strength": 0.05,
+      "min_signal_strength": 0.06,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 36,
-      "regime_threshold": 0.02,
+      "regime_threshold": 0.015,
       "top_k": 1,
-      "use_regime_filter": true,
-      "min_cross_sectional_spread": 0.05,
-      "volatility_floor": 0.025,
-      "reversal_bias_weight": 0.025,
-      "funding_penalty_weight": 0.01,
+      "use_regime_filter": false,
+      "min_cross_sectional_spread": 0.06,
+      "volatility_floor": 0.03,
+      "reversal_bias_weight": 0.04,
+      "funding_penalty_weight": 0.007,
       "persistence_bars": 3,
-      "persistence_min_mean_return": 0.0015,
-      "max_gross_scaling": 1.1,
-      "selectivity_gap": 0.3
+      "persistence_min_mean_return": 0.0012,
+      "max_gross_scaling": 1.15
     },
     "gate_failures": [
       "no_trades_executed",
