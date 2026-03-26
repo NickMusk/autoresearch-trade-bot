@@ -1,43 +1,23 @@
 {
   "leaderboard": [
     {
-      "strategy_name": "llm-49aa8d57",
+      "strategy_name": "llm-1ac76add",
       "params": {
-        "decision": "screen_pass",
+        "decision": "discard_screen",
         "provider_name": "llm",
         "model_name": "gpt-5-mini-2025-08-07",
         "stage": "screen"
       },
       "accepted": false,
-      "score": 0.113993,
+      "score": -1.473548,
       "metrics": {
         "total_return": 1.0,
-        "sharpe": 4.1e-05,
-        "max_drawdown": 1.994193,
-        "average_turnover": 6.9e-05
+        "sharpe": 1.7e-05,
+        "max_drawdown": 0.521079,
+        "average_turnover": 0.000146
       },
       "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
-      "strategy_name": "llm-49aa8d57",
-      "params": {
-        "decision": "keep",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
-      },
-      "accepted": true,
-      "score": 0.113993,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 4.1e-05,
-        "max_drawdown": 1.994193,
-        "average_turnover": 6.9e-05
-      },
-      "rejection_reasons": [
-        "[]"
+        "[\"sharpe_below_gate\"]"
       ]
     },
     {
@@ -95,6 +75,26 @@
         "sharpe": -1.3e-05,
         "max_drawdown": -0.313787,
         "average_turnover": 0.000187
+      },
+      "rejection_reasons": [
+        "[\"total_return_below_gate\", \"sharpe_below_gate\", \"acceptance_rate_below_gate\"]"
+      ]
+    },
+    {
+      "strategy_name": "llm-4778c734",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -2.855951,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": -2.5e-05,
+        "max_drawdown": -0.861144,
+        "average_turnover": 0.00014
       },
       "rejection_reasons": [
         "[\"total_return_below_gate\", \"sharpe_below_gate\", \"acceptance_rate_below_gate\"]"
