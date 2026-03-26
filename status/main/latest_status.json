@@ -33,12 +33,12 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260326t075500z",
-  "latest_cycle_completed_at": "2026-03-26T20:41:28.695972+00:00",
-  "last_processed_bar": "2026-03-26T20:35:00+00:00",
-  "recent_acceptance_rate": 0.1,
-  "evaluation_acceptance_rate": 0.1,
+  "latest_cycle_completed_at": "2026-03-26T20:59:12.401290+00:00",
+  "last_processed_bar": "2026-03-26T20:50:00+00:00",
+  "recent_acceptance_rate": 0.0,
+  "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.8333333333333334,
-  "mutation_win_rate": 0.1,
+  "mutation_win_rate": 0.0,
   "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
@@ -73,7 +73,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-9567452b",
+      "mutation_label": "llm-4d127625",
       "baseline_score": 2.5391660207111757,
       "candidate_score": 0.5406128674917979,
       "kept_commit": null,
@@ -179,7 +179,7 @@
       ]
     },
     {
-      "strategy_name": "llm-8ea48aa8",
+      "strategy_name": "llm-b4a46c59",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -202,7 +202,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-9567452b",
+    "mutation_label": "llm-4d127625",
     "baseline_score": 2.5391660207111757,
     "candidate_score": 0.5406128674917979,
     "kept_commit": null,
@@ -214,7 +214,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2-zfilter",
+    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2",
     "research_score": 0.5406128674917979,
     "ready_for_paper": false,
     "average_metrics": {
@@ -228,18 +228,18 @@
     "train_config": {
       "gross_target": 0.05,
       "lookback_bars": 30,
-      "min_signal_strength": 0.115,
+      "min_signal_strength": 0.11,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 60,
       "regime_threshold": 0.02,
       "top_k": 2,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.07,
+      "min_cross_sectional_spread": 0.09,
       "volatility_floor": 0.003,
       "reversal_bias_weight": 0.14,
       "funding_penalty_weight": 0.0,
       "hold_bars": 160,
-      "turn_threshold": 0.12,
+      "turn_threshold": 0.1,
       "drawdown_reduce": 0.08,
       "drawdown_cut": 0.16,
       "max_vol_for_full": 0.02,
@@ -247,7 +247,7 @@
       "consistency_threshold": 0.45,
       "relative_strength_threshold": 0.6,
       "crowding_threshold": 2.2,
-      "crowding_penalty": 0.65,
+      "crowding_penalty": 0.7,
       "paired_balance_threshold": 2.2
     },
     "gate_failures": [
