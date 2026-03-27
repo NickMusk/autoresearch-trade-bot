@@ -221,6 +221,23 @@ def extract_strategy_family(train_text: str) -> str:
     return FAMILY_MOMENTUM
 
 
+def extract_strategy_name(train_text: str) -> str:
+    try:
+        tree = ast.parse(train_text)
+    except SyntaxError:
+        return ""
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "STRATEGY_NAME":
+                    try:
+                        value = ast.literal_eval(node.value)
+                    except Exception:
+                        return ""
+                    return value if isinstance(value, str) else ""
+    return ""
+
+
 def family_attempt_role_specs(strategy_family: str) -> tuple[dict[str, str], ...]:
     return get_strategy_family_profile(strategy_family).attempt_role_specs
 

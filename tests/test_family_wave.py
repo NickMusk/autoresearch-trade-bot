@@ -14,6 +14,7 @@ from autoresearch_trade_bot.strategy_families import (
     FAMILY_EMA_TREND,
     FAMILY_MEAN_REVERSION,
     extract_strategy_family,
+    extract_strategy_name,
 )
 
 
@@ -161,6 +162,61 @@ class FamilyWaveTests(unittest.TestCase):
 
             self.assertEqual(resolved_branch, family_branch)
             self.assertEqual(self._git(family_repo, "branch", "--show-current"), "main")
+
+    def test_existing_family_branch_is_reseeded_when_strategy_semantics_change(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            workspace = Path(tempdir)
+            source_repo = workspace / "source"
+            source_repo.mkdir()
+            self._git(source_repo, "init")
+            self._git(source_repo, "config", "user.email", "bot@example.com")
+            self._git(source_repo, "config", "user.name", "Bot")
+            (source_repo / "train.py").write_text(
+                "\n".join(
+                    [
+                        "from __future__ import annotations",
+                        "TRAIN_CONFIG = {'lookback_bars': 24, 'top_k': 1, 'gross_target': 0.5}",
+                        'STRATEGY_NAME = "baseline"',
+                        'STRATEGY_FAMILY = "momentum"',
+                        "",
+                        "def build_strategy(_dataset_spec=None):",
+                        "    return None",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            self._git(source_repo, "add", "train.py")
+            self._git(source_repo, "commit", "-m", "Initial baseline")
+            self._git(source_repo, "branch", "-M", "main")
+
+            family_repo_root, family_branch = prepare_family_repo(
+                source_repo_root=source_repo,
+                family_repo_root=workspace / "family-repos" / FAMILY_MEAN_REVERSION,
+                strategy_family=FAMILY_MEAN_REVERSION,
+            )
+            family_repo = Path(family_repo_root)
+            self._git(family_repo, "checkout", family_branch)
+            old_train = (family_repo / "train.py").read_text(encoding="utf-8").replace(
+                'STRATEGY_NAME = "ibs-reversion-short-horizon"',
+                'STRATEGY_NAME = "mean-reversion-bbands-rsi"',
+            )
+            (family_repo / "train.py").write_text(old_train, encoding="utf-8")
+            self._git(family_repo, "add", "train.py")
+            self._git(family_repo, "commit", "-m", "Simulate old family semantics")
+            self._git(family_repo, "checkout", "main")
+
+            resolved_branch = ensure_family_branch_seeded(
+                repo_root=family_repo,
+                strategy_family=FAMILY_MEAN_REVERSION,
+                branch_name=family_branch,
+            )
+
+            self.assertEqual(resolved_branch, family_branch)
+            self._git(family_repo, "checkout", family_branch)
+            reseeded_train = (family_repo / "train.py").read_text(encoding="utf-8")
+            self.assertEqual(extract_strategy_family(reseeded_train), FAMILY_MEAN_REVERSION)
+            self.assertEqual(extract_strategy_name(reseeded_train), "ibs-reversion-short-horizon")
 
     def _git(self, cwd: Path, *args: str) -> str:
         import subprocess

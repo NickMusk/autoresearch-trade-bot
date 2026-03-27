@@ -8,7 +8,13 @@ from typing import Any, Callable, Sequence
 
 from .autoresearch import GitAutoresearchDecision
 from .mutations import run_llm_mutation_campaign
-from .strategy_families import WAVE1_FAMILIES, extract_strategy_family, get_strategy_family_profile, render_train_file
+from .strategy_families import (
+    WAVE1_FAMILIES,
+    extract_strategy_family,
+    extract_strategy_name,
+    get_strategy_family_profile,
+    render_train_file,
+)
 
 
 @dataclass(frozen=True)
@@ -64,6 +70,29 @@ def ensure_family_branch_seeded(
             f"existing branch {family_branch!r} is pinned to strategy family {current_family!r}, "
             f"expected {strategy_family!r}"
         )
+    profile = get_strategy_family_profile(strategy_family)
+    current_strategy_name = _read_branch_strategy_name(
+        repo_root=resolved_repo_root,
+        branch_name=family_branch,
+    )
+    if current_strategy_name != profile.strategy_name:
+        _run_git(resolved_repo_root, "checkout", family_branch)
+        train_path = resolved_repo_root / "train.py"
+        train_path.write_text(
+            render_train_file(
+                profile.default_train_config,
+                strategy_family=strategy_family,
+            ),
+            encoding="utf-8",
+        )
+        _run_git(resolved_repo_root, "add", "train.py")
+        _run_git(
+            resolved_repo_root,
+            "commit",
+            "-m",
+            f"Reseed {strategy_family} baseline",
+        )
+        _run_git(resolved_repo_root, "checkout", base_ref)
     return family_branch
 
 
@@ -191,3 +220,14 @@ def _read_branch_strategy_family(*, repo_root: Path, branch_name: str) -> str:
         text=True,
     )
     return extract_strategy_family(completed.stdout)
+
+
+def _read_branch_strategy_name(*, repo_root: Path, branch_name: str) -> str:
+    completed = subprocess.run(
+        ["git", "show", f"{branch_name}:train.py"],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return extract_strategy_name(completed.stdout)
