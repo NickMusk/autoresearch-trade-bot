@@ -32,11 +32,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260326t075500z",
-  "latest_cycle_completed_at": "2026-03-27T05:25:13.002042+00:00",
-  "last_processed_bar": "2026-03-27T05:20:00+00:00",
+  "latest_cycle_completed_at": "2026-03-27T05:44:14.258697+00:00",
+  "last_processed_bar": "2026-03-27T05:35:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.9166666666666666,
+  "generation_validity_rate": 1.0,
   "mutation_win_rate": 0.0,
   "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
@@ -72,9 +72,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-9c6a424e",
+      "mutation_label": "llm-3328a375",
       "baseline_score": 2.7914422252921955,
-      "candidate_score": 1.9007745160039655,
+      "candidate_score": 2.7914422252921955,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -199,9 +199,9 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-9c6a424e",
+    "mutation_label": "llm-3328a375",
     "baseline_score": 2.7914422252921955,
-    "candidate_score": 1.9007745160039655,
+    "candidate_score": 2.7914422252921955,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -209,16 +209,16 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-confirm-v2",
-    "research_score": 1.9007745160039655,
+    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2-minpair",
+    "research_score": 2.7914422252921955,
     "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 4.816786809236362e-05,
-      "sharpe": 1.9008299395895993,
-      "max_drawdown": 7.390772712523308e-05,
+      "total_return": 3.1234299175064706e-05,
+      "sharpe": 2.7914025756660954,
+      "max_drawdown": 2.8972463045118246e-05,
       "average_turnover": 6.320175946290081e-07,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 3
+      "nonzero_turnover_steps": 4
     },
     "train_config": {
       "gross_target": 0.05,
@@ -244,7 +244,7 @@
       "crowding_threshold": 2.2,
       "crowding_penalty": 0.7,
       "paired_balance_threshold": 2.2,
-      "confirmation_margin": 0.18
+      "min_pair_conviction": 0.1
     },
     "gate_failures": [],
     "provider_name": "llm",
