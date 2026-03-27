@@ -3,6 +3,10 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
+    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest kept candidate still fails gate: total_return_below_gate.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
     "Research champion passes paper metrics, but it still has not cleared the fast holdout screen.",
     "No rollout champion has cleared holdout validation yet."
   ],
@@ -15,11 +19,11 @@
   },
   "baseline_metrics": {
     "total_return": 0.0001,
-    "sharpe": 2.4108,
+    "sharpe": 4.3332,
     "max_drawdown": 0.0001,
     "average_turnover": 0.0,
     "bars_processed": 8639,
-    "score": 2.4109
+    "score": 4.3335
   },
   "accepted_for_paper": true,
   "current_best_ready_for_paper": true,
@@ -31,8 +35,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260327t080000z",
-  "latest_cycle_completed_at": "2026-03-27T14:03:20.257565+00:00",
-  "last_processed_bar": "2026-03-27T13:55:00+00:00",
+  "latest_cycle_completed_at": "2026-03-27T14:21:58.220240+00:00",
+  "last_processed_bar": "2026-03-27T14:15:00+00:00",
   "recent_acceptance_rate": 0.2,
   "evaluation_acceptance_rate": 0.2,
   "generation_validity_rate": 0.4166666666666667,
@@ -69,19 +73,23 @@
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-binance-usdm-futures-5m-20260327t080000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "keep",
-      "stage": "full",
-      "mutation_label": "llm-38ed24c5",
-      "baseline_score": 2.410877055083657,
-      "candidate_score": 4.33351256576483,
-      "kept_commit": "8dcb8d54a8b6f1b6f0838f9c310f06d9804b3a3e",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-122957fd",
+      "baseline_score": 4.33351256576483,
+      "candidate_score": -1.2730458360084862,
+      "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": []
+      "gate_failures": [
+        "total_return_below_gate",
+        "sharpe_below_gate",
+        "acceptance_rate_below_gate"
+      ]
     },
-    "baseline_strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-paircorr-v1",
-    "baseline_score": 2.410877055083657,
+    "baseline_strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-paircorr-v2",
+    "baseline_score": 4.33351256576483,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm",
     "current_best_ready_for_paper": true,
@@ -175,7 +183,7 @@
       ]
     },
     {
-      "strategy_name": "llm-90ebbd0c",
+      "strategy_name": "llm-133acc97",
       "params": {
         "decision": "discard_error",
         "provider_name": "llm",
@@ -191,45 +199,49 @@
         "average_turnover": 1.0
       },
       "rejection_reasons": [
-        "[\"no_op_train_config\"]"
+        "[\"candidate_too_large\"]"
       ]
     }
   ],
   "latest_decision": {
-    "decision": "keep",
-    "stage": "full",
-    "mutation_label": "llm-38ed24c5",
-    "baseline_score": 2.410877055083657,
-    "candidate_score": 4.33351256576483,
-    "kept_commit": "8dcb8d54a8b6f1b6f0838f9c310f06d9804b3a3e",
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-122957fd",
+    "baseline_score": 4.33351256576483,
+    "candidate_score": -1.2730458360084862,
+    "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "gate_failures": []
+    "gate_failures": [
+      "total_return_below_gate",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ]
   },
   "latest_candidate_summary": {
     "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-paircorr-v2",
-    "research_score": 4.33351256576483,
-    "ready_for_paper": true,
+    "research_score": -1.2730458360084862,
+    "ready_for_paper": false,
     "average_metrics": {
-      "total_return": 0.00013758816556586062,
-      "sharpe": 4.333171803521376,
-      "max_drawdown": 8.66352009930571e-05,
-      "average_turnover": 6.377804017976144e-07,
+      "total_return": -3.380740590497311e-05,
+      "sharpe": -1.2725353821548149,
+      "max_drawdown": 8.531189958016494e-05,
+      "average_turnover": 1.6922582575576706e-07,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 7
+      "nonzero_turnover_steps": 2
     },
     "train_config": {
       "gross_target": 0.05,
       "lookback_bars": 30,
-      "min_signal_strength": 0.095,
+      "min_signal_strength": 0.1,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 60,
       "regime_threshold": 0.02,
       "top_k": 2,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.08,
-      "volatility_floor": 0.002,
+      "min_cross_sectional_spread": 0.09,
+      "volatility_floor": 0.003,
       "reversal_bias_weight": 0.14,
       "funding_penalty_weight": 0.0,
       "hold_bars": 160,
@@ -241,32 +253,20 @@
       "consistency_threshold": 0.4,
       "relative_strength_threshold": 0.6,
       "crowding_threshold": 2.2,
-      "crowding_penalty": 0.65,
+      "crowding_penalty": 0.7,
       "paired_balance_threshold": 2.2,
       "pair_correlation_threshold": 0.18,
       "pair_corr_penalty": 0.6
     },
-    "gate_failures": [],
+    "gate_failures": [
+      "total_return_below_gate",
+      "sharpe_below_gate",
+      "acceptance_rate_below_gate"
+    ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
   },
-  "current_best_strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-paircorr-v1",
-  "latest_kept_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-paircorr-v2",
-    "baseline_strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-paircorr-v1",
-    "score_delta": 1.922636,
-    "config_diff": [
-      {
-        "key": "crowding_penalty",
-        "before": 0.6,
-        "after": 0.65
-      },
-      {
-        "key": "min_signal_strength",
-        "before": 0.12,
-        "after": 0.095
-      }
-    ]
-  }
+  "current_best_strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-paircorr-v2",
+  "latest_kept_summary": {}
 }
