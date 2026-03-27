@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260327t130000z",
-  "latest_cycle_completed_at": "2026-03-27T20:20:17.214822+00:00",
-  "last_processed_bar": "2026-03-27T20:15:00+00:00",
+  "latest_cycle_completed_at": "2026-03-27T21:21:36.320437+00:00",
+  "last_processed_bar": "2026-03-27T21:20:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -140,7 +140,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-de39ce07",
+      "mutation_label": "llm-a9188e9a",
       "baseline_score": 2.4236074240801666,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -261,7 +261,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-de39ce07",
+    "mutation_label": "llm-a9188e9a",
     "baseline_score": 2.4236074240801666,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -275,7 +275,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "selective-momentum-v3b",
+    "strategy_name": "selective-momentum-v4-top2",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -289,19 +289,20 @@
     "train_config": {
       "gross_target": 0.5,
       "lookback_bars": 24,
-      "min_signal_strength": 0.055,
+      "min_signal_strength": 0.06,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 36,
-      "regime_threshold": 0.015,
+      "regime_threshold": 0.01,
       "top_k": 2,
-      "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.04,
+      "use_regime_filter": true,
+      "min_cross_sectional_spread": 0.06,
       "volatility_floor": 0.03,
       "reversal_bias_weight": 0.02,
       "funding_penalty_weight": 0.005,
       "persistence_bars": 3,
-      "persistence_min_mean_return": 0.0009,
-      "max_gross_scaling": 1.1
+      "persistence_min_mean_return": 0.0012,
+      "max_gross_scaling": 1.2,
+      "max_raw_volatility_ratio": 4.0
     },
     "gate_failures": [
       "no_trades_executed",
