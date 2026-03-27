@@ -3,8 +3,8 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate failed validation or execution: no_op_train_config.",
-    "Latest kept candidate still fails gate: no_op_train_config.",
+    "Latest LLM candidate failed validation or execution: likely_no_trade_filter_stack.",
+    "Latest kept candidate still fails gate: likely_no_trade_filter_stack.",
     "Research champion passes paper metrics, but it still has not cleared the fast holdout screen.",
     "No rollout champion has cleared holdout validation yet."
   ],
@@ -33,12 +33,12 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260326t075500z",
-  "latest_cycle_completed_at": "2026-03-27T01:30:24.313551+00:00",
-  "last_processed_bar": "2026-03-27T01:20:00+00:00",
-  "recent_acceptance_rate": 0.375,
-  "evaluation_acceptance_rate": 0.375,
-  "generation_validity_rate": 0.6666666666666666,
-  "mutation_win_rate": 0.375,
+  "latest_cycle_completed_at": "2026-03-27T01:49:12.050717+00:00",
+  "last_processed_bar": "2026-03-27T01:40:00+00:00",
+  "recent_acceptance_rate": 0.42857142857142855,
+  "evaluation_acceptance_rate": 0.42857142857142855,
+  "generation_validity_rate": 0.5833333333333334,
+  "mutation_win_rate": 0.42857142857142855,
   "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
@@ -73,15 +73,15 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-977d6164",
+      "mutation_label": "llm-49084fe4",
       "baseline_score": 2.7914422252921955,
       "candidate_score": -Infinity,
       "kept_commit": null,
-      "failure_reason": "no_op_train_config",
+      "failure_reason": "likely_no_trade_filter_stack",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
-        "no_op_train_config"
+        "likely_no_trade_filter_stack"
       ]
     },
     "baseline_strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2",
@@ -141,26 +141,6 @@
     {
       "strategy_name": "llm-8c68cdab",
       "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.020809,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 4.2e-05,
-        "max_drawdown": 2.55989,
-        "average_turnover": 3.2e-05
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
-      "strategy_name": "llm-8c68cdab",
-      "params": {
         "decision": "keep",
         "provider_name": "llm",
         "model_name": "gpt-5-mini-2025-08-07",
@@ -197,20 +177,40 @@
       "rejection_reasons": [
         "[]"
       ]
+    },
+    {
+      "strategy_name": "llm-8a1a460b",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 1.0
+      },
+      "rejection_reasons": [
+        "[\"no_op_train_config\"]"
+      ]
     }
   ],
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-977d6164",
+    "mutation_label": "llm-49084fe4",
     "baseline_score": 2.7914422252921955,
     "candidate_score": -Infinity,
     "kept_commit": null,
-    "failure_reason": "no_op_train_config",
+    "failure_reason": "likely_no_trade_filter_stack",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
-      "no_op_train_config"
+      "likely_no_trade_filter_stack"
     ]
   },
   "latest_candidate_summary": {
@@ -227,11 +227,11 @@
     },
     "train_config": {},
     "gate_failures": [
-      "no_op_train_config"
+      "likely_no_trade_filter_stack"
     ],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "failure_reason": "no_op_train_config"
+    "failure_reason": "likely_no_trade_filter_stack"
   },
   "current_best_strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2",
   "latest_kept_summary": {}
