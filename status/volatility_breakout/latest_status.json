@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260327t130000z",
-  "latest_cycle_completed_at": "2026-03-27T19:17:07.312084+00:00",
-  "last_processed_bar": "2026-03-27T19:15:00+00:00",
+  "latest_cycle_completed_at": "2026-03-27T20:20:17.214822+00:00",
+  "last_processed_bar": "2026-03-27T20:15:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -48,9 +48,9 @@
   "current_best_validation_pass_rate": 0.0,
   "current_best_validated_for_rollout": false,
   "current_best_fast_validation_summary": {
-    "validated_at": "2026-03-27T14:05:00+00:00",
-    "campaign_id": "render-binance-usdm-futures-5m-holdout-20260225t140500z",
-    "campaign_name": "render-binance-usdm_futures-5m-holdout-20260225T140500Z",
+    "validated_at": "2026-03-27T20:15:00+00:00",
+    "campaign_id": "render-binance-usdm-futures-5m-holdout-20260225t201500z",
+    "campaign_name": "render-binance-usdm_futures-5m-holdout-20260225T201500Z",
     "strategy_name": "selective-momentum-v3",
     "git_commit": "",
     "train_sha1": "8b43541d59893c295fba0693165e58bf85ada522",
@@ -77,7 +77,7 @@
       "bars_processed": 8639,
       "nonzero_turnover_steps": 6
     },
-    "artifact_path": "/var/data/autoresearch/llm/artifacts/validation/298ff563974c.json",
+    "artifact_path": "/var/data/autoresearch/llm/artifacts/validation/fb1cfd6e4d43.json",
     "validated_for_rollout": false
   },
   "current_best_validation_summary": {},
@@ -98,9 +98,9 @@
     "paper_gate_failures": [],
     "paper_gate_ready": true,
     "fast_validation_summary": {
-      "validated_at": "2026-03-27T14:05:00+00:00",
-      "campaign_id": "render-binance-usdm-futures-5m-holdout-20260225t140500z",
-      "campaign_name": "render-binance-usdm_futures-5m-holdout-20260225T140500Z",
+      "validated_at": "2026-03-27T20:15:00+00:00",
+      "campaign_id": "render-binance-usdm-futures-5m-holdout-20260225t201500z",
+      "campaign_name": "render-binance-usdm_futures-5m-holdout-20260225T201500Z",
       "strategy_name": "selective-momentum-v3",
       "git_commit": "",
       "train_sha1": "8b43541d59893c295fba0693165e58bf85ada522",
@@ -127,7 +127,7 @@
         "bars_processed": 8639,
         "nonzero_turnover_steps": 6
       },
-      "artifact_path": "/var/data/autoresearch/llm/artifacts/validation/298ff563974c.json",
+      "artifact_path": "/var/data/autoresearch/llm/artifacts/validation/fb1cfd6e4d43.json",
       "validated_for_rollout": false
     },
     "rollout_validation_summary": {}
@@ -140,7 +140,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-9a53de62",
+      "mutation_label": "llm-de39ce07",
       "baseline_score": 2.4236074240801666,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -261,7 +261,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-9a53de62",
+    "mutation_label": "llm-de39ce07",
     "baseline_score": 2.4236074240801666,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -275,7 +275,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "selective-momentum-v4",
+    "strategy_name": "selective-momentum-v3b",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -289,19 +289,19 @@
     "train_config": {
       "gross_target": 0.5,
       "lookback_bars": 24,
-      "min_signal_strength": 0.06,
+      "min_signal_strength": 0.055,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 36,
       "regime_threshold": 0.015,
       "top_k": 2,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.05,
+      "min_cross_sectional_spread": 0.04,
       "volatility_floor": 0.03,
       "reversal_bias_weight": 0.02,
       "funding_penalty_weight": 0.005,
       "persistence_bars": 3,
-      "persistence_min_mean_return": 0.0012,
-      "max_gross_scaling": 1.2
+      "persistence_min_mean_return": 0.0009,
+      "max_gross_scaling": 1.1
     },
     "gate_failures": [
       "no_trades_executed",
