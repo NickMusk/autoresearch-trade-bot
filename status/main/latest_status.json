@@ -4,7 +4,6 @@
   "research_rollout_ready": false,
   "research_blockers": [
     "Latest LLM candidate underperformed the baseline on the screen window.",
-    "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Research champion passes paper metrics, but it still has not cleared the fast holdout screen.",
     "No rollout champion has cleared holdout validation yet."
   ],
@@ -33,8 +32,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260327t080000z",
-  "latest_cycle_completed_at": "2026-03-27T08:08:02.096453+00:00",
-  "last_processed_bar": "2026-03-27T08:00:00+00:00",
+  "latest_cycle_completed_at": "2026-03-27T08:26:05.483042+00:00",
+  "last_processed_bar": "2026-03-27T08:20:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.6666666666666666,
@@ -69,20 +68,18 @@
   "rollout_candidate_shortlist": [],
   "multi_window_summary": {
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-binance-usdm-futures-5m-20260327t080000z.json",
-    "campaign_refreshed_this_cycle": true,
+    "campaign_refreshed_this_cycle": false,
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-0a9f1e8b",
+      "mutation_label": "llm-6ce9b893",
       "baseline_score": 2.271334809044198,
-      "candidate_score": 0.6784987928713447,
+      "candidate_score": 2.271334809044198,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
-      "gate_failures": [
-        "sharpe_below_gate"
-      ]
+      "gate_failures": []
     },
     "baseline_strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2",
     "baseline_score": 2.271334809044198,
@@ -98,26 +95,6 @@
     "rollout_champion_strategy_name": ""
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-1b277b26",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 3.1e-05,
-        "max_drawdown": 2.791403,
-        "average_turnover": 2.9e-05
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
     {
       "strategy_name": "llm-3328a375",
       "params": {
@@ -197,38 +174,56 @@
       "rejection_reasons": [
         "[\"no_op_train_config\"]"
       ]
+    },
+    {
+      "strategy_name": "llm-2ab775f9",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 1.0
+      },
+      "rejection_reasons": [
+        "[\"likely_no_trade_filter_stack\"]"
+      ]
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-0a9f1e8b",
+    "mutation_label": "llm-6ce9b893",
     "baseline_score": 2.271334809044198,
-    "candidate_score": 0.6784987928713447,
+    "candidate_score": 2.271334809044198,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
-    "gate_failures": [
-      "sharpe_below_gate"
-    ]
+    "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2-explore",
-    "research_score": 0.6784987928713447,
-    "ready_for_paper": false,
+    "strategy_name": "cs-demeaned-momentum-inertia-v8-selective-cap-paired-balance-vol-bias-v2",
+    "research_score": 2.271334809044198,
+    "ready_for_paper": true,
     "average_metrics": {
-      "total_return": 2.7474060559473656e-05,
-      "sharpe": 0.6790211276633744,
-      "max_drawdown": 0.00016479648437928152,
-      "average_turnover": 5.191573098738281e-07,
+      "total_return": 0.00011404721262509021,
+      "sharpe": 2.2713299560974374,
+      "max_drawdown": 0.00014122727579224392,
+      "average_turnover": 4.7401319597175605e-07,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 6
+      "nonzero_turnover_steps": 4
     },
     "train_config": {
       "gross_target": 0.05,
       "lookback_bars": 30,
-      "min_signal_strength": 0.095,
+      "min_signal_strength": 0.12,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 60,
       "regime_threshold": 0.02,
@@ -248,11 +243,10 @@
       "relative_strength_threshold": 0.6,
       "crowding_threshold": 2.2,
       "crowding_penalty": 0.7,
-      "paired_balance_threshold": 2.2
+      "paired_balance_threshold": 2.2,
+      "persistence_min": 0.55
     },
-    "gate_failures": [
-      "sharpe_below_gate"
-    ],
+    "gate_failures": [],
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
