@@ -33,8 +33,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260327t080000z",
-  "latest_cycle_completed_at": "2026-03-27T11:14:29.390095+00:00",
-  "last_processed_bar": "2026-03-27T11:05:00+00:00",
+  "latest_cycle_completed_at": "2026-03-27T11:34:16.512612+00:00",
+  "last_processed_bar": "2026-03-27T11:25:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.5833333333333334,
@@ -73,7 +73,7 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-0e465467",
+      "mutation_label": "llm-90ebbd0c",
       "baseline_score": 2.4108677332930224,
       "candidate_score": -Infinity,
       "kept_commit": null,
@@ -139,26 +139,6 @@
       ]
     },
     {
-      "strategy_name": "llm-6ce9b893",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 1.0,
-        "sharpe": 0.000114,
-        "max_drawdown": 2.27133,
-        "average_turnover": 0.000141
-      },
-      "rejection_reasons": [
-        "[]"
-      ]
-    },
-    {
       "strategy_name": "llm-3773bf41",
       "params": {
         "decision": "discard_screen",
@@ -197,12 +177,32 @@
       "rejection_reasons": [
         "[\"likely_no_trade_filter_stack\"]"
       ]
+    },
+    {
+      "strategy_name": "llm-b5457353",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 1.0,
+        "sharpe": 0.000114,
+        "max_drawdown": 2.27133,
+        "average_turnover": 0.000141
+      },
+      "rejection_reasons": [
+        "[]"
+      ]
     }
   ],
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-0e465467",
+    "mutation_label": "llm-90ebbd0c",
     "baseline_score": 2.4108677332930224,
     "candidate_score": -Infinity,
     "kept_commit": null,
