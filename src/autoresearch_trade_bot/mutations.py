@@ -804,8 +804,9 @@ def _format_config_focus(strategy_family: str, config: Mapping[str, Any]) -> str
         fields.extend(
             [
                 f"lookback={config.get('lookback_bars')}",
-                f"rsi={config.get('rsi_lower')}/{config.get('rsi_upper')}",
-                f"band_std={config.get('band_std_mult')}",
+                f"reversion_horizon={config.get('reversion_horizon_bars')}",
+                f"ibs_threshold={config.get('ibs_threshold')}",
+                f"reversion_floor={config.get('reversion_strength_floor')}",
             ]
         )
         if bool(config.get("use_trend_filter", False)):
@@ -813,14 +814,14 @@ def _format_config_focus(strategy_family: str, config: Mapping[str, Any]) -> str
     elif strategy_family == "ema_trend":
         fields.extend(
             [
-                f"ema={config.get('fast_ema_bars')}/{config.get('slow_ema_bars')}/{config.get('trend_ema_bars')}",
+                f"horizons={config.get('fast_horizon_bars')}/{config.get('medium_horizon_bars')}/{config.get('slow_horizon_bars')}",
                 f"signal_floor={config.get('min_signal_strength')}",
             ]
         )
-        if bool(config.get("use_trend_filter", False)):
-            fields.append("trend_filter=on")
-        if float(config.get("volume_confirmation", 0.0)) > 0.0:
-            fields.append(f"volume_confirmation={config.get('volume_confirmation')}")
+        if bool(config.get("use_absolute_filter", False)):
+            fields.append("absolute_filter=on")
+        if float(config.get("absolute_momentum_floor", 0.0)) > 0.0:
+            fields.append(f"absolute_floor={config.get('absolute_momentum_floor')}")
     elif strategy_family == "volatility_breakout":
         fields.extend(
             [
@@ -829,6 +830,8 @@ def _format_config_focus(strategy_family: str, config: Mapping[str, Any]) -> str
                 f"breakout_buffer={config.get('breakout_buffer')}",
             ]
         )
+        if float(config.get("breakout_score_floor", 0.0)) > 0.0:
+            fields.append(f"breakout_score_floor={config.get('breakout_score_floor')}")
         if bool(config.get("use_trend_filter", False)):
             fields.append(f"trend_lookback={config.get('trend_lookback_bars')}")
     else:
@@ -886,34 +889,34 @@ def _promising_directions_from_memory(
             "Only turn on use_regime_filter if paired with a clear reason and conservative threshold."
         )
     if strategy_family == FAMILY_MEAN_REVERSION:
-        if "band_std_mult=high" in dead_zone_traits:
+        if "ibs_threshold=low" in dead_zone_traits:
             directions.append(
-                "Avoid very wide band_std_mult settings unless RSI thresholds stay moderate and the strategy remains active."
+                "Avoid very low ibs_threshold values unless you also keep reversion floors light. Very selective bar-position entries have stopped trading."
             )
-        if "rsi_width=narrow" in dead_zone_traits:
+        if "reversion_horizon=high" in dead_zone_traits:
             directions.append(
-                "Avoid overly narrow RSI bands. Keep mean-reversion entries active enough to trade."
+                "Avoid long reversion_horizon_bars when other filters are already active. Short-horizon reversal has looked more reliable."
             )
-        if "min_reversion_score=high" in dead_zone_traits:
+        if "reversion_floor=high" in dead_zone_traits:
             directions.append(
-                "Keep min_reversion_score modest. Aggressive reversion-score floors have recently killed trade frequency."
+                "Keep reversion_strength_floor modest. High reversal floors have recently killed trade frequency."
             )
         if "trend_filter=on" in dead_zone_traits:
             directions.append(
-                "Trend-filtered mean reversion has looked fragile. Only use a mild trend filter with a moderate lookback."
+                "Trend-filtered IBS reversion has looked fragile. Only use a mild trend filter with a moderate lookback."
             )
     elif strategy_family == FAMILY_EMA_TREND:
         if "signal_floor=high" in dead_zone_traits:
             directions.append(
-                "Avoid high min_signal_strength. Trend candidates need a low or modest signal floor to stay active."
+                "Avoid high min_signal_strength. Dual-momentum candidates need a low or modest signal floor to stay active."
             )
-        if "volume_confirmation=high" in dead_zone_traits:
+        if "absolute_floor=high" in dead_zone_traits:
             directions.append(
-                "Keep volume_confirmation mild. Recent high-confirmation EMA candidates have stopped trading."
+                "Keep absolute_momentum_floor mild. Recent strict absolute filters have stopped dual-momentum candidates from trading."
             )
-        if "ema_stack=wide" in dead_zone_traits:
+        if "dual_momentum_stack=wide" in dead_zone_traits:
             directions.append(
-                "Avoid extremely wide EMA spacing when using confirmation filters. Prefer tighter but still ordered EMA stacks."
+                "Avoid extremely wide horizon spacing when using confirmation filters. Prefer tighter but still ordered momentum horizons."
             )
         if "volatility_floor=high" in dead_zone_traits:
             directions.append(
@@ -932,9 +935,9 @@ def _promising_directions_from_memory(
             directions.append(
                 "Keep atr_multiplier moderate. Large ATR hurdles have recently made breakout entries too rare."
             )
-        if "min_breakout_score=high" in dead_zone_traits:
+        if "breakout_score_floor=high" in dead_zone_traits:
             directions.append(
-                "Keep min_breakout_score low or modest until breakout candidates show reliable activity again."
+                "Keep breakout_score_floor low or modest until breakout candidates show reliable activity again."
             )
     deduped: list[str] = []
     for direction in directions:

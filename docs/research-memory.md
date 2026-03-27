@@ -71,6 +71,19 @@ Implication:
 
 - Favor family-specific dead-zone detection and family-specific guidance over generic prompt advice.
 
+### 7. Wave-1 family ids now map to paper-inspired families
+
+The stable worker ids are intentionally preserved, but their semantics changed:
+
+- `mean_reversion` now means IBS / short-horizon reversal
+- `ema_trend` now means dual momentum / time-series trend
+- `volatility_breakout` now means Donchian / ATR breakout trend
+
+Implication:
+
+- Keep ids stable for status and worker wiring.
+- Use profile display names in UI and prompts when we need the human-facing family meaning.
+
 ## What Does Not Belong Here
 
 Do not add:

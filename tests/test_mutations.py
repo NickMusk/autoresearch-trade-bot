@@ -392,7 +392,7 @@ class MutationTests(unittest.TestCase):
         self.assertEqual(bounds["top_k_min"], 1)
         self.assertEqual(bounds["top_k_max"], 2)
         self.assertIn(
-            "rsi_lower must satisfy 0 < rsi_lower < 50",
+            "reversion_horizon_bars must satisfy 2 <= value < trend_lookback_bars",
             bounds["family_rules"],
         )
 
@@ -400,13 +400,11 @@ class MutationTests(unittest.TestCase):
         current_train = render_family_train_file(
             {
                 "lookback_bars": 24,
-                "rsi_period": 14,
-                "rsi_lower": 35.0,
-                "rsi_upper": 65.0,
-                "band_std_mult": 1.5,
+                "reversion_horizon_bars": 6,
+                "ibs_threshold": 0.25,
                 "top_k": 1,
                 "gross_target": 0.5,
-                "min_reversion_score": 0.0,
+                "reversion_strength_floor": 0.0,
                 "volatility_floor": 0.0,
                 "use_trend_filter": False,
                 "trend_lookback_bars": 48,
@@ -418,16 +416,14 @@ class MutationTests(unittest.TestCase):
         risky_candidate = render_family_train_file(
             {
                 "lookback_bars": 24,
-                "rsi_period": 14,
-                "rsi_lower": 20.0,
-                "rsi_upper": 80.0,
-                "band_std_mult": 3.0,
+                "reversion_horizon_bars": 9,
+                "ibs_threshold": 0.12,
                 "top_k": 1,
                 "gross_target": 0.5,
-                "min_reversion_score": 0.0,
-                "volatility_floor": 0.0,
-                "use_trend_filter": False,
-                "trend_lookback_bars": 48,
+                "reversion_strength_floor": 0.5,
+                "volatility_floor": 0.02,
+                "use_trend_filter": True,
+                "trend_lookback_bars": 72,
             },
             strategy_family=FAMILY_MEAN_REVERSION,
         )
@@ -437,27 +433,28 @@ class MutationTests(unittest.TestCase):
                 current_train_text=current_train,
                 symbol_count=5,
             ),
-            (False, "likely_no_trade_reversion_stack"),
+            (False, "likely_no_trade_ibs_floor_stack"),
         )
 
-    def test_family_specific_memory_guidance_surfaces_ema_dead_zones(self) -> None:
+    def test_family_specific_memory_guidance_surfaces_dual_momentum_dead_zones(self) -> None:
         current_train = render_family_train_file(
             {
                 "gross_target": 0.5,
-                "fast_ema_bars": 12,
-                "slow_ema_bars": 48,
-                "trend_ema_bars": 96,
+                "fast_horizon_bars": 12,
+                "medium_horizon_bars": 36,
+                "slow_horizon_bars": 96,
                 "top_k": 1,
                 "min_signal_strength": 0.0,
-                "use_trend_filter": True,
-                "volume_confirmation": 0.0,
+                "absolute_momentum_floor": 0.0,
+                "relative_strength_weight": 0.6,
+                "use_absolute_filter": True,
                 "volatility_floor": 0.0,
             },
             strategy_family=FAMILY_EMA_TREND,
         )
         recent_results = (
             {
-                "mutation_label": "ema-a",
+                "mutation_label": "dual-a",
                 "decision": "discard_full",
                 "stage": "full",
                 "research_score": "0.0",
@@ -467,19 +464,20 @@ class MutationTests(unittest.TestCase):
                 "train_config_json": json.dumps(
                     {
                         "gross_target": 0.5,
-                        "fast_ema_bars": 16,
-                        "slow_ema_bars": 64,
-                        "trend_ema_bars": 144,
+                        "fast_horizon_bars": 16,
+                        "medium_horizon_bars": 48,
+                        "slow_horizon_bars": 144,
                         "top_k": 1,
-                        "min_signal_strength": 0.08,
-                        "use_trend_filter": True,
-                        "volume_confirmation": 1.5,
+                        "min_signal_strength": 0.3,
+                        "absolute_momentum_floor": 0.25,
+                        "relative_strength_weight": 0.8,
+                        "use_absolute_filter": True,
                         "volatility_floor": 0.02,
                     }
                 ),
             },
             {
-                "mutation_label": "ema-b",
+                "mutation_label": "dual-b",
                 "decision": "discard_screen",
                 "stage": "screen",
                 "research_score": "-3.0",
@@ -489,13 +487,14 @@ class MutationTests(unittest.TestCase):
                 "train_config_json": json.dumps(
                     {
                         "gross_target": 0.5,
-                        "fast_ema_bars": 16,
-                        "slow_ema_bars": 64,
-                        "trend_ema_bars": 144,
+                        "fast_horizon_bars": 16,
+                        "medium_horizon_bars": 48,
+                        "slow_horizon_bars": 144,
                         "top_k": 1,
-                        "min_signal_strength": 0.06,
-                        "use_trend_filter": True,
-                        "volume_confirmation": 1.2,
+                        "min_signal_strength": 0.25,
+                        "absolute_momentum_floor": 0.25,
+                        "relative_strength_weight": 0.75,
+                        "use_absolute_filter": True,
                         "volatility_floor": 0.02,
                     }
                 ),
@@ -507,32 +506,36 @@ class MutationTests(unittest.TestCase):
             strategy_family=FAMILY_EMA_TREND,
         )
         dead_zone_traits = {item["trait"] for item in artifact["dead_zones"]}
-        self.assertIn("signal_floor=high", dead_zone_traits)
-        self.assertIn("volume_confirmation=high", dead_zone_traits)
-        self.assertIn("ema_stack=wide", dead_zone_traits)
+        self.assertIn("absolute_floor=mid", dead_zone_traits)
+        self.assertIn("relative_weight=high", dead_zone_traits)
+        self.assertIn("absolute_filter=on", dead_zone_traits)
         directions = artifact["promising_directions"]
-        self.assertTrue(any("volume_confirmation mild" in item for item in directions))
-        self.assertTrue(any("Avoid high min_signal_strength" in item for item in directions))
+        self.assertTrue(
+            any(
+                "Keep absolute_momentum_floor and min_signal_strength mild" in item
+                for item in directions
+            )
+        )
+        self.assertTrue(any("Use relative_strength_weight" in item for item in directions))
 
     def test_deterministic_mutation_specs_cover_family_specific_knobs(self) -> None:
         mean_reversion_specs = deterministic_mutation_specs(
             FAMILY_MEAN_REVERSION,
             {
                 "lookback_bars": 24,
-                "rsi_period": 14,
-                "rsi_lower": 35.0,
-                "rsi_upper": 65.0,
-                "band_std_mult": 1.5,
+                "reversion_horizon_bars": 6,
+                "ibs_threshold": 0.25,
                 "top_k": 1,
                 "gross_target": 0.5,
-                "min_reversion_score": 0.0,
+                "reversion_strength_floor": 0.0,
                 "volatility_floor": 0.0,
                 "use_trend_filter": False,
                 "trend_lookback_bars": 48,
             },
         )
         mean_reversion_keys = {next(iter(item["config_updates"])) for item in mean_reversion_specs}
-        self.assertIn("min_reversion_score", mean_reversion_keys)
+        self.assertIn("ibs_threshold", mean_reversion_keys)
+        self.assertIn("reversion_strength_floor", mean_reversion_keys)
         self.assertIn("volatility_floor", mean_reversion_keys)
         self.assertIn("trend_lookback_bars", mean_reversion_keys)
 
@@ -540,18 +543,20 @@ class MutationTests(unittest.TestCase):
             FAMILY_EMA_TREND,
             {
                 "gross_target": 0.5,
-                "fast_ema_bars": 12,
-                "slow_ema_bars": 48,
-                "trend_ema_bars": 96,
+                "fast_horizon_bars": 12,
+                "medium_horizon_bars": 36,
+                "slow_horizon_bars": 96,
                 "top_k": 1,
                 "min_signal_strength": 0.0,
-                "use_trend_filter": True,
-                "volume_confirmation": 0.0,
+                "absolute_momentum_floor": 0.0,
+                "relative_strength_weight": 0.6,
+                "use_absolute_filter": True,
                 "volatility_floor": 0.0,
             },
         )
         ema_keys = {next(iter(item["config_updates"])) for item in ema_specs}
-        self.assertIn("volume_confirmation", ema_keys)
+        self.assertIn("absolute_momentum_floor", ema_keys)
+        self.assertIn("relative_strength_weight", ema_keys)
         self.assertIn("volatility_floor", ema_keys)
 
         breakout_specs = deterministic_mutation_specs(
@@ -563,26 +568,27 @@ class MutationTests(unittest.TestCase):
                 "atr_multiplier": 1.0,
                 "breakout_buffer": 0.0,
                 "top_k": 1,
-                "min_breakout_score": 0.0,
+                "breakout_score_floor": 0.0,
                 "use_trend_filter": False,
                 "trend_lookback_bars": 72,
             },
         )
         breakout_keys = {next(iter(item["config_updates"])) for item in breakout_specs}
-        self.assertIn("min_breakout_score", breakout_keys)
+        self.assertIn("breakout_score_floor", breakout_keys)
         self.assertIn("trend_lookback_bars", breakout_keys)
 
     def test_validate_train_candidate_semantics_rejects_family_specific_no_trade_stacks(self) -> None:
         current_ema = render_family_train_file(
             {
                 "gross_target": 0.5,
-                "fast_ema_bars": 12,
-                "slow_ema_bars": 48,
-                "trend_ema_bars": 96,
+                "fast_horizon_bars": 12,
+                "medium_horizon_bars": 36,
+                "slow_horizon_bars": 96,
                 "top_k": 1,
                 "min_signal_strength": 0.0,
-                "use_trend_filter": True,
-                "volume_confirmation": 0.0,
+                "absolute_momentum_floor": 0.0,
+                "relative_strength_weight": 0.6,
+                "use_absolute_filter": True,
                 "volatility_floor": 0.0,
             },
             strategy_family=FAMILY_EMA_TREND,
@@ -590,13 +596,14 @@ class MutationTests(unittest.TestCase):
         risky_ema = render_family_train_file(
             {
                 "gross_target": 0.5,
-                "fast_ema_bars": 16,
-                "slow_ema_bars": 64,
-                "trend_ema_bars": 144,
+                "fast_horizon_bars": 16,
+                "medium_horizon_bars": 48,
+                "slow_horizon_bars": 144,
                 "top_k": 1,
-                "min_signal_strength": 0.05,
-                "use_trend_filter": True,
-                "volume_confirmation": 1.5,
+                "min_signal_strength": 0.25,
+                "absolute_momentum_floor": 0.25,
+                "relative_strength_weight": 0.8,
+                "use_absolute_filter": True,
                 "volatility_floor": 0.0,
             },
             strategy_family=FAMILY_EMA_TREND,
@@ -618,7 +625,7 @@ class MutationTests(unittest.TestCase):
                 "atr_multiplier": 1.0,
                 "breakout_buffer": 0.0,
                 "top_k": 1,
-                "min_breakout_score": 0.0,
+                "breakout_score_floor": 0.0,
                 "use_trend_filter": False,
                 "trend_lookback_bars": 72,
             },
@@ -632,7 +639,7 @@ class MutationTests(unittest.TestCase):
                 "atr_multiplier": 1.5,
                 "breakout_buffer": 0.25,
                 "top_k": 1,
-                "min_breakout_score": 0.0,
+                "breakout_score_floor": 0.5,
                 "use_trend_filter": False,
                 "trend_lookback_bars": 72,
             },
@@ -654,8 +661,8 @@ class MutationTests(unittest.TestCase):
             max_mutations=3,
             strategy_family=FAMILY_EMA_TREND,
         )
-        self.assertEqual(role_name, "trend_filter_quality")
-        self.assertIn("role_name=trend_filter_quality", prompt)
+        self.assertEqual(role_name, "absolute_vs_relative_balance")
+        self.assertIn("role_name=absolute_vs_relative_balance", prompt)
 
     def test_attempt_prompt_assigns_role_specific_guidance(self) -> None:
         role_name, prompt = build_attempt_prompt(

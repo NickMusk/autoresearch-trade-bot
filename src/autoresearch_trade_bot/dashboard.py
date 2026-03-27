@@ -13,6 +13,7 @@ from .state import (
     load_status_snapshot_from_path,
     load_status_snapshot_from_url,
 )
+from .strategy_families import get_strategy_family_profile
 from .strategy import CrossSectionalMomentumStrategy
 
 DashboardSnapshot = ResearchStatusSnapshot
@@ -70,7 +71,7 @@ def build_family_dashboard_data(snapshot: DashboardSnapshot) -> dict[str, object
         families.append(
             {
                 "family_id": family_id,
-                "label": family_id.replace("_", " ").title(),
+                "label": get_strategy_family_profile(family_id).display_name,
                 "snapshot": family_snapshot.to_dict() if family_snapshot is not None else None,
             }
         )

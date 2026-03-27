@@ -72,17 +72,15 @@ PROFILES: dict[str, StrategyFamilyProfile] = {
     ),
     FAMILY_MEAN_REVERSION: StrategyFamilyProfile(
         family_id=FAMILY_MEAN_REVERSION,
-        display_name="Mean Reversion",
-        strategy_name="mean-reversion-bbands-rsi",
+        display_name="IBS Reversion",
+        strategy_name="ibs-reversion-short-horizon",
         default_train_config={
             "gross_target": 0.5,
             "lookback_bars": 24,
-            "rsi_period": 14,
-            "rsi_lower": 35.0,
-            "rsi_upper": 65.0,
-            "band_std_mult": 1.5,
+            "reversion_horizon_bars": 6,
+            "ibs_threshold": 0.25,
             "top_k": 1,
-            "min_reversion_score": 0.0,
+            "reversion_strength_floor": 0.0,
             "volatility_floor": 0.0,
             "use_trend_filter": False,
             "trend_lookback_bars": 48,
@@ -90,68 +88,69 @@ PROFILES: dict[str, StrategyFamilyProfile] = {
         attempt_role_specs=(
             {
                 "name": "exploit_baseline",
-                "objective": "Refine the current mean-reversion baseline with modest threshold or lookback adjustments.",
-                "constraints": "Preserve trade frequency. Avoid combining extreme RSI thresholds with very wide bands.",
+                "objective": "Refine the current short-horizon reversion baseline with modest horizon, IBS, or floor adjustments.",
+                "constraints": "Preserve trade activity. Avoid stacking strict floors with a long trend filter.",
             },
             {
-                "name": "entry_selectivity",
-                "objective": "Improve entry quality by balancing RSI and band-based mean reversion signals.",
-                "constraints": "Do not set RSI thresholds so strict that no symbols qualify.",
+                "name": "entry_balance",
+                "objective": "Balance bar-position reversal and short-horizon return reversal without making entries too rare.",
+                "constraints": "Do not make ibs_threshold, reversion_strength_floor, and volatility_floor strict at the same time.",
             },
             {
-                "name": "regime_aware_reversion",
-                "objective": "Explore trend-aware or volatility-aware mean reversion variants.",
-                "constraints": "Keep the strategy simple and cheap; no multi-stage confirmation logic.",
+                "name": "trend_aware_reversion",
+                "objective": "Explore mild trend-aware fading that avoids fighting the strongest moves.",
+                "constraints": "Keep the trend filter light and cheap; do not build multi-stage confirmation.",
             },
         ),
         prompt_directions=(
-            "Balance RSI thresholds with band width instead of tightening both at once.",
-            "Use a mild trend filter to avoid fading strong trends too aggressively.",
-            "Use volatility_floor to stabilize z-score estimates rather than increasing band width too much.",
+            "Use ibs_threshold to shape entry timing, but keep it moderate enough that symbols still qualify.",
+            "Use reversion_strength_floor and volatility_floor carefully; aggressive floors quickly create no-trade candidates.",
+            "If you enable a trend filter, keep trend_lookback_bars moderate so the strategy still trades reversals.",
         ),
     ),
     FAMILY_EMA_TREND: StrategyFamilyProfile(
         family_id=FAMILY_EMA_TREND,
-        display_name="EMA Trend",
-        strategy_name="ema-trend-filter",
+        display_name="Dual Momentum",
+        strategy_name="dual-momentum-timeseries",
         default_train_config={
             "gross_target": 0.5,
-            "fast_ema_bars": 12,
-            "slow_ema_bars": 48,
-            "trend_ema_bars": 96,
+            "fast_horizon_bars": 12,
+            "medium_horizon_bars": 36,
+            "slow_horizon_bars": 96,
             "top_k": 1,
             "min_signal_strength": 0.0,
-            "use_trend_filter": True,
-            "volume_confirmation": 0.0,
+            "absolute_momentum_floor": 0.0,
+            "relative_strength_weight": 0.6,
+            "use_absolute_filter": True,
             "volatility_floor": 0.0,
         },
         attempt_role_specs=(
             {
                 "name": "exploit_baseline",
-                "objective": "Refine the current EMA trend baseline with small period or filter adjustments.",
-                "constraints": "Do not flip the family into a breakout or reversion system.",
+                "objective": "Refine the current dual-momentum baseline with bounded horizon or weighting changes.",
+                "constraints": "Do not collapse the family into a pure cross-sectional ranking with no absolute trend component.",
             },
             {
-                "name": "trend_filter_quality",
-                "objective": "Improve signal quality with better trend filtering or volume confirmation.",
-                "constraints": "Do not make confirmation so strict that the strategy stops trading.",
+                "name": "absolute_vs_relative_balance",
+                "objective": "Improve the balance between time-series confirmation and cross-sectional ranking.",
+                "constraints": "Avoid overly strict absolute_momentum_floor and high signal floors together.",
             },
             {
                 "name": "faster_vs_slower_response",
-                "objective": "Explore a meaningfully different EMA response profile.",
-                "constraints": "Keep fast < slow < trend and avoid cosmetic changes.",
+                "objective": "Explore materially different horizon spacing while preserving fast < medium < slow.",
+                "constraints": "Keep the ordering valid and avoid cosmetic changes only.",
             },
         ),
         prompt_directions=(
-            "Experiment with faster or slower EMA spacing without breaking the ordering fast < slow < trend.",
-            "Use volume_confirmation mildly as a signal quality filter.",
-            "Use volatility_floor to avoid unstable normalized scores on quiet assets.",
+            "Keep fast_horizon_bars < medium_horizon_bars < slow_horizon_bars and use spacing to control responsiveness.",
+            "Use relative_strength_weight to balance cross-sectional ranking against absolute trend confirmation.",
+            "Keep absolute_momentum_floor and min_signal_strength mild unless recent evidence clearly supports more selectivity.",
         ),
     ),
     FAMILY_VOLATILITY_BREAKOUT: StrategyFamilyProfile(
         family_id=FAMILY_VOLATILITY_BREAKOUT,
-        display_name="Volatility Breakout",
-        strategy_name="vol-breakout-donchian",
+        display_name="Donchian ATR Breakout",
+        strategy_name="donchian-atr-breakout-trend",
         default_train_config={
             "gross_target": 0.5,
             "channel_bars": 24,
@@ -159,31 +158,31 @@ PROFILES: dict[str, StrategyFamilyProfile] = {
             "atr_multiplier": 1.0,
             "breakout_buffer": 0.0,
             "top_k": 1,
-            "min_breakout_score": 0.0,
+            "breakout_score_floor": 0.0,
             "use_trend_filter": False,
             "trend_lookback_bars": 72,
         },
         attempt_role_specs=(
             {
                 "name": "exploit_baseline",
-                "objective": "Refine the current breakout baseline with modest channel or ATR adjustments.",
-                "constraints": "Preserve breakout behavior; do not drift into generic momentum or no-trade filters.",
+                "objective": "Refine the current Donchian breakout baseline with modest channel or ATR adjustments.",
+                "constraints": "Preserve breakout behavior; do not drift into generic momentum or dead filters.",
             },
             {
                 "name": "breakout_selectivity",
-                "objective": "Tune breakout quality via ATR and breakout buffer without eliminating trades.",
-                "constraints": "Do not combine a very long channel with a very large breakout buffer.",
+                "objective": "Tune channel, ATR, and buffer thresholds without eliminating breakout activity.",
+                "constraints": "Do not combine a long channel, large atr_multiplier, and large breakout_buffer.",
             },
             {
                 "name": "trend_confirmed_breakout",
-                "objective": "Explore trend-confirmed breakout variants that still remain active.",
-                "constraints": "Keep the confirmation lightweight and cheap to compute.",
+                "objective": "Explore lightweight trend-confirmed breakout variants that still remain active.",
+                "constraints": "Keep trend confirmation simple and avoid over-constraining entries.",
             },
         ),
         prompt_directions=(
-            "Balance channel length with breakout_buffer instead of increasing both aggressively.",
-            "Use atr_multiplier to normalize breakout strength rather than just demanding wider channels.",
-            "Use a mild trend filter to avoid false breakouts, but keep the strategy trading.",
+            "Balance channel_bars with breakout_buffer instead of increasing both aggressively.",
+            "Use atr_multiplier for normalization, but keep it moderate so breakout entries remain attainable.",
+            "If you add a trend filter, keep trend_lookback_bars moderate and avoid pairing it with already strict thresholds.",
         ),
     ),
 }
@@ -248,17 +247,17 @@ def family_mutation_bounds(
     if strategy_family == FAMILY_MEAN_REVERSION:
         family_rules.extend(
             [
-                "rsi_lower must satisfy 0 < rsi_lower < 50",
-                "rsi_upper must satisfy 50 < rsi_upper < 100",
-                "band_std_mult must satisfy 0 < band_std_mult <= 4.0",
+                "reversion_horizon_bars must satisfy 2 <= value < trend_lookback_bars",
+                "ibs_threshold must satisfy 0 < ibs_threshold < 0.5",
+                "reversion_strength_floor must stay <= 2.5",
             ]
         )
     elif strategy_family == FAMILY_EMA_TREND:
         family_rules.extend(
             [
-                "EMA ordering must satisfy fast_ema_bars < slow_ema_bars < trend_ema_bars",
-                "volume_confirmation must stay <= 3.0",
-                "min_signal_strength must stay <= 0.15",
+                "Horizon ordering must satisfy fast_horizon_bars < medium_horizon_bars < slow_horizon_bars",
+                "relative_strength_weight must stay between 0.0 and 1.0 inclusive",
+                "absolute_momentum_floor and min_signal_strength should stay <= 1.5",
             ]
         )
     elif strategy_family == FAMILY_VOLATILITY_BREAKOUT:
@@ -329,44 +328,53 @@ def deterministic_mutation_specs(
     proposals: list[dict[str, Any]] = []
     if strategy_family == FAMILY_MEAN_REVERSION:
         for key, values in (
-            ("lookback_bars", (12, 24, 36)),
-            ("rsi_period", (10, 14, 21)),
-            ("rsi_lower", (30.0, 35.0, 40.0)),
-            ("rsi_upper", (60.0, 65.0, 70.0)),
-            ("band_std_mult", (1.0, 1.5, 2.0)),
-            ("min_reversion_score", (0.0, 0.05, 0.10)),
+            ("lookback_bars", (16, 24, 36)),
+            ("reversion_horizon_bars", (3, 6, 9)),
+            ("ibs_threshold", (0.15, 0.25, 0.35)),
+            ("reversion_strength_floor", (0.0, 0.2, 0.5)),
             ("volatility_floor", (0.0, 0.01, 0.02)),
             ("top_k", (1, 2)),
         ):
             proposals.extend(_mutation_specs_for_values(profile_config, key, values))
-        proposals.extend(_mutation_specs_for_values(profile_config, "use_trend_filter", (False, True)))
-        proposals.extend(_mutation_specs_for_values(profile_config, "trend_lookback_bars", (36, 48, 72)))
+        proposals.extend(
+            _mutation_specs_for_values(profile_config, "use_trend_filter", (False, True))
+        )
+        proposals.extend(
+            _mutation_specs_for_values(profile_config, "trend_lookback_bars", (36, 48, 72))
+        )
         return proposals
     if strategy_family == FAMILY_EMA_TREND:
         for key, values in (
-            ("fast_ema_bars", (8, 12, 16)),
-            ("slow_ema_bars", (32, 48, 64)),
-            ("trend_ema_bars", (72, 96, 144)),
+            ("fast_horizon_bars", (8, 12, 16)),
+            ("medium_horizon_bars", (24, 36, 48)),
+            ("slow_horizon_bars", (72, 96, 144)),
             ("top_k", (1, 2)),
-            ("min_signal_strength", (0.0, 0.02, 0.05)),
-            ("volume_confirmation", (0.0, 0.5, 1.0)),
+            ("min_signal_strength", (0.0, 0.1, 0.25)),
+            ("absolute_momentum_floor", (0.0, 0.1, 0.25)),
+            ("relative_strength_weight", (0.4, 0.6, 0.8)),
             ("volatility_floor", (0.0, 0.01, 0.02)),
         ):
             proposals.extend(_mutation_specs_for_values(profile_config, key, values))
-        proposals.extend(_mutation_specs_for_values(profile_config, "use_trend_filter", (False, True)))
+        proposals.extend(
+            _mutation_specs_for_values(profile_config, "use_absolute_filter", (False, True))
+        )
         return proposals
     if strategy_family == FAMILY_VOLATILITY_BREAKOUT:
         for key, values in (
             ("channel_bars", (12, 24, 36)),
             ("atr_lookback_bars", (10, 14, 21)),
-            ("atr_multiplier", (0.5, 1.0, 1.5)),
+            ("atr_multiplier", (0.75, 1.0, 1.5)),
             ("breakout_buffer", (0.0, 0.25, 0.5)),
-            ("min_breakout_score", (0.0, 0.05, 0.10)),
+            ("breakout_score_floor", (0.0, 0.2, 0.5)),
             ("top_k", (1, 2)),
         ):
             proposals.extend(_mutation_specs_for_values(profile_config, key, values))
-        proposals.extend(_mutation_specs_for_values(profile_config, "use_trend_filter", (False, True)))
-        proposals.extend(_mutation_specs_for_values(profile_config, "trend_lookback_bars", (48, 72, 96)))
+        proposals.extend(
+            _mutation_specs_for_values(profile_config, "use_trend_filter", (False, True))
+        )
+        proposals.extend(
+            _mutation_specs_for_values(profile_config, "trend_lookback_bars", (48, 72, 96))
+        )
         return proposals
     for key, values, label_key in (
         ("lookback_bars", (12, 24, 36), "lookback"),
@@ -377,7 +385,9 @@ def deterministic_mutation_specs(
         ("min_signal_strength", (0.0, 0.02, 0.05), "signal-floor"),
         ("min_cross_sectional_spread", (0.0, 0.05, 0.1), "spread-floor"),
     ):
-        proposals.extend(_mutation_specs_for_values(profile_config, key, values, label_key=label_key))
+        proposals.extend(
+            _mutation_specs_for_values(profile_config, key, values, label_key=label_key)
+        )
     return proposals
 
 
@@ -405,54 +415,63 @@ def validate_train_candidate_semantics(
     ):
         return False, "invalid_gross_target"
     if strategy_family == FAMILY_MEAN_REVERSION:
-        if not (0.0 < float(candidate["rsi_lower"]) < 50.0 < float(candidate["rsi_upper"]) < 100.0):
-            return False, "invalid_rsi_thresholds"
-        if float(candidate["band_std_mult"]) <= 0.0 or float(candidate["band_std_mult"]) > 4.0:
-            return False, "invalid_band_std_mult"
-        if float(candidate.get("min_reversion_score", 0.0)) > 0.25:
-            return False, "likely_no_trade_reversion_score"
+        if int(candidate["reversion_horizon_bars"]) < 2:
+            return False, "invalid_reversion_horizon"
+        if int(candidate["reversion_horizon_bars"]) >= int(candidate["trend_lookback_bars"]):
+            return False, "invalid_reversion_trend_order"
+        if not (0.0 < float(candidate["ibs_threshold"]) < 0.5):
+            return False, "invalid_ibs_threshold"
+        if float(candidate.get("reversion_strength_floor", 0.0)) > 2.5:
+            return False, "likely_no_trade_reversion_floor"
+        if float(candidate.get("volatility_floor", 0.0)) > 0.05:
+            return False, "likely_no_trade_volatility_floor"
         if (
-            float(candidate["band_std_mult"]) > 2.5
-            and float(candidate["rsi_lower"]) < 25.0
-            and float(candidate["rsi_upper"]) > 75.0
+            float(candidate.get("ibs_threshold", 0.0)) <= 0.12
+            and float(candidate.get("reversion_strength_floor", 0.0)) >= 0.5
         ):
-            return False, "likely_no_trade_reversion_stack"
-        if (
-            float(candidate["band_std_mult"]) >= 2.0
-            and (float(candidate["rsi_upper"]) - float(candidate["rsi_lower"])) <= 25.0
-        ):
-            return False, "likely_no_trade_narrow_rsi_band_stack"
+            return False, "likely_no_trade_ibs_floor_stack"
         if (
             bool(candidate.get("use_trend_filter", False))
             and int(candidate.get("trend_lookback_bars", 48)) >= 72
-            and float(candidate.get("min_reversion_score", 0.0)) >= 0.10
+            and float(candidate.get("reversion_strength_floor", 0.0)) >= 0.2
         ):
             return False, "likely_no_trade_reversion_trend_stack"
+        if (
+            float(candidate.get("ibs_threshold", 0.0)) <= 0.15
+            and float(candidate.get("volatility_floor", 0.0)) >= 0.02
+            and int(candidate.get("reversion_horizon_bars", 0)) >= 9
+        ):
+            return False, "likely_no_trade_reversion_threshold_stack"
         return True, ""
     if strategy_family == FAMILY_EMA_TREND:
         if not (
-            int(candidate["fast_ema_bars"]) < int(candidate["slow_ema_bars"]) < int(candidate["trend_ema_bars"])
+            int(candidate["fast_horizon_bars"])
+            < int(candidate["medium_horizon_bars"])
+            < int(candidate["slow_horizon_bars"])
         ):
-            return False, "invalid_ema_ordering"
-        if float(candidate["volume_confirmation"]) > 3.0:
-            return False, "likely_no_trade_volume_confirmation"
-        if float(candidate["min_signal_strength"]) > 0.15:
+            return False, "invalid_horizon_ordering"
+        if not (0.0 <= float(candidate.get("relative_strength_weight", 0.0)) <= 1.0):
+            return False, "invalid_relative_strength_weight"
+        if float(candidate.get("absolute_momentum_floor", 0.0)) > 1.5:
+            return False, "likely_no_trade_absolute_floor"
+        if float(candidate.get("min_signal_strength", 0.0)) > 1.5:
             return False, "likely_no_trade_signal_threshold"
         if (
-            float(candidate.get("volume_confirmation", 0.0)) >= 1.5
-            and float(candidate.get("min_signal_strength", 0.0)) >= 0.05
+            bool(candidate.get("use_absolute_filter", False))
+            and float(candidate.get("absolute_momentum_floor", 0.0)) >= 0.25
+            and float(candidate.get("min_signal_strength", 0.0)) >= 0.25
         ):
             return False, "likely_no_trade_confirmation_stack"
         if (
-            int(candidate["fast_ema_bars"]) >= 16
-            and int(candidate["slow_ema_bars"]) >= 64
-            and int(candidate["trend_ema_bars"]) >= 144
-            and float(candidate.get("min_signal_strength", 0.0)) > 0.02
+            int(candidate["fast_horizon_bars"]) >= 16
+            and int(candidate["medium_horizon_bars"]) >= 48
+            and int(candidate["slow_horizon_bars"]) >= 144
+            and float(candidate.get("min_signal_strength", 0.0)) > 0.1
         ):
-            return False, "likely_no_trade_wide_ema_stack"
+            return False, "likely_no_trade_wide_horizon_stack"
         if (
             float(candidate.get("volatility_floor", 0.0)) >= 0.02
-            and float(candidate.get("volume_confirmation", 0.0)) >= 1.0
+            and float(candidate.get("absolute_momentum_floor", 0.0)) >= 0.25
         ):
             return False, "likely_no_trade_trend_filter_stack"
         return True, ""
@@ -463,9 +482,7 @@ def validate_train_candidate_semantics(
             return False, "invalid_atr_multiplier"
         if float(candidate["breakout_buffer"]) > 1.5:
             return False, "likely_no_trade_breakout_buffer"
-        if int(candidate["channel_bars"]) > 60 and float(candidate["breakout_buffer"]) > 0.5:
-            return False, "likely_no_trade_breakout_stack"
-        if float(candidate.get("min_breakout_score", 0.0)) > 0.25:
+        if float(candidate.get("breakout_score_floor", 0.0)) > 2.5:
             return False, "likely_no_trade_breakout_score"
         if (
             int(candidate["channel_bars"]) >= 36
@@ -503,44 +520,48 @@ def config_traits(strategy_family: str, config: Mapping[str, Any]) -> list[str]:
     if strategy_family == FAMILY_MEAN_REVERSION:
         traits.extend(
             [
-                f"band_std_mult={_bucket(float(config.get('band_std_mult', 0.0)), (1.2, 2.0))}",
-                f"rsi_width={_bucket(float(config.get('rsi_upper', 0.0)) - float(config.get('rsi_lower', 0.0)), (25.0, 40.0))}",
-                f"min_reversion_score={_bucket(float(config.get('min_reversion_score', 0.0)), (0.05, 0.10))}",
+                f"ibs_threshold={_bucket(float(config.get('ibs_threshold', 0.0)), (0.18, 0.3))}",
+                f"reversion_horizon={_bucket(float(config.get('reversion_horizon_bars', 0.0)), (4.0, 7.0))}",
+                f"reversion_floor={_bucket(float(config.get('reversion_strength_floor', 0.0)), (0.1, 0.25))}",
             ]
         )
         if bool(config.get("use_trend_filter", False)):
             traits.append("trend_filter=on")
         if float(config.get("volatility_floor", 0.0)) > 0.0:
-            traits.append(f"volatility_floor={_bucket(float(config.get('volatility_floor', 0.0)), (0.01, 0.02))}")
+            traits.append(
+                f"volatility_floor={_bucket(float(config.get('volatility_floor', 0.0)), (0.01, 0.02))}"
+            )
     elif strategy_family == FAMILY_EMA_TREND:
-        fast_ema = int(config.get("fast_ema_bars", 0))
-        slow_ema = int(config.get("slow_ema_bars", 0))
-        trend_ema = int(config.get("trend_ema_bars", 0))
-        ema_stack = "balanced"
-        if slow_ema >= max(fast_ema * 4, 1) and trend_ema >= max(slow_ema * 2, 1):
-            ema_stack = "wide"
-        elif slow_ema <= max(fast_ema * 2, 1) or trend_ema <= max(int(slow_ema * 1.5), 1):
-            ema_stack = "compressed"
+        fast_horizon = int(config.get("fast_horizon_bars", 0))
+        medium_horizon = int(config.get("medium_horizon_bars", 0))
+        slow_horizon = int(config.get("slow_horizon_bars", 0))
+        horizon_stack = "balanced"
+        if medium_horizon >= max(fast_horizon * 4, 1) and slow_horizon >= max(medium_horizon * 3, 1):
+            horizon_stack = "wide"
+        elif medium_horizon <= max(fast_horizon * 2, 1) or slow_horizon <= max(medium_horizon * 2, 1):
+            horizon_stack = "compressed"
         traits.extend(
             [
-                f"fast_ema={fast_ema}",
-                f"slow_ema={slow_ema}",
-                f"signal_floor={_bucket(float(config.get('min_signal_strength', 0.0)), (0.02, 0.05))}",
-                f"volume_confirmation={_bucket(float(config.get('volume_confirmation', 0.0)), (0.5, 1.0))}",
-                f"ema_stack={ema_stack}",
+                f"fast_horizon={fast_horizon}",
+                f"signal_floor={_bucket(float(config.get('min_signal_strength', 0.0)), (0.1, 0.25))}",
+                f"absolute_floor={_bucket(float(config.get('absolute_momentum_floor', 0.0)), (0.1, 0.25))}",
+                f"relative_weight={_bucket(float(config.get('relative_strength_weight', 0.0)), (0.45, 0.7))}",
+                f"dual_momentum_stack={horizon_stack}",
             ]
         )
-        if bool(config.get("use_trend_filter", False)):
-            traits.append("trend_filter=on")
+        if bool(config.get("use_absolute_filter", False)):
+            traits.append("absolute_filter=on")
         if float(config.get("volatility_floor", 0.0)) > 0.0:
-            traits.append(f"volatility_floor={_bucket(float(config.get('volatility_floor', 0.0)), (0.01, 0.02))}")
+            traits.append(
+                f"volatility_floor={_bucket(float(config.get('volatility_floor', 0.0)), (0.01, 0.02))}"
+            )
     elif strategy_family == FAMILY_VOLATILITY_BREAKOUT:
         traits.extend(
             [
                 f"channel={_bucket(float(config.get('channel_bars', 0.0)), (18.0, 30.0))}",
                 f"breakout_buffer={_bucket(float(config.get('breakout_buffer', 0.0)), (0.1, 0.4))}",
                 f"atr_multiplier={_bucket(float(config.get('atr_multiplier', 0.0)), (0.75, 1.25))}",
-                f"min_breakout_score={_bucket(float(config.get('min_breakout_score', 0.0)), (0.05, 0.10))}",
+                f"breakout_score_floor={_bucket(float(config.get('breakout_score_floor', 0.0)), (0.1, 0.25))}",
             ]
         )
         if bool(config.get("use_trend_filter", False)):
@@ -717,34 +738,33 @@ def _render_mean_reversion_file(payload: str, strategy_name: str) -> str:
             f'STRATEGY_FAMILY = "{FAMILY_MEAN_REVERSION}"',
             "",
             "",
-            "def _rsi(history: Sequence[Bar], period: int) -> float:",
-            "    if len(history) <= period:",
-            "        return 50.0",
-            "    gains = []",
-            "    losses = []",
-            "    recent = history[-(period + 1):]",
+            "def _internal_bar_strength(bar: Bar) -> float:",
+            "    bar_range = bar.high - bar.low",
+            "    if math.isclose(bar_range, 0.0):",
+            "        return 0.5",
+            "    return min(max((bar.close - bar.low) / bar_range, 0.0), 1.0)",
+            "",
+            "",
+            "def _recent_volatility(history: Sequence[Bar], lookback: int, volatility_floor: float) -> float:",
+            "    recent = history[-(lookback + 1):]",
+            "    returns = []",
             "    for index in range(1, len(recent)):",
-            "        delta = recent[index].close - recent[index - 1].close",
-            "        gains.append(max(delta, 0.0))",
-            "        losses.append(abs(min(delta, 0.0)))",
-            "    avg_gain = statistics.fmean(gains) if gains else 0.0",
-            "    avg_loss = statistics.fmean(losses) if losses else 0.0",
-            "    if math.isclose(avg_loss, 0.0):",
-            "        return 100.0 if avg_gain > 0.0 else 50.0",
-            "    rs = avg_gain / avg_loss",
-            "    return 100.0 - (100.0 / (1.0 + rs))",
+            "        previous = recent[index - 1].close",
+            "        current = recent[index].close",
+            "        returns.append((current / previous) - 1.0)",
+            "    if not returns:",
+            "        return max(volatility_floor, 1e-9)",
+            "    return max(statistics.pstdev(returns), volatility_floor, 1e-9)",
             "",
             "",
             "@dataclass(frozen=True)",
-            "class MeanReversionStrategy:",
+            "class IBSReversionStrategy:",
             "    lookback_bars: int",
-            "    rsi_period: int",
-            "    rsi_lower: float",
-            "    rsi_upper: float",
-            "    band_std_mult: float",
+            "    reversion_horizon_bars: int",
+            "    ibs_threshold: float",
             "    top_k: int",
             "    gross_target: float",
-            "    min_reversion_score: float",
+            "    reversion_strength_floor: float",
             "    volatility_floor: float",
             "    use_trend_filter: bool",
             "    trend_lookback_bars: int",
@@ -753,11 +773,12 @@ def _render_mean_reversion_file(payload: str, strategy_name: str) -> str:
             "        if not history_by_symbol:",
             "            return {}",
             "        ready_scores = []",
+            "        min_bars = max(self.lookback_bars, self.reversion_horizon_bars + 1, self.trend_lookback_bars) + 2",
             "        for symbol, history in history_by_symbol.items():",
-            "            if len(history) <= max(self.lookback_bars, self.rsi_period, self.trend_lookback_bars):",
+            "            if len(history) < min_bars:",
             "                continue",
             "            score = self._score(history)",
-            "            if abs(score) < self.min_reversion_score:",
+            "            if abs(score) < self.reversion_strength_floor:",
             "                continue",
             "            ready_scores.append((symbol, score))",
             "        positive = [item for item in ready_scores if item[1] > 0.0]",
@@ -775,38 +796,37 @@ def _render_mean_reversion_file(payload: str, strategy_name: str) -> str:
             "        return weights",
             "",
             "    def _score(self, history: Sequence[Bar]) -> float:",
-            "        closes = [bar.close for bar in history[-self.lookback_bars:]]",
-            "        mean_close = statistics.fmean(closes)",
-            "        std_close = max(statistics.pstdev(closes), self.volatility_floor)",
-            "        if math.isclose(std_close, 0.0):",
-            "            return 0.0",
-            "        zscore = (history[-1].close - mean_close) / std_close",
-            "        rsi_value = _rsi(history, self.rsi_period)",
+            "        volatility = _recent_volatility(history, self.lookback_bars, self.volatility_floor)",
+            "        reference_close = history[-(self.reversion_horizon_bars + 1)].close",
+            "        recent_return = (history[-1].close / reference_close) - 1.0",
+            "        normalized_reversal = -(recent_return / volatility)",
+            "        ibs_value = _internal_bar_strength(history[-1])",
+            "        if ibs_value <= self.ibs_threshold:",
+            "            ibs_component = (self.ibs_threshold - ibs_value) / max(self.ibs_threshold, 1e-9)",
+            "        elif ibs_value >= 1.0 - self.ibs_threshold:",
+            "            ibs_component = -((ibs_value - (1.0 - self.ibs_threshold)) / max(self.ibs_threshold, 1e-9))",
+            "        else:",
+            "            ibs_component = 0.0",
+            "        combined = (0.65 * normalized_reversal) + (0.35 * ibs_component)",
             "        if self.use_trend_filter:",
             "            trend_start = history[-self.trend_lookback_bars].close",
-            "            trend_now = history[-1].close",
-            "            trend_return = (trend_now / trend_start) - 1.0",
-            "            if zscore < 0.0 and trend_return < -0.03:",
+            "            trend_return = (history[-1].close / trend_start) - 1.0",
+            "            trend_threshold = max(0.015, self.reversion_strength_floor * 0.05)",
+            "            if combined > 0.0 and trend_return < -trend_threshold:",
             "                return 0.0",
-            "            if zscore > 0.0 and trend_return > 0.03:",
+            "            if combined < 0.0 and trend_return > trend_threshold:",
             "                return 0.0",
-            "        if zscore <= -self.band_std_mult and rsi_value <= self.rsi_lower:",
-            "            return abs(zscore) + ((self.rsi_lower - rsi_value) / 100.0)",
-            "        if zscore >= self.band_std_mult and rsi_value >= self.rsi_upper:",
-            "            return -(abs(zscore) + ((rsi_value - self.rsi_upper) / 100.0))",
-            "        return 0.0",
+            "        return combined",
             "",
             "",
             "def build_strategy(_dataset_spec=None) -> Strategy:",
-            "    return MeanReversionStrategy(",
+            "    return IBSReversionStrategy(",
             "        lookback_bars=int(TRAIN_CONFIG['lookback_bars']),",
-            "        rsi_period=int(TRAIN_CONFIG['rsi_period']),",
-            "        rsi_lower=float(TRAIN_CONFIG['rsi_lower']),",
-            "        rsi_upper=float(TRAIN_CONFIG['rsi_upper']),",
-            "        band_std_mult=float(TRAIN_CONFIG['band_std_mult']),",
+            "        reversion_horizon_bars=int(TRAIN_CONFIG['reversion_horizon_bars']),",
+            "        ibs_threshold=float(TRAIN_CONFIG['ibs_threshold']),",
             "        top_k=int(TRAIN_CONFIG['top_k']),",
             "        gross_target=float(TRAIN_CONFIG['gross_target']),",
-            "        min_reversion_score=float(TRAIN_CONFIG['min_reversion_score']),",
+            "        reversion_strength_floor=float(TRAIN_CONFIG['reversion_strength_floor']),",
             "        volatility_floor=float(TRAIN_CONFIG['volatility_floor']),",
             "        use_trend_filter=bool(TRAIN_CONFIG['use_trend_filter']),",
             "        trend_lookback_bars=int(TRAIN_CONFIG['trend_lookback_bars']),",
@@ -834,31 +854,39 @@ def _render_ema_trend_file(payload: str, strategy_name: str) -> str:
             f'STRATEGY_FAMILY = "{FAMILY_EMA_TREND}"',
             "",
             "",
-            "def _ema(closes: Sequence[float], period: int) -> float:",
-            "    alpha = 2.0 / (period + 1.0)",
-            "    value = closes[0]",
-            "    for close in closes[1:]:",
-            "        value = alpha * close + ((1.0 - alpha) * value)",
-            "    return value",
+            "def _normalized_return(history: Sequence[Bar], horizon: int, volatility_floor: float) -> float:",
+            "    if len(history) <= horizon:",
+            "        return 0.0",
+            "    anchor_close = history[-(horizon + 1)].close",
+            "    raw_return = (history[-1].close / anchor_close) - 1.0",
+            "    recent = history[-(horizon + 1):]",
+            "    returns = []",
+            "    for index in range(1, len(recent)):",
+            "        previous = recent[index - 1].close",
+            "        current = recent[index].close",
+            "        returns.append((current / previous) - 1.0)",
+            "    volatility = max(statistics.pstdev(returns) if returns else 0.0, volatility_floor, 1e-9)",
+            "    return raw_return / volatility",
             "",
             "",
             "@dataclass(frozen=True)",
-            "class EMATrendStrategy:",
-            "    fast_ema_bars: int",
-            "    slow_ema_bars: int",
-            "    trend_ema_bars: int",
+            "class DualMomentumStrategy:",
+            "    fast_horizon_bars: int",
+            "    medium_horizon_bars: int",
+            "    slow_horizon_bars: int",
             "    top_k: int",
             "    gross_target: float",
             "    min_signal_strength: float",
-            "    use_trend_filter: bool",
-            "    volume_confirmation: float",
+            "    absolute_momentum_floor: float",
+            "    relative_strength_weight: float",
+            "    use_absolute_filter: bool",
             "    volatility_floor: float",
             "",
             "    def target_weights(self, history_by_symbol: Mapping[str, Sequence[Bar]]) -> Dict[str, float]:",
             "        if not history_by_symbol:",
             "            return {}",
             "        ready_scores = []",
-            "        min_bars = max(self.fast_ema_bars, self.slow_ema_bars, self.trend_ema_bars) + 2",
+            "        min_bars = self.slow_horizon_bars + 2",
             "        for symbol, history in history_by_symbol.items():",
             "            if len(history) < min_bars:",
             "                continue",
@@ -880,41 +908,32 @@ def _render_ema_trend_file(payload: str, strategy_name: str) -> str:
             "        return weights",
             "",
             "    def _score(self, history: Sequence[Bar]) -> float:",
-            "        closes = [bar.close for bar in history]",
-            "        fast = _ema(closes[-self.fast_ema_bars * 3 :], self.fast_ema_bars)",
-            "        slow = _ema(closes[-self.slow_ema_bars * 3 :], self.slow_ema_bars)",
-            "        trend = _ema(closes[-self.trend_ema_bars * 3 :], self.trend_ema_bars)",
-            "        signal = fast - slow",
-            "        recent_returns = []",
-            "        for index in range(max(1, len(closes) - self.slow_ema_bars), len(closes)):",
-            "            previous = closes[index - 1]",
-            "            current = closes[index]",
-            "            recent_returns.append((current / previous) - 1.0)",
-            "        volatility = max(statistics.pstdev(recent_returns), self.volatility_floor)",
-            "        normalized_signal = signal if math.isclose(volatility, 0.0) else signal / volatility",
-            "        if self.use_trend_filter:",
-            "            if history[-1].close > trend and normalized_signal < 0.0:",
+            "        fast_signal = _normalized_return(history, self.fast_horizon_bars, self.volatility_floor)",
+            "        medium_signal = _normalized_return(history, self.medium_horizon_bars, self.volatility_floor)",
+            "        slow_signal = _normalized_return(history, self.slow_horizon_bars, self.volatility_floor)",
+            "        relative_signal = (0.6 * fast_signal) + (0.4 * medium_signal)",
+            "        combined = (self.relative_strength_weight * relative_signal) + ((1.0 - self.relative_strength_weight) * slow_signal)",
+            "        if self.use_absolute_filter:",
+            "            if abs(slow_signal) < self.absolute_momentum_floor:",
             "                return 0.0",
-            "            if history[-1].close < trend and normalized_signal > 0.0:",
+            "            if combined > 0.0 and slow_signal <= 0.0:",
             "                return 0.0",
-            "        if self.volume_confirmation > 0.0:",
-            "            recent_volumes = [bar.volume for bar in history[-self.slow_ema_bars:]]",
-            "            volume_ratio = history[-1].volume / max(statistics.fmean(recent_volumes), 1e-9)",
-            "            if volume_ratio < self.volume_confirmation:",
+            "            if combined < 0.0 and slow_signal >= 0.0:",
             "                return 0.0",
-            "        return normalized_signal",
+            "        return combined",
             "",
             "",
             "def build_strategy(_dataset_spec=None) -> Strategy:",
-            "    return EMATrendStrategy(",
-            "        fast_ema_bars=int(TRAIN_CONFIG['fast_ema_bars']),",
-            "        slow_ema_bars=int(TRAIN_CONFIG['slow_ema_bars']),",
-            "        trend_ema_bars=int(TRAIN_CONFIG['trend_ema_bars']),",
+            "    return DualMomentumStrategy(",
+            "        fast_horizon_bars=int(TRAIN_CONFIG['fast_horizon_bars']),",
+            "        medium_horizon_bars=int(TRAIN_CONFIG['medium_horizon_bars']),",
+            "        slow_horizon_bars=int(TRAIN_CONFIG['slow_horizon_bars']),",
             "        top_k=int(TRAIN_CONFIG['top_k']),",
             "        gross_target=float(TRAIN_CONFIG['gross_target']),",
             "        min_signal_strength=float(TRAIN_CONFIG['min_signal_strength']),",
-            "        use_trend_filter=bool(TRAIN_CONFIG['use_trend_filter']),",
-            "        volume_confirmation=float(TRAIN_CONFIG['volume_confirmation']),",
+            "        absolute_momentum_floor=float(TRAIN_CONFIG['absolute_momentum_floor']),",
+            "        relative_strength_weight=float(TRAIN_CONFIG['relative_strength_weight']),",
+            "        use_absolute_filter=bool(TRAIN_CONFIG['use_absolute_filter']),",
             "        volatility_floor=float(TRAIN_CONFIG['volatility_floor']),",
             "    )",
             "",
@@ -952,14 +971,14 @@ def _render_volatility_breakout_file(payload: str, strategy_name: str) -> str:
             "",
             "",
             "@dataclass(frozen=True)",
-            "class VolatilityBreakoutStrategy:",
+            "class DonchianATRBreakoutStrategy:",
             "    channel_bars: int",
             "    atr_lookback_bars: int",
             "    atr_multiplier: float",
             "    breakout_buffer: float",
             "    top_k: int",
             "    gross_target: float",
-            "    min_breakout_score: float",
+            "    breakout_score_floor: float",
             "    use_trend_filter: bool",
             "    trend_lookback_bars: int",
             "",
@@ -972,7 +991,7 @@ def _render_volatility_breakout_file(payload: str, strategy_name: str) -> str:
             "            if len(history) < min_bars:",
             "                continue",
             "            score = self._score(history)",
-            "            if abs(score) < self.min_breakout_score:",
+            "            if abs(score) < self.breakout_score_floor:",
             "                continue",
             "            ready_scores.append((symbol, score))",
             "        positive = [item for item in ready_scores if item[1] > 0.0]",
@@ -1012,14 +1031,14 @@ def _render_volatility_breakout_file(payload: str, strategy_name: str) -> str:
             "",
             "",
             "def build_strategy(_dataset_spec=None) -> Strategy:",
-            "    return VolatilityBreakoutStrategy(",
+            "    return DonchianATRBreakoutStrategy(",
             "        channel_bars=int(TRAIN_CONFIG['channel_bars']),",
             "        atr_lookback_bars=int(TRAIN_CONFIG['atr_lookback_bars']),",
             "        atr_multiplier=float(TRAIN_CONFIG['atr_multiplier']),",
             "        breakout_buffer=float(TRAIN_CONFIG['breakout_buffer']),",
             "        top_k=int(TRAIN_CONFIG['top_k']),",
             "        gross_target=float(TRAIN_CONFIG['gross_target']),",
-            "        min_breakout_score=float(TRAIN_CONFIG['min_breakout_score']),",
+            "        breakout_score_floor=float(TRAIN_CONFIG['breakout_score_floor']),",
             "        use_trend_filter=bool(TRAIN_CONFIG['use_trend_filter']),",
             "        trend_lookback_bars=int(TRAIN_CONFIG['trend_lookback_bars']),",
             "    )",

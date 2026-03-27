@@ -94,7 +94,7 @@ class AppRenderTests(unittest.TestCase):
                 "family_tabs": [
                     {
                         "family_id": "mean_reversion",
-                        "label": "Mean Reversion",
+                        "label": "IBS Reversion",
                         "snapshot": {
                             "phase": "family active",
                             "loop_state": "searching",
@@ -113,7 +113,7 @@ class AppRenderTests(unittest.TestCase):
                     },
                     {
                         "family_id": "ema_trend",
-                        "label": "Ema Trend",
+                        "label": "Dual Momentum",
                         "snapshot": None,
                     },
                 ],
@@ -122,7 +122,7 @@ class AppRenderTests(unittest.TestCase):
 
         self.assertIn("Strategy Families", html)
         self.assertIn("data-family='mean_reversion'", html)
-        self.assertIn("Mean Reversion Leaderboard", html)
+        self.assertIn("IBS Reversion Leaderboard", html)
         self.assertIn("No snapshot published for this family yet.", html)
         self.assertIn("generation_validity_rate", html)
         self.assertIn("Research Champion Paper Ready", html)
