@@ -32,21 +32,21 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260327t110000z",
-  "latest_cycle_completed_at": "2026-03-28T05:42:52.677357+00:00",
-  "last_processed_bar": "2026-03-28T05:40:00+00:00",
-  "recent_acceptance_rate": 0.25,
-  "evaluation_acceptance_rate": 0.25,
+  "latest_cycle_completed_at": "2026-03-28T06:46:42.780620+00:00",
+  "last_processed_bar": "2026-03-28T06:40:00+00:00",
+  "recent_acceptance_rate": 0.16666666666666666,
+  "evaluation_acceptance_rate": 0.16666666666666666,
   "generation_validity_rate": 1.0,
-  "mutation_win_rate": 0.25,
+  "mutation_win_rate": 0.16666666666666666,
   "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
   "current_best_validation_pass_rate": 0.0,
   "current_best_validated_for_rollout": false,
   "current_best_fast_validation_summary": {
-    "validated_at": "2026-03-28T00:30:00+00:00",
-    "campaign_id": "render-binance-usdm-futures-5m-holdout-20260226t003000z",
-    "campaign_name": "render-binance-usdm_futures-5m-holdout-20260226T003000Z",
+    "validated_at": "2026-03-28T06:40:00+00:00",
+    "campaign_id": "render-binance-usdm-futures-5m-holdout-20260226t064000z",
+    "campaign_name": "render-binance-usdm_futures-5m-holdout-20260226T064000Z",
     "strategy_name": "selective-momentum-v13",
     "git_commit": "",
     "train_sha1": "c02b5aa2ce565bc7bb25eca90c87e451bcb253e3",
@@ -73,7 +73,7 @@
       "bars_processed": 8639,
       "nonzero_turnover_steps": 1
     },
-    "artifact_path": "/var/data/autoresearch/llm/artifacts/validation/b44226048ca5.json",
+    "artifact_path": "/var/data/autoresearch/llm/artifacts/validation/5e2fd6d12688.json",
     "validated_for_rollout": false
   },
   "current_best_validation_summary": {},
@@ -94,9 +94,9 @@
     "paper_gate_failures": [],
     "paper_gate_ready": true,
     "fast_validation_summary": {
-      "validated_at": "2026-03-28T00:30:00+00:00",
-      "campaign_id": "render-binance-usdm-futures-5m-holdout-20260226t003000z",
-      "campaign_name": "render-binance-usdm_futures-5m-holdout-20260226T003000Z",
+      "validated_at": "2026-03-28T06:40:00+00:00",
+      "campaign_id": "render-binance-usdm-futures-5m-holdout-20260226t064000z",
+      "campaign_name": "render-binance-usdm_futures-5m-holdout-20260226T064000Z",
       "strategy_name": "selective-momentum-v13",
       "git_commit": "",
       "train_sha1": "c02b5aa2ce565bc7bb25eca90c87e451bcb253e3",
@@ -123,7 +123,7 @@
         "bars_processed": 8639,
         "nonzero_turnover_steps": 1
       },
-      "artifact_path": "/var/data/autoresearch/llm/artifacts/validation/b44226048ca5.json",
+      "artifact_path": "/var/data/autoresearch/llm/artifacts/validation/5e2fd6d12688.json",
       "validated_for_rollout": false
     },
     "rollout_validation_summary": {}
@@ -136,7 +136,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-884637fd",
+      "mutation_label": "llm-c3738b52",
       "baseline_score": 3.0888719021647333,
       "candidate_score": 3.0888719021647333,
       "kept_commit": null,
@@ -253,7 +253,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-884637fd",
+    "mutation_label": "llm-c3738b52",
     "baseline_score": 3.0888719021647333,
     "candidate_score": 3.0888719021647333,
     "kept_commit": null,
@@ -263,7 +263,7 @@
     "gate_failures": []
   },
   "latest_candidate_summary": {
-    "strategy_name": "selective-momentum-v13a",
+    "strategy_name": "selective-momentum-v14",
     "research_score": 3.0888719021647333,
     "ready_for_paper": true,
     "average_metrics": {
@@ -284,16 +284,14 @@
       "top_k": 1,
       "use_regime_filter": false,
       "min_cross_sectional_spread": 0.13,
-      "volatility_floor": 0.035,
-      "reversal_bias_weight": 0.35,
+      "volatility_floor": 0.04,
+      "reversal_bias_weight": 0.45,
       "funding_penalty_weight": 0.04,
-      "persistence_penalty_weight": 0.18,
+      "persistence_penalty_weight": 0.2,
       "persistence_lookback": 3,
       "persistence_confirmation_threshold": 0.004,
       "correlation_penalty_weight": 0.8,
-      "min_correlation_scale": 0.45,
-      "half_confirm_fraction": 0.5,
-      "half_confirm_weight": 0.45
+      "min_correlation_scale": 0.45
     },
     "gate_failures": [],
     "provider_name": "llm",
