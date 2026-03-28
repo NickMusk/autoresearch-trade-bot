@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260327t110000z",
-  "latest_cycle_completed_at": "2026-03-28T00:33:46.457824+00:00",
-  "last_processed_bar": "2026-03-28T00:30:00+00:00",
+  "latest_cycle_completed_at": "2026-03-28T01:36:01.173088+00:00",
+  "last_processed_bar": "2026-03-28T01:30:00+00:00",
   "recent_acceptance_rate": 0.3333333333333333,
   "evaluation_acceptance_rate": 0.3333333333333333,
   "generation_validity_rate": 1.0,
@@ -140,7 +140,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-39b9b969",
+      "mutation_label": "llm-f3f28078",
       "baseline_score": 3.0888719021647333,
       "candidate_score": 0.0,
       "kept_commit": null,
@@ -240,12 +240,12 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-4c161222",
+      "strategy_name": "llm-29d949a6",
       "params": {
-        "decision": "discard_full",
+        "decision": "screen_pass",
         "provider_name": "llm",
         "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "full"
+        "stage": "screen"
       },
       "accepted": false,
       "score": 0.0,
@@ -261,7 +261,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-39b9b969",
+    "mutation_label": "llm-f3f28078",
     "baseline_score": 3.0888719021647333,
     "candidate_score": 0.0,
     "kept_commit": null,
@@ -289,21 +289,21 @@
     "train_config": {
       "gross_target": 0.5,
       "lookback_bars": 24,
-      "min_signal_strength": 0.1,
+      "min_signal_strength": 0.08,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 36,
       "regime_threshold": 0.015,
-      "top_k": 2,
+      "top_k": 1,
       "use_regime_filter": false,
       "min_cross_sectional_spread": 0.14,
       "volatility_floor": 0.04,
       "reversal_bias_weight": 0.35,
       "funding_penalty_weight": 0.04,
-      "persistence_penalty_weight": 0.2,
+      "persistence_penalty_weight": 0.18,
       "persistence_lookback": 3,
       "persistence_confirmation_threshold": 0.004,
-      "correlation_penalty_weight": 0.8,
-      "min_correlation_scale": 0.5
+      "correlation_penalty_weight": 0.9,
+      "min_correlation_scale": 0.45
     },
     "gate_failures": [
       "no_trades_executed",
