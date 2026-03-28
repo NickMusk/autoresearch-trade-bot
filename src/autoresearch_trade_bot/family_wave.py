@@ -76,6 +76,10 @@ def ensure_family_branch_seeded(
         branch_name=family_branch,
     )
     if current_strategy_name != profile.strategy_name:
+        _remove_branch_worktrees(
+            repo_root=resolved_repo_root,
+            branch_name=family_branch,
+        )
         _run_git(resolved_repo_root, "checkout", family_branch)
         train_path = resolved_repo_root / "train.py"
         train_path.write_text(
@@ -209,6 +213,28 @@ def _run_git(repo_root: Path | None, *args: str) -> str:
         text=True,
     )
     return completed.stdout.strip()
+
+
+def _remove_branch_worktrees(*, repo_root: Path, branch_name: str) -> None:
+    ref_name = f"refs/heads/{branch_name}"
+    listing = _run_git(repo_root, "worktree", "list", "--porcelain")
+    current_path: Path | None = None
+    current_branch: str | None = None
+    for line in listing.splitlines():
+        if line.startswith("worktree "):
+            current_path = Path(line.removeprefix("worktree ").strip())
+            current_branch = None
+            continue
+        if line.startswith("branch "):
+            current_branch = line.removeprefix("branch ").strip()
+            continue
+        if not line.strip():
+            if current_path is not None and current_branch == ref_name and current_path != repo_root:
+                _run_git(repo_root, "worktree", "remove", "--force", str(current_path))
+            current_path = None
+            current_branch = None
+    if current_path is not None and current_branch == ref_name and current_path != repo_root:
+        _run_git(repo_root, "worktree", "remove", "--force", str(current_path))
 
 
 def _read_branch_strategy_family(*, repo_root: Path, branch_name: str) -> str:
