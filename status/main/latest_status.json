@@ -38,12 +38,12 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260329t085000z",
-  "latest_cycle_completed_at": "2026-03-29T13:18:20.427780+00:00",
-  "last_processed_bar": "2026-03-29T13:15:00+00:00",
-  "recent_acceptance_rate": 0.25,
-  "evaluation_acceptance_rate": 0.25,
+  "latest_cycle_completed_at": "2026-03-29T13:32:29.105676+00:00",
+  "last_processed_bar": "2026-03-29T13:30:00+00:00",
+  "recent_acceptance_rate": 0.16666666666666666,
+  "evaluation_acceptance_rate": 0.16666666666666666,
   "generation_validity_rate": 1.0,
-  "mutation_win_rate": 0.25,
+  "mutation_win_rate": 0.16666666666666666,
   "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
@@ -87,9 +87,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-bcb6a264",
+      "mutation_label": "llm-1bfd2b6d",
       "baseline_score": -110.11558612397201,
-      "candidate_score": -126.60694036811344,
+      "candidate_score": -113.26672540573175,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -115,6 +115,24 @@
     "rollout_champion_strategy_name": ""
   },
   "leaderboard": [
+    {
+      "strategy_name": "llm-1bfd2b6d",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -113.266725,
+      "metrics": {
+        "total_return": -0.640834,
+        "sharpe": -107.281811,
+        "max_drawdown": 0.641418,
+        "average_turnover": 0.215071
+      },
+      "rejection_reasons": []
+    },
     {
       "strategy_name": "llm-bcb6a264",
       "params": {
@@ -150,14 +168,32 @@
         "average_turnover": 0.257495
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-00683fed",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -154.84482,
+      "metrics": {
+        "total_return": -0.727795,
+        "sharpe": -148.008898,
+        "max_drawdown": 0.72838,
+        "average_turnover": 0.283424
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-bcb6a264",
+    "mutation_label": "llm-1bfd2b6d",
     "baseline_score": -110.11558612397201,
-    "candidate_score": -126.60694036811344,
+    "candidate_score": -113.26672540573175,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -170,16 +206,16 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "selective-momentum-v2",
-    "research_score": -126.60694036811344,
+    "strategy_name": "configurable-momentum-selective-v2",
+    "research_score": -113.26672540573175,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.6837382062274915,
-      "sharpe": -120.20909936721047,
-      "max_drawdown": 0.6840744469500032,
-      "average_turnover": 0.24285218196550526,
+      "total_return": -0.6408342937952535,
+      "sharpe": -107.28181079136584,
+      "max_drawdown": 0.6414179891486606,
+      "average_turnover": 0.21507118879499942,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 3696
+      "nonzero_turnover_steps": 3316
     },
     "train_config": {
       "gross_target": 0.5,
@@ -190,10 +226,10 @@
       "regime_threshold": 0.015,
       "top_k": 1,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.04,
+      "min_cross_sectional_spread": 0.03,
       "volatility_floor": 0.001,
-      "reversal_bias_weight": 0.04,
-      "funding_penalty_weight": 0.02
+      "reversal_bias_weight": 0.05,
+      "funding_penalty_weight": 0.01
     },
     "gate_failures": [
       "total_return_below_gate",
