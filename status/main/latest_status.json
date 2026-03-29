@@ -38,12 +38,12 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260329t085000z",
-  "latest_cycle_completed_at": "2026-03-29T09:11:16.385659+00:00",
-  "last_processed_bar": "2026-03-29T09:05:00+00:00",
-  "recent_acceptance_rate": 0.3333333333333333,
-  "evaluation_acceptance_rate": 0.3333333333333333,
+  "latest_cycle_completed_at": "2026-03-29T09:25:07.224204+00:00",
+  "last_processed_bar": "2026-03-29T09:20:00+00:00",
+  "recent_acceptance_rate": 0.25,
+  "evaluation_acceptance_rate": 0.25,
   "generation_validity_rate": 1.0,
-  "mutation_win_rate": 0.3333333333333333,
+  "mutation_win_rate": 0.25,
   "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
@@ -87,9 +87,9 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-ab2791fd",
+      "mutation_label": "llm-da0cb758",
       "baseline_score": -110.11558612397201,
-      "candidate_score": -119.0276194455499,
+      "candidate_score": -150.56272632420163,
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
@@ -150,14 +150,50 @@
         "average_turnover": 0.236917
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-da0cb758",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -150.562726,
+      "metrics": {
+        "total_return": -0.612498,
+        "sharpe": -144.840012,
+        "max_drawdown": 0.612916,
+        "average_turnover": 0.20856
+      },
+      "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-32f98443",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -199.403528,
+      "metrics": {
+        "total_return": -0.804538,
+        "sharpe": -191.796762,
+        "max_drawdown": 0.804675,
+        "average_turnover": 0.365378
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-ab2791fd",
+    "mutation_label": "llm-da0cb758",
     "baseline_score": -110.11558612397201,
-    "candidate_score": -119.0276194455499,
+    "candidate_score": -150.56272632420163,
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
@@ -170,30 +206,30 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "selective-momentum-v2",
-    "research_score": -119.0276194455499,
+    "strategy_name": "selective-momentum",
+    "research_score": -150.56272632420163,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.6688900579230845,
-      "sharpe": -112.76747411982025,
-      "max_drawdown": 0.6696944636171496,
-      "average_turnover": 0.23691718164563624,
+      "total_return": -0.6124979870790022,
+      "sharpe": -144.84001225927406,
+      "max_drawdown": 0.612916027752975,
+      "average_turnover": 0.2085600185206621,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 3625
+      "nonzero_turnover_steps": 4964
     },
     "train_config": {
-      "gross_target": 0.6,
+      "gross_target": 0.5,
       "lookback_bars": 24,
-      "min_signal_strength": 0.03,
+      "min_signal_strength": 0.06,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 36,
       "regime_threshold": 0.015,
-      "top_k": 1,
+      "top_k": 2,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.02,
+      "min_cross_sectional_spread": 0.05,
       "volatility_floor": 0.01,
-      "reversal_bias_weight": 0.05,
-      "funding_penalty_weight": 0.02
+      "reversal_bias_weight": 0.25,
+      "funding_penalty_weight": 0.0
     },
     "gate_failures": [
       "total_return_below_gate",
