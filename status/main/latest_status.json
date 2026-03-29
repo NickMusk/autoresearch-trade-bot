@@ -3,6 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
+    "Latest LLM candidate underperformed the baseline on the screen window.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: drawdown_above_gate.",
@@ -20,12 +21,12 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": -0.6281,
-    "sharpe": -104.2524,
-    "max_drawdown": 0.6287,
-    "average_turnover": 0.2078,
+    "total_return": -0.444,
+    "sharpe": -102.6339,
+    "max_drawdown": 0.4441,
+    "average_turnover": 0.1288,
     "bars_processed": 8639,
-    "score": -110.1156
+    "score": -106.7588
   },
   "accepted_for_paper": false,
   "current_best_ready_for_paper": false,
@@ -37,8 +38,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260329t085000z",
-  "latest_cycle_completed_at": "2026-03-29T14:43:25.544735+00:00",
-  "last_processed_bar": "2026-03-29T14:40:00+00:00",
+  "latest_cycle_completed_at": "2026-03-29T14:58:07.370954+00:00",
+  "last_processed_bar": "2026-03-29T14:55:00+00:00",
   "recent_acceptance_rate": 0.16666666666666666,
   "evaluation_acceptance_rate": 0.16666666666666666,
   "generation_validity_rate": 1.0,
@@ -51,17 +52,17 @@
   "current_best_fast_validation_summary": {},
   "current_best_validation_summary": {},
   "research_champion_summary": {
-    "strategy_name": "selective-momentum",
-    "git_commit": "4c79e767827e983b9fc3124dbe36955528bb8504",
-    "train_sha1": "9f4c88a5508a7a4ad35473ac5be2ab050e0393d8",
-    "research_score": -89.07437031622625,
+    "strategy_name": "configurable-momentum-v2",
+    "git_commit": "9bde285654e12e0d5d59e6c928e4aee598329c71",
+    "train_sha1": "bce5fef38c0b05e8c93d750d541a1721b85e6f05",
+    "research_score": -106.75884379167292,
     "average_metrics": {
-      "total_return": -0.3740026513373341,
-      "sharpe": -85.60231566358947,
-      "max_drawdown": 0.3740026513373341,
-      "average_turnover": 0.10603079060076398,
+      "total_return": -0.4439700477780918,
+      "sharpe": -102.63391819912685,
+      "max_drawdown": 0.44406024945684763,
+      "average_turnover": 0.12883435582822086,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 1681
+      "nonzero_turnover_steps": 2181
     },
     "gate_failures": [
       "total_return_below_gate",
@@ -84,12 +85,12 @@
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-binance-usdm-futures-5m-20260329t085000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "keep",
-      "stage": "full",
-      "mutation_label": "llm-fe63e71d",
-      "baseline_score": -110.11558612397201,
-      "candidate_score": -89.07437031622625,
-      "kept_commit": "4c79e767827e983b9fc3124dbe36955528bb8504",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-29c3a583",
+      "baseline_score": -106.75884379167292,
+      "candidate_score": -123.1775595671088,
+      "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -100,8 +101,8 @@
         "acceptance_rate_below_gate"
       ]
     },
-    "baseline_strategy_name": "configurable-momentum",
-    "baseline_score": -110.11558612397201,
+    "baseline_strategy_name": "configurable-momentum-v2",
+    "baseline_score": -106.75884379167292,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm",
     "current_best_ready_for_paper": false,
@@ -110,12 +111,12 @@
     "current_best_validation_pass_rate": 0.0,
     "current_best_validated_for_rollout": false,
     "latest_cycle_rollout_ready": false,
-    "research_champion_strategy_name": "selective-momentum",
+    "research_champion_strategy_name": "configurable-momentum-v2",
     "rollout_champion_strategy_name": ""
   },
   "leaderboard": [
     {
-      "strategy_name": "llm-fe63e71d",
+      "strategy_name": "llm-90110d3c",
       "params": {
         "decision": "screen_pass",
         "provider_name": "llm",
@@ -123,17 +124,17 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -89.07437,
+      "score": -106.758844,
       "metrics": {
-        "total_return": -0.374003,
-        "sharpe": -85.602316,
-        "max_drawdown": 0.374003,
-        "average_turnover": 0.106031
+        "total_return": -0.44397,
+        "sharpe": -102.633918,
+        "max_drawdown": 0.44406,
+        "average_turnover": 0.128834
       },
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-fe63e71d",
+      "strategy_name": "llm-90110d3c",
       "params": {
         "decision": "keep",
         "provider_name": "llm",
@@ -141,17 +142,17 @@
         "stage": "full"
       },
       "accepted": true,
-      "score": -89.07437,
+      "score": -106.758844,
       "metrics": {
-        "total_return": -0.374003,
-        "sharpe": -85.602316,
-        "max_drawdown": 0.374003,
-        "average_turnover": 0.106031
+        "total_return": -0.44397,
+        "sharpe": -102.633918,
+        "max_drawdown": 0.44406,
+        "average_turnover": 0.128834
       },
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-4c7f6b51",
+      "strategy_name": "llm-29c3a583",
       "params": {
         "decision": "discard_screen",
         "provider_name": "llm",
@@ -159,59 +160,23 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -115.812927,
+      "score": -123.17756,
       "metrics": {
-        "total_return": -0.647353,
-        "sharpe": -109.766475,
-        "max_drawdown": 0.647728,
-        "average_turnover": 0.218775
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-b1649ee9",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -124.422847,
-      "metrics": {
-        "total_return": -0.676386,
-        "sharpe": -118.090082,
-        "max_drawdown": 0.677487,
-        "average_turnover": 0.240884
-      },
-      "rejection_reasons": []
-    },
-    {
-      "strategy_name": "llm-a7732fbf",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -155.569806,
-      "metrics": {
-        "total_return": -0.614155,
-        "sharpe": -149.829606,
-        "max_drawdown": 0.614572,
-        "average_turnover": 0.211136
+        "total_return": -0.671322,
+        "sharpe": -116.895638,
+        "max_drawdown": 0.671671,
+        "average_turnover": 0.238627
       },
       "rejection_reasons": []
     }
   ],
   "latest_decision": {
-    "decision": "keep",
-    "stage": "full",
-    "mutation_label": "llm-fe63e71d",
-    "baseline_score": -110.11558612397201,
-    "candidate_score": -89.07437031622625,
-    "kept_commit": "4c79e767827e983b9fc3124dbe36955528bb8504",
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-29c3a583",
+    "baseline_score": -106.75884379167292,
+    "candidate_score": -123.1775595671088,
+    "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
@@ -223,31 +188,30 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "selective-momentum",
-    "research_score": -89.07437031622625,
+    "strategy_name": "selective-momentum-v2",
+    "research_score": -123.1775595671088,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.3740026513373341,
-      "sharpe": -85.60231566358947,
-      "max_drawdown": 0.3740026513373341,
-      "average_turnover": 0.10603079060076398,
+      "total_return": -0.6713218312346669,
+      "sharpe": -116.89563816421091,
+      "max_drawdown": 0.671671272700932,
+      "average_turnover": 0.23862715592082417,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 1681
+      "nonzero_turnover_steps": 3620
     },
     "train_config": {
       "gross_target": 0.5,
       "lookback_bars": 24,
-      "min_signal_strength": 0.02,
+      "min_signal_strength": 0.06,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 36,
       "regime_threshold": 0.015,
       "top_k": 1,
       "use_regime_filter": false,
-      "min_cross_sectional_spread": 0.05,
+      "min_cross_sectional_spread": 0.06,
       "volatility_floor": 0.001,
-      "reversal_bias_weight": 0.03,
-      "funding_penalty_weight": 0.01,
-      "min_consistency": 0.6
+      "reversal_bias_weight": 0.15,
+      "funding_penalty_weight": 0.02
     },
     "gate_failures": [
       "total_return_below_gate",
@@ -259,42 +223,6 @@
     "model_name": "gpt-5-mini-2025-08-07",
     "failure_reason": ""
   },
-  "current_best_strategy_name": "configurable-momentum",
-  "latest_kept_summary": {
-    "strategy_name": "selective-momentum",
-    "baseline_strategy_name": "configurable-momentum",
-    "score_delta": 21.041216,
-    "config_diff": [
-      {
-        "key": "funding_penalty_weight",
-        "before": 0.0,
-        "after": 0.01
-      },
-      {
-        "key": "min_consistency",
-        "before": null,
-        "after": 0.6
-      },
-      {
-        "key": "min_cross_sectional_spread",
-        "before": 0.0,
-        "after": 0.05
-      },
-      {
-        "key": "min_signal_strength",
-        "before": 0.0,
-        "after": 0.02
-      },
-      {
-        "key": "reversal_bias_weight",
-        "before": 0.0,
-        "after": 0.03
-      },
-      {
-        "key": "volatility_floor",
-        "before": 0.0,
-        "after": 0.001
-      }
-    ]
-  }
+  "current_best_strategy_name": "configurable-momentum-v2",
+  "latest_kept_summary": {}
 }
