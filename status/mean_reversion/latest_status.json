@@ -6,6 +6,7 @@
     "Latest LLM candidate passed screen but underperformed on the full campaign.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: drawdown_above_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
     "Research champion still fails paper gate: total_return_below_gate.",
     "Research champion still fails paper gate: sharpe_below_gate.",
@@ -37,8 +38,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t042500z",
-  "latest_cycle_completed_at": "2026-03-31T20:07:02.959754+00:00",
-  "last_processed_bar": "2026-03-31T20:05:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T20:11:42.752565+00:00",
+  "last_processed_bar": "2026-03-31T20:10:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -86,17 +87,17 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-258e17f7",
+      "mutation_label": "llm-704b4417",
       "baseline_score": -167.28125173457806,
-      "candidate_score": -52.182084772593825,
+      "candidate_score": -151.67247959336743,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.07133356953403613,
-        "sharpe": -51.523008911401455,
-        "max_drawdown": 0.07133356953403613,
-        "average_turnover": 0.01707373538604005,
+        "total_return": -0.3841416843588825,
+        "sharpe": -148.10185621955023,
+        "max_drawdown": 0.3841416843588825,
+        "average_turnover": 0.11334821458727486,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 296
+        "nonzero_turnover_steps": 2074
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -105,6 +106,7 @@
       "gate_failures": [
         "total_return_below_gate",
         "sharpe_below_gate",
+        "drawdown_above_gate",
         "acceptance_rate_below_gate"
       ]
     },
@@ -216,17 +218,17 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-258e17f7",
+    "mutation_label": "llm-704b4417",
     "baseline_score": -167.28125173457806,
-    "candidate_score": -52.182084772593825,
+    "candidate_score": -151.67247959336743,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.07133356953403613,
-      "sharpe": -51.523008911401455,
-      "max_drawdown": 0.07133356953403613,
-      "average_turnover": 0.01707373538604005,
+      "total_return": -0.3841416843588825,
+      "sharpe": -148.10185621955023,
+      "max_drawdown": 0.3841416843588825,
+      "average_turnover": 0.11334821458727486,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 296
+      "nonzero_turnover_steps": 2074
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -235,20 +237,21 @@
     "gate_failures": [
       "total_return_below_gate",
       "sharpe_below_gate",
+      "drawdown_above_gate",
       "acceptance_rate_below_gate"
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ibs-reversion-short-horizon-v2",
-    "research_score": -52.182084772593825,
+    "strategy_name": "ibs-reversion-adaptive-floor",
+    "research_score": -151.67247959336743,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.07133356953403613,
-      "sharpe": -51.523008911401455,
-      "max_drawdown": 0.07133356953403613,
-      "average_turnover": 0.01707373538604005,
+      "total_return": -0.3841416843588825,
+      "sharpe": -148.10185621955023,
+      "max_drawdown": 0.3841416843588825,
+      "average_turnover": 0.11334821458727486,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 296
+      "nonzero_turnover_steps": 2074
     },
     "train_config": {
       "gross_target": 0.5,
@@ -257,13 +260,14 @@
       "ibs_threshold": 0.28,
       "top_k": 2,
       "reversion_strength_floor": 0.03,
-      "volatility_floor": 0.01,
+      "volatility_floor": 0.0,
       "use_trend_filter": false,
       "trend_lookback_bars": 36
     },
     "gate_failures": [
       "total_return_below_gate",
       "sharpe_below_gate",
+      "drawdown_above_gate",
       "acceptance_rate_below_gate"
     ],
     "provider_name": "llm",
