@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t045500z",
-  "latest_cycle_completed_at": "2026-03-31T07:33:18.880853+00:00",
-  "last_processed_bar": "2026-03-31T07:30:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T07:39:03.822152+00:00",
+  "last_processed_bar": "2026-03-31T07:35:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.9166666666666666,
@@ -83,17 +83,17 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-ec5d69a9",
+      "mutation_label": "llm-120cd7e4",
       "baseline_score": -45.5098805984557,
-      "candidate_score": -44.300109413747094,
+      "candidate_score": -43.426698873949746,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.06769014432965337,
-        "sharpe": -43.674551664579525,
-        "max_drawdown": 0.06801936525235963,
-        "average_turnover": 0.015029566509869587,
+        "total_return": -0.06593972331813025,
+        "sharpe": -42.818349689333466,
+        "max_drawdown": 0.06593972331813025,
+        "average_turnover": 0.014891674753102147,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 253
+        "nonzero_turnover_steps": 269
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -192,7 +192,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-120f4aac",
+      "strategy_name": "llm-120cd7e4",
       "params": {
         "decision": "screen_pass",
         "provider_name": "llm",
@@ -200,12 +200,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -40.167909,
+      "score": -43.426699,
       "metrics": {
-        "total_return": -0.058698,
-        "sharpe": -39.623779,
-        "max_drawdown": 0.059287,
-        "average_turnover": 0.01349
+        "total_return": -0.06594,
+        "sharpe": -42.81835,
+        "max_drawdown": 0.06594,
+        "average_turnover": 0.014892
       },
       "rejection_reasons": []
     }
@@ -213,17 +213,17 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-ec5d69a9",
+    "mutation_label": "llm-120cd7e4",
     "baseline_score": -45.5098805984557,
-    "candidate_score": -44.300109413747094,
+    "candidate_score": -43.426698873949746,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.06769014432965337,
-      "sharpe": -43.674551664579525,
-      "max_drawdown": 0.06801936525235963,
-      "average_turnover": 0.015029566509869587,
+      "total_return": -0.06593972331813025,
+      "sharpe": -42.818349689333466,
+      "max_drawdown": 0.06593972331813025,
+      "average_turnover": 0.014891674753102147,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 253
+      "nonzero_turnover_steps": 269
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -237,25 +237,25 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "dual-momentum-timeseries",
-    "research_score": -44.300109413747094,
+    "research_score": -43.426698873949746,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.06769014432965337,
-      "sharpe": -43.674551664579525,
-      "max_drawdown": 0.06801936525235963,
-      "average_turnover": 0.015029566509869587,
+      "total_return": -0.06593972331813025,
+      "sharpe": -42.818349689333466,
+      "max_drawdown": 0.06593972331813025,
+      "average_turnover": 0.014891674753102147,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 253
+      "nonzero_turnover_steps": 269
     },
     "train_config": {
       "gross_target": 0.6,
-      "fast_horizon_bars": 8,
-      "medium_horizon_bars": 32,
-      "slow_horizon_bars": 96,
+      "fast_horizon_bars": 12,
+      "medium_horizon_bars": 36,
+      "slow_horizon_bars": 120,
       "top_k": 2,
-      "min_signal_strength": 0.12,
-      "absolute_momentum_floor": 0.05,
-      "relative_strength_weight": 0.6,
+      "min_signal_strength": 0.09,
+      "absolute_momentum_floor": 0.045,
+      "relative_strength_weight": 0.5,
       "use_absolute_filter": true,
       "volatility_floor": 0.001
     },
