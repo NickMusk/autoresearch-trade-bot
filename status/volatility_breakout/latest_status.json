@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t050000z",
-  "latest_cycle_completed_at": "2026-03-31T10:26:01.376847+00:00",
-  "last_processed_bar": "2026-03-31T10:20:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T10:34:04.196560+00:00",
+  "last_processed_bar": "2026-03-31T10:30:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -83,17 +83,17 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-551e3acf",
+      "mutation_label": "llm-59b071ad",
       "baseline_score": -1.546240533505294,
-      "candidate_score": -1.546240533505294,
+      "candidate_score": -3.1005148208644973,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.00022060715095117978,
-        "sharpe": -1.5422978284617739,
-        "max_drawdown": 0.0006520402530858505,
-        "average_turnover": 0.00023150827642088204,
+        "total_return": -0.00022330871814890685,
+        "sharpe": -3.098282523135542,
+        "max_drawdown": 0.00024999999999997247,
+        "average_turnover": 0.00011575413821044102,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 4
+        "nonzero_turnover_steps": 2
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -213,17 +213,17 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-551e3acf",
+    "mutation_label": "llm-59b071ad",
     "baseline_score": -1.546240533505294,
-    "candidate_score": -1.546240533505294,
+    "candidate_score": -3.1005148208644973,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.00022060715095117978,
-      "sharpe": -1.5422978284617739,
-      "max_drawdown": 0.0006520402530858505,
-      "average_turnover": 0.00023150827642088204,
+      "total_return": -0.00022330871814890685,
+      "sharpe": -3.098282523135542,
+      "max_drawdown": 0.00024999999999997247,
+      "average_turnover": 0.00011575413821044102,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 4
+      "nonzero_turnover_steps": 2
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -236,16 +236,16 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "donchian-atr-breakout-softtrend",
-    "research_score": -1.546240533505294,
+    "strategy_name": "donchian-atr-breakout-v2",
+    "research_score": -3.1005148208644973,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.00022060715095117978,
-      "sharpe": -1.5422978284617739,
-      "max_drawdown": 0.0006520402530858505,
-      "average_turnover": 0.00023150827642088204,
+      "total_return": -0.00022330871814890685,
+      "sharpe": -3.098282523135542,
+      "max_drawdown": 0.00024999999999997247,
+      "average_turnover": 0.00011575413821044102,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 4
+      "nonzero_turnover_steps": 2
     },
     "train_config": {
       "gross_target": 0.6,
@@ -255,7 +255,7 @@
       "breakout_buffer": 0.05,
       "top_k": 1,
       "breakout_score_floor": 0.12,
-      "use_trend_filter": true,
+      "use_trend_filter": false,
       "trend_lookback_bars": 48
     },
     "gate_failures": [
