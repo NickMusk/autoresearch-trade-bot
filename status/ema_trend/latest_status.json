@@ -36,11 +36,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t045500z",
-  "latest_cycle_completed_at": "2026-03-31T20:53:41.082466+00:00",
-  "last_processed_bar": "2026-03-31T20:50:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T20:59:21.575048+00:00",
+  "last_processed_bar": "2026-03-31T20:55:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
-  "generation_validity_rate": 0.75,
+  "generation_validity_rate": 0.8333333333333334,
   "mutation_win_rate": 0.0,
   "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
@@ -83,17 +83,17 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-c97141da",
+      "mutation_label": "llm-af4ddc35",
       "baseline_score": -45.5098805984557,
-      "candidate_score": -47.90703134320391,
+      "candidate_score": -48.23054755158217,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.07654805401784248,
-        "sharpe": -47.20109775456762,
-        "max_drawdown": 0.07654805401784248,
-        "average_turnover": 0.017001102475706513,
+        "total_return": -0.07878293461618402,
+        "sharpe": -47.503020004537106,
+        "max_drawdown": 0.07897016492236486,
+        "average_turnover": 0.01773221427468063,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 295
+        "nonzero_turnover_steps": 316
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -213,17 +213,17 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-c97141da",
+    "mutation_label": "llm-af4ddc35",
     "baseline_score": -45.5098805984557,
-    "candidate_score": -47.90703134320391,
+    "candidate_score": -48.23054755158217,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.07654805401784248,
-      "sharpe": -47.20109775456762,
-      "max_drawdown": 0.07654805401784248,
-      "average_turnover": 0.017001102475706513,
+      "total_return": -0.07878293461618402,
+      "sharpe": -47.503020004537106,
+      "max_drawdown": 0.07897016492236486,
+      "average_turnover": 0.01773221427468063,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 295
+      "nonzero_turnover_steps": 316
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -237,15 +237,15 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "dual-momentum-timeseries",
-    "research_score": -47.90703134320391,
+    "research_score": -48.23054755158217,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.07654805401784248,
-      "sharpe": -47.20109775456762,
-      "max_drawdown": 0.07654805401784248,
-      "average_turnover": 0.017001102475706513,
+      "total_return": -0.07878293461618402,
+      "sharpe": -47.503020004537106,
+      "max_drawdown": 0.07897016492236486,
+      "average_turnover": 0.01773221427468063,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 295
+      "nonzero_turnover_steps": 316
     },
     "train_config": {
       "gross_target": 0.6,
@@ -255,7 +255,7 @@
       "top_k": 2,
       "min_signal_strength": 0.06,
       "absolute_momentum_floor": 0.05,
-      "relative_strength_weight": 0.55,
+      "relative_strength_weight": 0.5,
       "use_absolute_filter": true,
       "volatility_floor": 0.001
     },
