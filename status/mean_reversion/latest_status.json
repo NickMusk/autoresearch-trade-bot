@@ -38,8 +38,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t042500z",
-  "latest_cycle_completed_at": "2026-03-31T13:41:01.479795+00:00",
-  "last_processed_bar": "2026-03-31T13:35:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T13:45:18.137718+00:00",
+  "last_processed_bar": "2026-03-31T13:40:00+00:00",
   "recent_acceptance_rate": 0.08333333333333333,
   "evaluation_acceptance_rate": 0.08333333333333333,
   "generation_validity_rate": 1.0,
@@ -87,17 +87,17 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-0b33f364",
+      "mutation_label": "llm-c6c8cf5f",
       "baseline_score": -167.28125173457806,
-      "candidate_score": -232.37153659889162,
+      "candidate_score": -221.4709811926279,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.7248768621736954,
-        "sharpe": -225.53788676547725,
-        "max_drawdown": 0.7248768621736954,
-        "average_turnover": 0.3097580738511402,
+        "total_return": -0.6900128942751529,
+        "sharpe": -214.98025135348445,
+        "max_drawdown": 0.6900615601589593,
+        "average_turnover": 0.2804191271318718,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 4847
+        "nonzero_turnover_steps": 4521
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -179,6 +179,24 @@
       "rejection_reasons": []
     },
     {
+      "strategy_name": "llm-c6c8cf5f",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -221.470981,
+      "metrics": {
+        "total_return": -0.690013,
+        "sharpe": -214.980251,
+        "max_drawdown": 0.690062,
+        "average_turnover": 0.280419
+      },
+      "rejection_reasons": []
+    },
+    {
       "strategy_name": "llm-0b33f364",
       "params": {
         "decision": "discard_screen",
@@ -200,17 +218,17 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-0b33f364",
+    "mutation_label": "llm-c6c8cf5f",
     "baseline_score": -167.28125173457806,
-    "candidate_score": -232.37153659889162,
+    "candidate_score": -221.4709811926279,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.7248768621736954,
-      "sharpe": -225.53788676547725,
-      "max_drawdown": 0.7248768621736954,
-      "average_turnover": 0.3097580738511402,
+      "total_return": -0.6900128942751529,
+      "sharpe": -214.98025135348445,
+      "max_drawdown": 0.6900615601589593,
+      "average_turnover": 0.2804191271318718,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 4847
+      "nonzero_turnover_steps": 4521
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -224,16 +242,16 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ibs-reversion-adaptive-weighting",
-    "research_score": -232.37153659889162,
+    "strategy_name": "ibs-reversion-short-horizon-top1",
+    "research_score": -221.4709811926279,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.7248768621736954,
-      "sharpe": -225.53788676547725,
-      "max_drawdown": 0.7248768621736954,
-      "average_turnover": 0.3097580738511402,
+      "total_return": -0.6900128942751529,
+      "sharpe": -214.98025135348445,
+      "max_drawdown": 0.6900615601589593,
+      "average_turnover": 0.2804191271318718,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 4847
+      "nonzero_turnover_steps": 4521
     },
     "train_config": {
       "gross_target": 0.5,
@@ -244,7 +262,7 @@
       "reversion_strength_floor": 0.03,
       "volatility_floor": 0.01,
       "use_trend_filter": false,
-      "trend_lookback_bars": 30
+      "trend_lookback_bars": 36
     },
     "gate_failures": [
       "total_return_below_gate",
