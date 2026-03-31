@@ -3,7 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate passed screen but underperformed on the full campaign.",
+    "Latest LLM candidate underperformed the baseline on the screen window.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t045500z",
-  "latest_cycle_completed_at": "2026-03-31T12:59:54.114341+00:00",
-  "last_processed_bar": "2026-03-31T12:55:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T13:05:07.516452+00:00",
+  "last_processed_bar": "2026-03-31T13:00:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.8333333333333334,
@@ -81,19 +81,19 @@
     "campaign_path": "/var/data/autoresearch/ema_trend_v2/campaigns/render-binance-usdm-futures-5m-20260331t045500z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_full",
-      "stage": "full",
-      "mutation_label": "llm-ba8774c0",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-cda839ba",
       "baseline_score": -45.5098805984557,
-      "candidate_score": -45.25729539885711,
+      "candidate_score": -47.873228437607054,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.06876101290080616,
-        "sharpe": -44.623128394937574,
-        "max_drawdown": 0.06876101290080616,
-        "average_turnover": 0.015317887812279853,
+        "total_return": -0.07802372501012123,
+        "sharpe": -47.15373567051565,
+        "max_drawdown": 0.07802372501012123,
+        "average_turnover": 0.01727924200031389,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 272
+        "nonzero_turnover_steps": 309
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -211,19 +211,19 @@
     }
   ],
   "latest_decision": {
-    "decision": "discard_full",
-    "stage": "full",
-    "mutation_label": "llm-ba8774c0",
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-cda839ba",
     "baseline_score": -45.5098805984557,
-    "candidate_score": -45.25729539885711,
+    "candidate_score": -47.873228437607054,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.06876101290080616,
-      "sharpe": -44.623128394937574,
-      "max_drawdown": 0.06876101290080616,
-      "average_turnover": 0.015317887812279853,
+      "total_return": -0.07802372501012123,
+      "sharpe": -47.15373567051565,
+      "max_drawdown": 0.07802372501012123,
+      "average_turnover": 0.01727924200031389,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 272
+      "nonzero_turnover_steps": 309
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -236,25 +236,25 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "dual-momentum-timeseries",
-    "research_score": -45.25729539885711,
+    "strategy_name": "dual-momentum-timeseries-v2",
+    "research_score": -47.873228437607054,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.06876101290080616,
-      "sharpe": -44.623128394937574,
-      "max_drawdown": 0.06876101290080616,
-      "average_turnover": 0.015317887812279853,
+      "total_return": -0.07802372501012123,
+      "sharpe": -47.15373567051565,
+      "max_drawdown": 0.07802372501012123,
+      "average_turnover": 0.01727924200031389,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 272
+      "nonzero_turnover_steps": 309
     },
     "train_config": {
       "gross_target": 0.6,
-      "fast_horizon_bars": 12,
+      "fast_horizon_bars": 10,
       "medium_horizon_bars": 36,
       "slow_horizon_bars": 120,
       "top_k": 2,
-      "min_signal_strength": 0.09,
-      "absolute_momentum_floor": 0.045,
+      "min_signal_strength": 0.1,
+      "absolute_momentum_floor": 0.05,
       "relative_strength_weight": 0.5,
       "use_absolute_filter": true,
       "volatility_floor": 0.001
