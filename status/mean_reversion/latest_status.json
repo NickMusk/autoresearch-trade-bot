@@ -38,8 +38,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t042500z",
-  "latest_cycle_completed_at": "2026-03-31T18:58:31.481226+00:00",
-  "last_processed_bar": "2026-03-31T18:55:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T19:03:03.467815+00:00",
+  "last_processed_bar": "2026-03-31T19:00:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -87,17 +87,17 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-a4d5b0f6",
+      "mutation_label": "llm-3b77f03c",
       "baseline_score": -167.28125173457806,
-      "candidate_score": -107.15037149683091,
+      "candidate_score": -139.30020554738647,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.238509805709328,
-        "sharpe": -104.94066830158772,
-        "max_drawdown": 0.238509805709328,
-        "average_turnover": 0.06311494385924296,
+        "total_return": -0.3560017441301234,
+        "sharpe": -135.9899506222938,
+        "max_drawdown": 0.3560017441301234,
+        "average_turnover": 0.10623922792154376,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 1091
+        "nonzero_turnover_steps": 1864
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -218,17 +218,17 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-a4d5b0f6",
+    "mutation_label": "llm-3b77f03c",
     "baseline_score": -167.28125173457806,
-    "candidate_score": -107.15037149683091,
+    "candidate_score": -139.30020554738647,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.238509805709328,
-      "sharpe": -104.94066830158772,
-      "max_drawdown": 0.238509805709328,
-      "average_turnover": 0.06311494385924296,
+      "total_return": -0.3560017441301234,
+      "sharpe": -135.9899506222938,
+      "max_drawdown": 0.3560017441301234,
+      "average_turnover": 0.10623922792154376,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 1091
+      "nonzero_turnover_steps": 1864
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -243,15 +243,15 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "ibs-reversion-short-horizon-v2",
-    "research_score": -107.15037149683091,
+    "research_score": -139.30020554738647,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.238509805709328,
-      "sharpe": -104.94066830158772,
-      "max_drawdown": 0.238509805709328,
-      "average_turnover": 0.06311494385924296,
+      "total_return": -0.3560017441301234,
+      "sharpe": -135.9899506222938,
+      "max_drawdown": 0.3560017441301234,
+      "average_turnover": 0.10623922792154376,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 1091
+      "nonzero_turnover_steps": 1864
     },
     "train_config": {
       "gross_target": 0.5,
@@ -260,7 +260,7 @@
       "ibs_threshold": 0.28,
       "top_k": 2,
       "reversion_strength_floor": 0.03,
-      "volatility_floor": 0.01,
+      "volatility_floor": 0.005,
       "use_trend_filter": false,
       "trend_lookback_bars": 36
     },
