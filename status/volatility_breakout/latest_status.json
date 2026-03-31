@@ -4,7 +4,8 @@
   "research_rollout_ready": false,
   "research_blockers": [
     "Latest LLM candidate underperformed the baseline on the screen window.",
-    "Latest kept candidate still fails gate: total_return_below_gate.",
+    "Latest LLM candidate produced no trades on the evaluation window.",
+    "Latest kept candidate still fails gate: no_trades_executed.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
     "Research champion still fails paper gate: no_trades_executed.",
@@ -36,8 +37,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t050000z",
-  "latest_cycle_completed_at": "2026-03-31T22:14:31.158558+00:00",
-  "last_processed_bar": "2026-03-31T22:10:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T22:22:32.582554+00:00",
+  "last_processed_bar": "2026-03-31T22:20:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -83,24 +84,24 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-592c64e5",
+      "mutation_label": "llm-25f51bcf",
       "baseline_score": 0.0,
-      "candidate_score": -3.1005148208644973,
+      "candidate_score": 0.0,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.00022330871814890685,
-        "sharpe": -3.098282523135542,
-        "max_drawdown": 0.00024999999999997247,
-        "average_turnover": 0.00011575413821044102,
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 2
+        "nonzero_turnover_steps": 0
       },
       "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
       "gate_failures": [
-        "total_return_below_gate",
+        "no_trades_executed",
         "sharpe_below_gate",
         "acceptance_rate_below_gate"
       ]
@@ -213,53 +214,53 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-592c64e5",
+    "mutation_label": "llm-25f51bcf",
     "baseline_score": 0.0,
-    "candidate_score": -3.1005148208644973,
+    "candidate_score": 0.0,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.00022330871814890685,
-      "sharpe": -3.098282523135542,
-      "max_drawdown": 0.00024999999999997247,
-      "average_turnover": 0.00011575413821044102,
+      "total_return": 0.0,
+      "sharpe": 0.0,
+      "max_drawdown": 0.0,
+      "average_turnover": 0.0,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 2
+      "nonzero_turnover_steps": 0
     },
     "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
     "gate_failures": [
-      "total_return_below_gate",
+      "no_trades_executed",
       "sharpe_below_gate",
       "acceptance_rate_below_gate"
     ]
   },
   "latest_candidate_summary": {
     "strategy_name": "donchian-atr-breakout-v2",
-    "research_score": -3.1005148208644973,
+    "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.00022330871814890685,
-      "sharpe": -3.098282523135542,
-      "max_drawdown": 0.00024999999999997247,
-      "average_turnover": 0.00011575413821044102,
+      "total_return": 0.0,
+      "sharpe": 0.0,
+      "max_drawdown": 0.0,
+      "average_turnover": 0.0,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 2
+      "nonzero_turnover_steps": 0
     },
     "train_config": {
       "gross_target": 0.6,
       "channel_bars": 24,
       "atr_lookback_bars": 14,
-      "atr_multiplier": 0.9,
+      "atr_multiplier": 1.0,
       "breakout_buffer": 0.05,
-      "top_k": 1,
+      "top_k": 2,
       "breakout_score_floor": 0.08,
       "use_trend_filter": false,
       "trend_lookback_bars": 48
     },
     "gate_failures": [
-      "total_return_below_gate",
+      "no_trades_executed",
       "sharpe_below_gate",
       "acceptance_rate_below_gate"
     ],
