@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t045500z",
-  "latest_cycle_completed_at": "2026-03-31T09:04:15.020459+00:00",
-  "last_processed_bar": "2026-03-31T09:00:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T09:09:57.318662+00:00",
+  "last_processed_bar": "2026-03-31T09:05:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.8333333333333334,
@@ -83,17 +83,17 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-0f0f7c9c",
+      "mutation_label": "llm-b3e04028",
       "baseline_score": -45.5098805984557,
-      "candidate_score": -20.07919541903378,
+      "candidate_score": -40.410908351155044,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.020021094218647617,
-        "sharpe": -19.89488138089149,
-        "max_drawdown": 0.020021094218647617,
-        "average_turnover": 0.004124190174460917,
+        "total_return": -0.059800336600089765,
+        "sharpe": -39.859539000210205,
+        "max_drawdown": 0.059800336600089765,
+        "average_turnover": 0.01316632154403096,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 68
+        "nonzero_turnover_steps": 241
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -192,7 +192,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-0920e92d",
+      "strategy_name": "llm-b3e04028",
       "params": {
         "decision": "screen_pass",
         "provider_name": "llm",
@@ -200,12 +200,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -42.257465,
+      "score": -40.410908,
       "metrics": {
-        "total_return": -0.064956,
-        "sharpe": -41.658257,
-        "max_drawdown": 0.064956,
-        "average_turnover": 0.0146
+        "total_return": -0.0598,
+        "sharpe": -39.859539,
+        "max_drawdown": 0.0598,
+        "average_turnover": 0.013166
       },
       "rejection_reasons": []
     }
@@ -213,17 +213,17 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-0f0f7c9c",
+    "mutation_label": "llm-b3e04028",
     "baseline_score": -45.5098805984557,
-    "candidate_score": -20.07919541903378,
+    "candidate_score": -40.410908351155044,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.020021094218647617,
-      "sharpe": -19.89488138089149,
-      "max_drawdown": 0.020021094218647617,
-      "average_turnover": 0.004124190174460917,
+      "total_return": -0.059800336600089765,
+      "sharpe": -39.859539000210205,
+      "max_drawdown": 0.059800336600089765,
+      "average_turnover": 0.01316632154403096,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 68
+      "nonzero_turnover_steps": 241
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -236,16 +236,16 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "dual-momentum-timeseries-v2",
-    "research_score": -20.07919541903378,
+    "strategy_name": "dual-momentum-timeseries",
+    "research_score": -40.410908351155044,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.020021094218647617,
-      "sharpe": -19.89488138089149,
-      "max_drawdown": 0.020021094218647617,
-      "average_turnover": 0.004124190174460917,
+      "total_return": -0.059800336600089765,
+      "sharpe": -39.859539000210205,
+      "max_drawdown": 0.059800336600089765,
+      "average_turnover": 0.01316632154403096,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 68
+      "nonzero_turnover_steps": 241
     },
     "train_config": {
       "gross_target": 0.6,
@@ -255,9 +255,9 @@
       "top_k": 2,
       "min_signal_strength": 0.09,
       "absolute_momentum_floor": 0.045,
-      "relative_strength_weight": 0.5,
+      "relative_strength_weight": 0.55,
       "use_absolute_filter": true,
-      "volatility_floor": 0.001
+      "volatility_floor": 0.002
     },
     "gate_failures": [
       "total_return_below_gate",
