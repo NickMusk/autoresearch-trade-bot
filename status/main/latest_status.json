@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t090000z",
-  "latest_cycle_completed_at": "2026-03-31T12:49:08.779545+00:00",
-  "last_processed_bar": "2026-03-31T12:45:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T13:03:48.622474+00:00",
+  "last_processed_bar": "2026-03-31T13:00:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -83,17 +83,17 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-7d14dad2",
+      "mutation_label": "llm-c5ad2e36",
       "baseline_score": -32.92768654482868,
-      "candidate_score": -33.79274469618327,
+      "candidate_score": -34.855778090477564,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.12065711682200653,
-        "sharpe": -32.679917807651286,
-        "max_drawdown": 0.12065711682200653,
-        "average_turnover": 0.026912837133927538,
+        "total_return": -0.12457600754824405,
+        "sharpe": -33.707160291787496,
+        "max_drawdown": 0.12457600754824405,
+        "average_turnover": 0.027433730755874523,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 443
+        "nonzero_turnover_steps": 451
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -192,20 +192,20 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-772b502b",
+      "strategy_name": "llm-8dac5ddf",
       "params": {
-        "decision": "screen_pass",
+        "decision": "discard_screen",
         "provider_name": "llm",
         "model_name": "gpt-5-mini-2025-08-07",
         "stage": "screen"
       },
       "accepted": false,
-      "score": -32.892785,
+      "score": -33.594462,
       "metrics": {
-        "total_return": -0.119489,
-        "sharpe": -31.790291,
-        "max_drawdown": 0.119489,
-        "average_turnover": 0.027097
+        "total_return": -0.119603,
+        "sharpe": -32.491005,
+        "max_drawdown": 0.119603,
+        "average_turnover": 0.027029
       },
       "rejection_reasons": []
     }
@@ -213,17 +213,17 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-7d14dad2",
+    "mutation_label": "llm-c5ad2e36",
     "baseline_score": -32.92768654482868,
-    "candidate_score": -33.79274469618327,
+    "candidate_score": -34.855778090477564,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.12065711682200653,
-      "sharpe": -32.679917807651286,
-      "max_drawdown": 0.12065711682200653,
-      "average_turnover": 0.026912837133927538,
+      "total_return": -0.12457600754824405,
+      "sharpe": -33.707160291787496,
+      "max_drawdown": 0.12457600754824405,
+      "average_turnover": 0.027433730755874523,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 443
+      "nonzero_turnover_steps": 451
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -237,15 +237,15 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "configurable-momentum",
-    "research_score": -33.79274469618327,
+    "research_score": -34.855778090477564,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.12065711682200653,
-      "sharpe": -32.679917807651286,
-      "max_drawdown": 0.12065711682200653,
-      "average_turnover": 0.026912837133927538,
+      "total_return": -0.12457600754824405,
+      "sharpe": -33.707160291787496,
+      "max_drawdown": 0.12457600754824405,
+      "average_turnover": 0.027433730755874523,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 443
+      "nonzero_turnover_steps": 451
     },
     "train_config": {
       "gross_target": 0.5,
@@ -258,7 +258,7 @@
       "use_regime_filter": true,
       "min_cross_sectional_spread": 0.06,
       "volatility_floor": 0.005,
-      "reversal_bias_weight": 0.25,
+      "reversal_bias_weight": 0.2,
       "funding_penalty_weight": 0.1
     },
     "gate_failures": [
