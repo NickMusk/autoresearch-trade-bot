@@ -1,9 +1,15 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker transient error",
+  "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Command '['git', 'pull', '--ff-only', 'origin', 'main']' returned non-zero exit status 1."
+    "Latest LLM candidate passed screen but underperformed on the full campaign.",
+    "Latest kept candidate still fails gate: total_return_below_gate.",
+    "Latest kept candidate still fails gate: sharpe_below_gate.",
+    "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
+    "Research champion still fails paper gate: total_return_below_gate.",
+    "Research champion still fails paper gate: sharpe_below_gate.",
+    "No rollout champion has cleared holdout validation yet."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -24,17 +30,19 @@
   "current_best_ready_for_paper": false,
   "latest_cycle_rollout_ready": false,
   "next_milestones": [
-    "Wait for the worker to recover from the latest transient API, repo, or campaign failure."
+    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
+    "Accumulate multiple kept improvements in the research branch.",
+    "Promote only candidates that satisfy the hard rollout gates."
   ],
-  "loop_state": "transient_error",
+  "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t045500z",
-  "latest_cycle_completed_at": "2026-03-31T15:39:13.507934+00:00",
-  "last_processed_bar": "2026-03-31T15:35:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T16:00:26.022713+00:00",
+  "last_processed_bar": "2026-03-31T15:55:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.8333333333333334,
   "mutation_win_rate": 0.0,
-  "consecutive_failures": 1,
+  "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
   "current_best_validation_pass_rate": 0.0,
@@ -75,17 +83,17 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-55936854",
+      "mutation_label": "llm-401d5ce4",
       "baseline_score": -45.5098805984557,
-      "candidate_score": -45.19713255125931,
+      "candidate_score": -42.12075752013828,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.07052559732964281,
-        "sharpe": -44.54615334216798,
-        "max_drawdown": 0.07060723020017001,
-        "average_turnover": 0.015922301642425,
+        "total_return": -0.0602813201635235,
+        "sharpe": -41.564632455865684,
+        "max_drawdown": 0.0602813201635235,
+        "average_turnover": 0.01359318280088493,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 288
+        "nonzero_turnover_steps": 286
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -148,7 +156,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-90b34001",
+      "strategy_name": "llm-401d5ce4",
       "params": {
         "decision": "screen_pass",
         "provider_name": "llm",
@@ -156,17 +164,17 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -44.206699,
+      "score": -42.120758,
       "metrics": {
-        "total_return": -0.066735,
-        "sharpe": -43.591059,
-        "max_drawdown": 0.066735,
-        "average_turnover": 0.015028
+        "total_return": -0.060281,
+        "sharpe": -41.564632,
+        "max_drawdown": 0.060281,
+        "average_turnover": 0.013593
       },
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-90b34001",
+      "strategy_name": "llm-401d5ce4",
       "params": {
         "decision": "discard_full",
         "provider_name": "llm",
@@ -174,17 +182,17 @@
         "stage": "full"
       },
       "accepted": false,
-      "score": -44.206699,
+      "score": -42.120758,
       "metrics": {
-        "total_return": -0.066735,
-        "sharpe": -43.591059,
-        "max_drawdown": 0.066735,
-        "average_turnover": 0.015028
+        "total_return": -0.060281,
+        "sharpe": -41.564632,
+        "max_drawdown": 0.060281,
+        "average_turnover": 0.013593
       },
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-53bf2007",
+      "strategy_name": "llm-90b34001",
       "params": {
         "decision": "screen_pass",
         "provider_name": "llm",
@@ -205,17 +213,17 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-55936854",
+    "mutation_label": "llm-401d5ce4",
     "baseline_score": -45.5098805984557,
-    "candidate_score": -45.19713255125931,
+    "candidate_score": -42.12075752013828,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.07052559732964281,
-      "sharpe": -44.54615334216798,
-      "max_drawdown": 0.07060723020017001,
-      "average_turnover": 0.015922301642425,
+      "total_return": -0.0602813201635235,
+      "sharpe": -41.564632455865684,
+      "max_drawdown": 0.0602813201635235,
+      "average_turnover": 0.01359318280088493,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 288
+      "nonzero_turnover_steps": 286
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -228,16 +236,16 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "dual-momentum-timeseries",
-    "research_score": -45.19713255125931,
+    "strategy_name": "dual-momentum-timeseries-v2",
+    "research_score": -42.12075752013828,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.07052559732964281,
-      "sharpe": -44.54615334216798,
-      "max_drawdown": 0.07060723020017001,
-      "average_turnover": 0.015922301642425,
+      "total_return": -0.0602813201635235,
+      "sharpe": -41.564632455865684,
+      "max_drawdown": 0.0602813201635235,
+      "average_turnover": 0.01359318280088493,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 288
+      "nonzero_turnover_steps": 286
     },
     "train_config": {
       "gross_target": 0.6,
