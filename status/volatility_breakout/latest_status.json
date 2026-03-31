@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t050000z",
-  "latest_cycle_completed_at": "2026-03-31T21:01:44.342940+00:00",
-  "last_processed_bar": "2026-03-31T21:00:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T21:09:39.451646+00:00",
+  "last_processed_bar": "2026-03-31T21:05:00+00:00",
   "recent_acceptance_rate": 0.08333333333333333,
   "evaluation_acceptance_rate": 0.08333333333333333,
   "generation_validity_rate": 1.0,
@@ -83,7 +83,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-20fd4e8a",
+      "mutation_label": "llm-0b8a62d5",
       "baseline_score": 0.0,
       "candidate_score": -1.546240533505294,
       "candidate_acceptance_rate": 0.0,
@@ -172,12 +172,30 @@
         "average_turnover": 0.000232
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-0b8a62d5",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -1.546241,
+      "metrics": {
+        "total_return": -0.000221,
+        "sharpe": -1.542298,
+        "max_drawdown": 0.000652,
+        "average_turnover": 0.000232
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-20fd4e8a",
+    "mutation_label": "llm-0b8a62d5",
     "baseline_score": 0.0,
     "candidate_score": -1.546240533505294,
     "candidate_acceptance_rate": 0.0,
@@ -200,7 +218,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "donchian-atr-breakout-v2",
+    "strategy_name": "donchian-atr-breakout-trend",
     "research_score": -1.546240533505294,
     "ready_for_paper": false,
     "average_metrics": {
@@ -212,13 +230,13 @@
       "nonzero_turnover_steps": 4
     },
     "train_config": {
-      "gross_target": 0.5,
+      "gross_target": 0.6,
       "channel_bars": 24,
       "atr_lookback_bars": 14,
-      "atr_multiplier": 1.0,
+      "atr_multiplier": 0.9,
       "breakout_buffer": 0.05,
       "top_k": 1,
-      "breakout_score_floor": 0.1,
+      "breakout_score_floor": 0.08,
       "use_trend_filter": false,
       "trend_lookback_bars": 48
     },
