@@ -205,6 +205,7 @@ class LLMAutoresearchWorker:
             campaign_path=campaign_path,
             repo_root=self.config.repo_root,
             branch_name=self.config.branch_name,
+            strategy_family=self.config.strategy_family,
             model_name=self.config.model_name,
             max_mutations=self.config.max_mutations_per_cycle,
             worktrees_root=self.config.worktrees_root,

@@ -24,6 +24,7 @@ from autoresearch_trade_bot.mutations import (
     build_experiment_memory_artifact,
     build_experiment_memory_summary,
     build_llm_mutation_prompt,
+    build_mutation_context,
     OpenAIResponsesClient,
     validate_train_candidate_text,
     validate_train_candidate_semantics,
@@ -473,6 +474,72 @@ class MutationTests(unittest.TestCase):
         self.assertIn("Preserve the IBSReversionStrategy template", user_prompt)
         self.assertIn("reversion_horizon_bars", user_prompt)
         self.assertIn("Do not fall back to the generic configurable-momentum template", user_prompt)
+
+    def test_build_mutation_context_uses_explicit_family_override(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            workspace = Path(tempdir)
+            repo_root = workspace / "repo"
+            repo_root.mkdir()
+            (repo_root / "program.md").write_text("Mutate train.py only.", encoding="utf-8")
+            train_path = repo_root / "train.py"
+            train_path.write_text(
+                render_train_file(
+                    {
+                        "lookback_bars": 24,
+                        "top_k": 1,
+                        "gross_target": 0.5,
+                        "ranking_mode": "risk_adjusted",
+                        "use_regime_filter": False,
+                        "regime_lookback_bars": 36,
+                        "regime_threshold": 0.015,
+                        "min_signal_strength": 0.0,
+                        "min_cross_sectional_spread": 0.0,
+                        "volatility_floor": 0.0,
+                        "reversal_bias_weight": 0.0,
+                        "funding_penalty_weight": 0.0,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            campaign_path = workspace / "campaign.json"
+            campaign_path.write_text(
+                json.dumps(
+                    {
+                        "campaign_id": "unit",
+                        "name": "unit-campaign",
+                        "exchange": "binance",
+                        "market": "usdm_futures",
+                        "timeframe": "5m",
+                        "storage_root": str(workspace / "data"),
+                        "symbols": ["BTCUSDT", "ETHUSDT"],
+                        "windows": [],
+                        "target_gate": {
+                            "min_total_return": 0.0,
+                            "min_sharpe": 1.0,
+                            "max_drawdown": 0.2,
+                            "min_acceptance_rate": 0.6,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            results_path = workspace / "results.tsv"
+            results_path.write_text("", encoding="utf-8")
+            artifact_root = workspace / "artifacts"
+            context = build_mutation_context(
+                repo_root=repo_root,
+                campaign_path=campaign_path,
+                branch_name="codex/family-mean-reversion",
+                train_path=train_path,
+                results_path=results_path,
+                artifact_root=artifact_root,
+                strategy_family=FAMILY_MEAN_REVERSION,
+            )
+
+        self.assertEqual(context.strategy_family, FAMILY_MEAN_REVERSION)
+        _system_prompt, user_prompt = build_llm_mutation_prompt(context=context, max_mutations=1)
+        self.assertIn("Preserve the IBSReversionStrategy template", user_prompt)
+        self.assertIn("ibs_threshold", user_prompt)
 
     def test_family_specific_memory_guidance_surfaces_dual_momentum_dead_zones(self) -> None:
         current_train = render_family_train_file(

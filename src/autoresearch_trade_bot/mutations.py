@@ -374,21 +374,22 @@ def build_mutation_context(
     train_path: Path,
     results_path: Path,
     artifact_root: Path,
+    strategy_family: str | None = None,
     recent_results_limit: int = 12,
 ) -> MutationContext:
     campaign = load_campaign(campaign_path)
     current_train_text = train_path.read_text(encoding="utf-8")
-    strategy_family = extract_strategy_family(current_train_text)
+    resolved_strategy_family = strategy_family or extract_strategy_family(current_train_text)
     recent_results = tuple(load_recent_results(results_path, limit=max(recent_results_limit, 12)))
     memory_payload = build_experiment_memory_artifact(
         recent_results,
         current_train_text=current_train_text,
-        strategy_family=strategy_family,
+        strategy_family=resolved_strategy_family,
     )
     memory_summary = build_experiment_memory_summary(
         recent_results,
         current_train_text=current_train_text,
-        strategy_family=strategy_family,
+        strategy_family=resolved_strategy_family,
     )
     write_experiment_memory_artifact(
         artifact_root=artifact_root,
@@ -405,7 +406,7 @@ def build_mutation_context(
         artifact_root=artifact_root,
         program_text=(Path(repo_root) / "program.md").read_text(encoding="utf-8"),
         current_train_text=current_train_text,
-        strategy_family=strategy_family,
+        strategy_family=resolved_strategy_family,
         recent_results=recent_results,
         symbol_count=len(campaign.symbols),
         experiment_memory_summary=memory_summary,
@@ -965,6 +966,7 @@ def run_llm_mutation_campaign(
     campaign_path: str | Path,
     repo_root: str | Path,
     branch_name: str,
+    strategy_family: str | None = None,
     model_name: str = "gpt-5-mini",
     max_mutations: int = 1,
     worktrees_root: str | Path = DEFAULT_WORKTREE_ROOT,
@@ -988,6 +990,7 @@ def run_llm_mutation_campaign(
         train_path=runner.train_path,
         results_path=runner.results_path,
         artifact_root=runner.artifact_root,
+        strategy_family=strategy_family,
         recent_results_limit=recent_results_limit,
     )
     resolved_provider = provider or LLMMutationProvider(
@@ -1006,6 +1009,7 @@ def run_llm_mutation_campaign(
         return validate_train_candidate_semantics(
             candidate_text,
             current_train_text=context.current_train_text,
+            strategy_family=context.strategy_family,
             symbol_count=context.symbol_count,
         )
     decisions = []
