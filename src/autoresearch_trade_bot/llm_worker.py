@@ -589,6 +589,8 @@ class LLMAutoresearchWorker:
                     "mutation_label": latest_decision.mutation_label,
                     "baseline_score": latest_decision.baseline_score,
                     "candidate_score": latest_decision.candidate_score,
+                    "candidate_acceptance_rate": latest_decision.report.acceptance_rate,
+                    "candidate_average_metrics": dict(latest_decision.report.average_metrics),
                     "kept_commit": latest_decision.kept_commit,
                     "failure_reason": latest_decision.report.failure_reason,
                     "provider_name": latest_decision.report.provider_name,

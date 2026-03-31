@@ -26,6 +26,7 @@ class StrategyFamilyProfile:
     strategy_class_name: str
     required_config_keys: tuple[str, ...]
     default_train_config: dict[str, Any]
+    starter_train_configs: tuple[dict[str, Any], ...]
     attempt_role_specs: tuple[dict[str, str], ...]
     prompt_directions: tuple[str, ...]
 
@@ -64,6 +65,7 @@ PROFILES: dict[str, StrategyFamilyProfile] = {
             "reversal_bias_weight": 0.0,
             "funding_penalty_weight": 0.0,
         },
+        starter_train_configs=(),
         attempt_role_specs=(
             {
                 "name": "exploit_baseline",
@@ -105,15 +107,50 @@ PROFILES: dict[str, StrategyFamilyProfile] = {
         ),
         default_train_config={
             "gross_target": 0.5,
-            "lookback_bars": 24,
-            "reversion_horizon_bars": 6,
-            "ibs_threshold": 0.25,
-            "top_k": 1,
+            "lookback_bars": 20,
+            "reversion_horizon_bars": 4,
+            "ibs_threshold": 0.32,
+            "top_k": 2,
             "reversion_strength_floor": 0.0,
             "volatility_floor": 0.0,
             "use_trend_filter": False,
-            "trend_lookback_bars": 48,
+            "trend_lookback_bars": 36,
         },
+        starter_train_configs=(
+            {
+                "gross_target": 0.5,
+                "lookback_bars": 20,
+                "reversion_horizon_bars": 4,
+                "ibs_threshold": 0.32,
+                "top_k": 2,
+                "reversion_strength_floor": 0.0,
+                "volatility_floor": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 36,
+            },
+            {
+                "gross_target": 0.5,
+                "lookback_bars": 24,
+                "reversion_horizon_bars": 6,
+                "ibs_threshold": 0.28,
+                "top_k": 2,
+                "reversion_strength_floor": 0.05,
+                "volatility_floor": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 36,
+            },
+            {
+                "gross_target": 0.6,
+                "lookback_bars": 24,
+                "reversion_horizon_bars": 6,
+                "ibs_threshold": 0.24,
+                "top_k": 2,
+                "reversion_strength_floor": 0.0,
+                "volatility_floor": 0.01,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 30,
+            },
+        ),
         attempt_role_specs=(
             {
                 "name": "exploit_baseline",
@@ -155,17 +192,55 @@ PROFILES: dict[str, StrategyFamilyProfile] = {
             "volatility_floor",
         ),
         default_train_config={
-            "gross_target": 0.5,
-            "fast_horizon_bars": 12,
-            "medium_horizon_bars": 36,
-            "slow_horizon_bars": 96,
-            "top_k": 1,
+            "gross_target": 0.6,
+            "fast_horizon_bars": 8,
+            "medium_horizon_bars": 24,
+            "slow_horizon_bars": 72,
+            "top_k": 2,
             "min_signal_strength": 0.0,
             "absolute_momentum_floor": 0.0,
             "relative_strength_weight": 0.6,
-            "use_absolute_filter": True,
+            "use_absolute_filter": False,
             "volatility_floor": 0.0,
         },
+        starter_train_configs=(
+            {
+                "gross_target": 0.6,
+                "fast_horizon_bars": 8,
+                "medium_horizon_bars": 24,
+                "slow_horizon_bars": 72,
+                "top_k": 2,
+                "min_signal_strength": 0.0,
+                "absolute_momentum_floor": 0.0,
+                "relative_strength_weight": 0.6,
+                "use_absolute_filter": False,
+                "volatility_floor": 0.0,
+            },
+            {
+                "gross_target": 0.6,
+                "fast_horizon_bars": 8,
+                "medium_horizon_bars": 32,
+                "slow_horizon_bars": 96,
+                "top_k": 2,
+                "min_signal_strength": 0.05,
+                "absolute_momentum_floor": 0.0,
+                "relative_strength_weight": 0.65,
+                "use_absolute_filter": True,
+                "volatility_floor": 0.0,
+            },
+            {
+                "gross_target": 0.5,
+                "fast_horizon_bars": 12,
+                "medium_horizon_bars": 36,
+                "slow_horizon_bars": 96,
+                "top_k": 2,
+                "min_signal_strength": 0.0,
+                "absolute_momentum_floor": 0.05,
+                "relative_strength_weight": 0.55,
+                "use_absolute_filter": True,
+                "volatility_floor": 0.0,
+            },
+        ),
         attempt_role_specs=(
             {
                 "name": "exploit_baseline",
@@ -206,16 +281,51 @@ PROFILES: dict[str, StrategyFamilyProfile] = {
             "trend_lookback_bars",
         ),
         default_train_config={
-            "gross_target": 0.5,
-            "channel_bars": 24,
-            "atr_lookback_bars": 14,
-            "atr_multiplier": 1.0,
+            "gross_target": 0.6,
+            "channel_bars": 18,
+            "atr_lookback_bars": 10,
+            "atr_multiplier": 0.75,
             "breakout_buffer": 0.0,
-            "top_k": 1,
+            "top_k": 2,
             "breakout_score_floor": 0.0,
             "use_trend_filter": False,
-            "trend_lookback_bars": 72,
+            "trend_lookback_bars": 48,
         },
+        starter_train_configs=(
+            {
+                "gross_target": 0.6,
+                "channel_bars": 18,
+                "atr_lookback_bars": 10,
+                "atr_multiplier": 0.75,
+                "breakout_buffer": 0.0,
+                "top_k": 2,
+                "breakout_score_floor": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 48,
+            },
+            {
+                "gross_target": 0.6,
+                "channel_bars": 24,
+                "atr_lookback_bars": 14,
+                "atr_multiplier": 0.9,
+                "breakout_buffer": 0.0,
+                "top_k": 2,
+                "breakout_score_floor": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 48,
+            },
+            {
+                "gross_target": 0.5,
+                "channel_bars": 24,
+                "atr_lookback_bars": 14,
+                "atr_multiplier": 1.0,
+                "breakout_buffer": 0.05,
+                "top_k": 2,
+                "breakout_score_floor": 0.1,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 48,
+            },
+        ),
         attempt_role_specs=(
             {
                 "name": "exploit_baseline",
@@ -298,6 +408,20 @@ def family_attempt_role_specs(strategy_family: str) -> tuple[dict[str, str], ...
 
 def family_prompt_directions(strategy_family: str) -> tuple[str, ...]:
     return get_strategy_family_profile(strategy_family).prompt_directions
+
+
+def family_starter_train_configs(strategy_family: str) -> tuple[dict[str, Any], ...]:
+    profile = get_strategy_family_profile(strategy_family)
+    seeds: list[dict[str, Any]] = []
+    seen: set[tuple[tuple[str, Any], ...]] = set()
+    for candidate in (profile.default_train_config, *profile.starter_train_configs):
+        normalized = normalize_train_config(candidate, strategy_family=strategy_family)
+        fingerprint = tuple(sorted(normalized.items()))
+        if fingerprint in seen:
+            continue
+        seen.add(fingerprint)
+        seeds.append(normalized)
+    return tuple(seeds)
 
 
 def family_template_constraints(strategy_family: str) -> tuple[str, ...]:
@@ -415,33 +539,43 @@ def deterministic_mutation_specs(
 ) -> list[dict[str, Any]]:
     profile_config = normalize_train_config(config, strategy_family=strategy_family)
     proposals: list[dict[str, Any]] = []
+    for index, starter in enumerate(family_starter_train_configs(strategy_family), start=1):
+        if starter != profile_config:
+            proposals.append(
+                {
+                    "label": f"starter-bank-{index}",
+                    "config_updates": {
+                        key: value for key, value in starter.items() if profile_config.get(key) != value
+                    },
+                }
+            )
     if strategy_family == FAMILY_MEAN_REVERSION:
         for key, values in (
-            ("lookback_bars", (16, 24, 36)),
-            ("reversion_horizon_bars", (3, 6, 9)),
-            ("ibs_threshold", (0.15, 0.25, 0.35)),
-            ("reversion_strength_floor", (0.0, 0.2, 0.5)),
-            ("volatility_floor", (0.0, 0.01, 0.02)),
-            ("top_k", (1, 2)),
+            ("lookback_bars", (16, 20, 24, 30)),
+            ("reversion_horizon_bars", (3, 4, 6, 8)),
+            ("ibs_threshold", (0.2, 0.28, 0.36)),
+            ("reversion_strength_floor", (0.0, 0.05, 0.15, 0.3)),
+            ("volatility_floor", (0.0, 0.005, 0.01)),
+            ("top_k", (1, 2, 3)),
         ):
             proposals.extend(_mutation_specs_for_values(profile_config, key, values))
         proposals.extend(
             _mutation_specs_for_values(profile_config, "use_trend_filter", (False, True))
         )
         proposals.extend(
-            _mutation_specs_for_values(profile_config, "trend_lookback_bars", (36, 48, 72))
+            _mutation_specs_for_values(profile_config, "trend_lookback_bars", (24, 36, 48, 60))
         )
         return proposals
     if strategy_family == FAMILY_EMA_TREND:
         for key, values in (
-            ("fast_horizon_bars", (8, 12, 16)),
-            ("medium_horizon_bars", (24, 36, 48)),
-            ("slow_horizon_bars", (72, 96, 144)),
-            ("top_k", (1, 2)),
-            ("min_signal_strength", (0.0, 0.1, 0.25)),
-            ("absolute_momentum_floor", (0.0, 0.1, 0.25)),
-            ("relative_strength_weight", (0.4, 0.6, 0.8)),
-            ("volatility_floor", (0.0, 0.01, 0.02)),
+            ("fast_horizon_bars", (8, 10, 12, 16)),
+            ("medium_horizon_bars", (24, 32, 36, 48)),
+            ("slow_horizon_bars", (72, 96, 120)),
+            ("top_k", (1, 2, 3)),
+            ("min_signal_strength", (0.0, 0.03, 0.08, 0.15)),
+            ("absolute_momentum_floor", (0.0, 0.03, 0.08, 0.15)),
+            ("relative_strength_weight", (0.45, 0.55, 0.65, 0.75)),
+            ("volatility_floor", (0.0, 0.005, 0.01)),
         ):
             proposals.extend(_mutation_specs_for_values(profile_config, key, values))
         proposals.extend(
@@ -450,19 +584,19 @@ def deterministic_mutation_specs(
         return proposals
     if strategy_family == FAMILY_VOLATILITY_BREAKOUT:
         for key, values in (
-            ("channel_bars", (12, 24, 36)),
-            ("atr_lookback_bars", (10, 14, 21)),
-            ("atr_multiplier", (0.75, 1.0, 1.5)),
-            ("breakout_buffer", (0.0, 0.25, 0.5)),
-            ("breakout_score_floor", (0.0, 0.2, 0.5)),
-            ("top_k", (1, 2)),
+            ("channel_bars", (16, 18, 24, 30)),
+            ("atr_lookback_bars", (10, 14, 18)),
+            ("atr_multiplier", (0.6, 0.75, 0.9, 1.1)),
+            ("breakout_buffer", (0.0, 0.05, 0.1, 0.15)),
+            ("breakout_score_floor", (0.0, 0.05, 0.1, 0.2)),
+            ("top_k", (1, 2, 3)),
         ):
             proposals.extend(_mutation_specs_for_values(profile_config, key, values))
         proposals.extend(
             _mutation_specs_for_values(profile_config, "use_trend_filter", (False, True))
         )
         proposals.extend(
-            _mutation_specs_for_values(profile_config, "trend_lookback_bars", (48, 72, 96))
+            _mutation_specs_for_values(profile_config, "trend_lookback_bars", (36, 48, 60, 72))
         )
         return proposals
     for key, values, label_key in (
@@ -523,22 +657,29 @@ def validate_train_candidate_semantics(
         if float(candidate.get("volatility_floor", 0.0)) > 0.05:
             return False, "likely_no_trade_volatility_floor"
         if (
-            float(candidate.get("ibs_threshold", 0.0)) <= 0.12
-            and float(candidate.get("reversion_strength_floor", 0.0)) >= 0.5
+            float(candidate.get("ibs_threshold", 0.0)) <= 0.18
+            and float(candidate.get("reversion_strength_floor", 0.0)) >= 0.2
         ):
             return False, "likely_no_trade_ibs_floor_stack"
         if (
             bool(candidate.get("use_trend_filter", False))
-            and int(candidate.get("trend_lookback_bars", 48)) >= 72
-            and float(candidate.get("reversion_strength_floor", 0.0)) >= 0.2
+            and int(candidate.get("trend_lookback_bars", 48)) >= 60
+            and float(candidate.get("reversion_strength_floor", 0.0)) >= 0.15
         ):
             return False, "likely_no_trade_reversion_trend_stack"
         if (
-            float(candidate.get("ibs_threshold", 0.0)) <= 0.15
-            and float(candidate.get("volatility_floor", 0.0)) >= 0.02
-            and int(candidate.get("reversion_horizon_bars", 0)) >= 9
+            float(candidate.get("ibs_threshold", 0.0)) <= 0.18
+            and float(candidate.get("volatility_floor", 0.0)) >= 0.01
+            and int(candidate.get("reversion_horizon_bars", 0)) >= 8
         ):
             return False, "likely_no_trade_reversion_threshold_stack"
+        if (
+            int(candidate.get("top_k", 1)) == 1
+            and bool(candidate.get("use_trend_filter", False))
+            and float(candidate.get("volatility_floor", 0.0)) >= 0.01
+            and float(candidate.get("reversion_strength_floor", 0.0)) >= 0.1
+        ):
+            return False, "likely_low_acceptance_reversion_stack"
         return True, ""
     if strategy_family == FAMILY_EMA_TREND:
         if not (
@@ -555,22 +696,29 @@ def validate_train_candidate_semantics(
             return False, "likely_no_trade_signal_threshold"
         if (
             bool(candidate.get("use_absolute_filter", False))
-            and float(candidate.get("absolute_momentum_floor", 0.0)) >= 0.25
-            and float(candidate.get("min_signal_strength", 0.0)) >= 0.25
+            and float(candidate.get("absolute_momentum_floor", 0.0)) >= 0.15
+            and float(candidate.get("min_signal_strength", 0.0)) >= 0.15
         ):
             return False, "likely_no_trade_confirmation_stack"
         if (
             int(candidate["fast_horizon_bars"]) >= 16
             and int(candidate["medium_horizon_bars"]) >= 48
             and int(candidate["slow_horizon_bars"]) >= 144
-            and float(candidate.get("min_signal_strength", 0.0)) > 0.1
+            and float(candidate.get("min_signal_strength", 0.0)) >= 0.08
         ):
             return False, "likely_no_trade_wide_horizon_stack"
         if (
-            float(candidate.get("volatility_floor", 0.0)) >= 0.02
-            and float(candidate.get("absolute_momentum_floor", 0.0)) >= 0.25
+            float(candidate.get("volatility_floor", 0.0)) >= 0.01
+            and float(candidate.get("absolute_momentum_floor", 0.0)) >= 0.15
         ):
             return False, "likely_no_trade_trend_filter_stack"
+        if (
+            int(candidate.get("top_k", 1)) == 1
+            and bool(candidate.get("use_absolute_filter", False))
+            and float(candidate.get("min_signal_strength", 0.0)) >= 0.08
+            and float(candidate.get("absolute_momentum_floor", 0.0)) >= 0.08
+        ):
+            return False, "likely_low_acceptance_dual_momentum_stack"
         return True, ""
     if strategy_family == FAMILY_VOLATILITY_BREAKOUT:
         if int(candidate["channel_bars"]) <= int(candidate["atr_lookback_bars"]):
@@ -582,17 +730,23 @@ def validate_train_candidate_semantics(
         if float(candidate.get("breakout_score_floor", 0.0)) > 2.5:
             return False, "likely_no_trade_breakout_score"
         if (
-            int(candidate["channel_bars"]) >= 36
-            and float(candidate.get("breakout_buffer", 0.0)) >= 0.25
-            and float(candidate.get("atr_multiplier", 0.0)) >= 1.5
+            int(candidate["channel_bars"]) >= 30
+            and float(candidate.get("breakout_buffer", 0.0)) >= 0.15
+            and float(candidate.get("atr_multiplier", 0.0)) >= 1.1
         ):
             return False, "likely_no_trade_breakout_threshold_stack"
         if (
             bool(candidate.get("use_trend_filter", False))
-            and int(candidate.get("trend_lookback_bars", 72)) >= 96
-            and float(candidate.get("breakout_buffer", 0.0)) >= 0.25
+            and int(candidate.get("trend_lookback_bars", 72)) >= 72
+            and float(candidate.get("breakout_buffer", 0.0)) >= 0.1
         ):
             return False, "likely_no_trade_breakout_trend_stack"
+        if (
+            int(candidate.get("top_k", 1)) == 1
+            and float(candidate.get("breakout_score_floor", 0.0)) >= 0.1
+            and float(candidate.get("breakout_buffer", 0.0)) >= 0.1
+        ):
+            return False, "likely_low_acceptance_breakout_stack"
         return True, ""
     if str(candidate["ranking_mode"]) not in {"raw_return", "risk_adjusted"}:
         return False, "invalid_ranking_mode"

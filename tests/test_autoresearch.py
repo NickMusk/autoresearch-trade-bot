@@ -10,6 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from autoresearch_trade_bot.autoresearch import (
+    _report_can_be_promoted,
     AutoresearchRunReport,
     DeterministicTrainMutator,
     FrozenResearchWindow,
@@ -111,6 +112,78 @@ class RecordingMaterializer:
 
 
 class AutoresearchTests(unittest.TestCase):
+    def test_report_can_be_promoted_rejects_weak_negative_candidate(self) -> None:
+        report = AutoresearchRunReport(
+            run_id="run-1",
+            recorded_at="2026-03-31T00:00:00Z",
+            campaign_id="campaign",
+            campaign_name="campaign",
+            strategy_name="candidate",
+            git_branch="main",
+            git_commit="abc123",
+            parent_commit="base123",
+            train_file="train.py",
+            train_sha1="sha1",
+            stage="full",
+            mutation_label="candidate",
+            baseline_score=-100.0,
+            delta_score=40.0,
+            research_score=-60.0,
+            acceptance_rate=0.05,
+            average_metrics={
+                "total_return": -0.18,
+                "sharpe": -1.2,
+                "max_drawdown": 0.31,
+                "average_turnover": 0.2,
+                "bars_processed": 1000,
+            },
+            worst_max_drawdown=0.31,
+            ready_for_paper=False,
+            gate_failures=["total_return_below_gate", "sharpe_below_gate", "acceptance_rate_below_gate"],
+            windows_passed=0,
+            total_windows=3,
+            window_reports=[],
+            runtime_seconds=1.0,
+            artifact_path="/tmp/report.json",
+        )
+        self.assertFalse(_report_can_be_promoted(report))
+
+    def test_report_can_be_promoted_allows_active_partial_improvement(self) -> None:
+        report = AutoresearchRunReport(
+            run_id="run-2",
+            recorded_at="2026-03-31T00:00:00Z",
+            campaign_id="campaign",
+            campaign_name="campaign",
+            strategy_name="candidate",
+            git_branch="main",
+            git_commit="abc123",
+            parent_commit="base123",
+            train_file="train.py",
+            train_sha1="sha1",
+            stage="full",
+            mutation_label="candidate",
+            baseline_score=-10.0,
+            delta_score=5.0,
+            research_score=-5.0,
+            acceptance_rate=0.25,
+            average_metrics={
+                "total_return": -0.01,
+                "sharpe": 0.1,
+                "max_drawdown": 0.18,
+                "average_turnover": 0.2,
+                "bars_processed": 1000,
+            },
+            worst_max_drawdown=0.18,
+            ready_for_paper=False,
+            gate_failures=["acceptance_rate_below_gate"],
+            windows_passed=1,
+            total_windows=3,
+            window_reports=[],
+            runtime_seconds=1.0,
+            artifact_path="/tmp/report.json",
+        )
+        self.assertTrue(_report_can_be_promoted(report))
+
     def test_prepare_campaign_writes_named_frozen_windows_and_active_pointer(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             temp_path = Path(tempdir)
@@ -565,7 +638,7 @@ class AutoresearchTests(unittest.TestCase):
                         else None
                     ),
                     research_score=score,
-                    acceptance_rate=0.0,
+                    acceptance_rate=0.25,
                     average_metrics={
                         "total_return": score,
                         "sharpe": score,
@@ -663,7 +736,7 @@ class AutoresearchTests(unittest.TestCase):
                     baseline_score=kwargs.get("baseline_score"),
                     delta_score=None,
                     research_score=score,
-                    acceptance_rate=0.0,
+                    acceptance_rate=0.25,
                     average_metrics={
                         "total_return": score,
                         "sharpe": score,

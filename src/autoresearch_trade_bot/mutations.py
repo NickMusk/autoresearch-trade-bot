@@ -32,6 +32,7 @@ from .strategy_families import (
     FAMILY_VOLATILITY_BREAKOUT,
     config_traits as family_config_traits,
     extract_strategy_family,
+    family_starter_train_configs,
     family_template_constraints,
     family_attempt_role_specs,
     family_mutation_bounds,
@@ -619,6 +620,14 @@ def build_llm_mutation_prompt(
             "Family template constraints:\n"
             + "\n".join(
                 f"- {item}" for item in family_template_constraints(context.strategy_family)
+            ),
+            "Curated starter neighborhood:\n"
+            + "\n".join(
+                f"- starter_{idx}={json.dumps(config, sort_keys=True)}"
+                for idx, config in enumerate(
+                    family_starter_train_configs(context.strategy_family),
+                    start=1,
+                )
             ),
             f"Research memory:\n{context.experiment_memory_summary}",
             "Recent raw results:\n" + recent_result_lines,

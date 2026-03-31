@@ -25,6 +25,8 @@ def make_fake_decision(
     *,
     decision: str = "discard_screen",
     score: float = -10.0,
+    candidate_acceptance_rate: float = 0.25,
+    baseline_acceptance_rate: float = 0.75,
     ready_for_paper: bool = False,
     baseline_ready_for_paper: bool = False,
     failure_reason: str = "",
@@ -61,6 +63,7 @@ def make_fake_decision(
         ready_for_paper=baseline_ready_for_paper,
         average_metrics=resolved_baseline_metrics,
         research_score=4.5,
+        acceptance_rate=baseline_acceptance_rate,
         gate_failures=(
             []
             if baseline_ready_for_paper
@@ -83,6 +86,7 @@ def make_fake_decision(
         ready_for_paper=ready_for_paper,
         average_metrics=resolved_candidate_metrics,
         research_score=score,
+        acceptance_rate=candidate_acceptance_rate,
         gate_failures=(
             []
             if ready_for_paper
@@ -973,6 +977,11 @@ class LLMAutoresearchWorkerTests(unittest.TestCase):
             self.assertEqual(snapshot.latest_kept_summary["strategy_name"], "configurable-momentum")
             self.assertEqual(snapshot.latest_kept_summary["baseline_strategy_name"], "baseline-train-head")
             self.assertEqual(snapshot.latest_kept_summary["score_delta"], 0.75)
+            self.assertEqual(snapshot.latest_decision["candidate_acceptance_rate"], 0.25)
+            self.assertEqual(
+                snapshot.latest_decision["candidate_average_metrics"]["total_return"],
+                -0.1,
+            )
             self.assertEqual(
                 snapshot.latest_kept_summary["config_diff"],
                 [

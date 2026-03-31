@@ -35,6 +35,7 @@ from autoresearch_trade_bot.strategy_families import (
     FAMILY_VOLATILITY_BREAKOUT,
     deterministic_mutation_specs,
     extract_strategy_family,
+    family_starter_train_configs,
     family_mutation_bounds,
     render_train_file as render_family_train_file,
 )
@@ -471,9 +472,11 @@ class MutationTests(unittest.TestCase):
         )
         _system_prompt, user_prompt = build_llm_mutation_prompt(context=context, max_mutations=1)
         self.assertIn("Family template constraints:", user_prompt)
+        self.assertIn("Curated starter neighborhood:", user_prompt)
         self.assertIn("Preserve the IBSReversionStrategy template", user_prompt)
         self.assertIn("reversion_horizon_bars", user_prompt)
         self.assertIn("Do not fall back to the generic configurable-momentum template", user_prompt)
+        self.assertIn("starter_1=", user_prompt)
 
     def test_build_mutation_context_uses_explicit_family_override(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
@@ -639,6 +642,8 @@ class MutationTests(unittest.TestCase):
             },
         )
         mean_reversion_keys = {next(iter(item["config_updates"])) for item in mean_reversion_specs}
+        mean_reversion_labels = {item["label"] for item in mean_reversion_specs}
+        self.assertTrue(any(label.startswith("starter-bank-") for label in mean_reversion_labels))
         self.assertIn("ibs_threshold", mean_reversion_keys)
         self.assertIn("reversion_strength_floor", mean_reversion_keys)
         self.assertIn("volatility_floor", mean_reversion_keys)
@@ -660,6 +665,8 @@ class MutationTests(unittest.TestCase):
             },
         )
         ema_keys = {next(iter(item["config_updates"])) for item in ema_specs}
+        ema_labels = {item["label"] for item in ema_specs}
+        self.assertTrue(any(label.startswith("starter-bank-") for label in ema_labels))
         self.assertIn("absolute_momentum_floor", ema_keys)
         self.assertIn("relative_strength_weight", ema_keys)
         self.assertIn("volatility_floor", ema_keys)
@@ -679,8 +686,26 @@ class MutationTests(unittest.TestCase):
             },
         )
         breakout_keys = {next(iter(item["config_updates"])) for item in breakout_specs}
+        breakout_labels = {item["label"] for item in breakout_specs}
+        self.assertTrue(any(label.startswith("starter-bank-") for label in breakout_labels))
         self.assertIn("breakout_score_floor", breakout_keys)
         self.assertIn("trend_lookback_bars", breakout_keys)
+
+    def test_family_starter_train_configs_include_active_seeds(self) -> None:
+        mean_reversion_seeds = family_starter_train_configs(FAMILY_MEAN_REVERSION)
+        self.assertGreaterEqual(len(mean_reversion_seeds), 3)
+        self.assertTrue(any(seed["top_k"] == 2 for seed in mean_reversion_seeds))
+        self.assertTrue(any(not seed["use_trend_filter"] for seed in mean_reversion_seeds))
+
+        ema_seeds = family_starter_train_configs(FAMILY_EMA_TREND)
+        self.assertGreaterEqual(len(ema_seeds), 3)
+        self.assertTrue(any(seed["top_k"] == 2 for seed in ema_seeds))
+        self.assertTrue(any(not seed["use_absolute_filter"] for seed in ema_seeds))
+
+        breakout_seeds = family_starter_train_configs(FAMILY_VOLATILITY_BREAKOUT)
+        self.assertGreaterEqual(len(breakout_seeds), 3)
+        self.assertTrue(any(seed["top_k"] == 2 for seed in breakout_seeds))
+        self.assertTrue(any(seed["atr_multiplier"] <= 0.9 for seed in breakout_seeds))
 
     def test_validate_train_candidate_semantics_rejects_family_specific_no_trade_stacks(self) -> None:
         current_ema = render_family_train_file(
@@ -1015,7 +1040,7 @@ class MutationTests(unittest.TestCase):
                     baseline_score=kwargs.get("baseline_score"),
                     delta_score=None,
                     research_score=score,
-                    acceptance_rate=0.0,
+                    acceptance_rate=0.25,
                     average_metrics={
                         "total_return": score,
                         "sharpe": score,
@@ -1170,7 +1195,7 @@ class MutationTests(unittest.TestCase):
                     baseline_score=kwargs.get("baseline_score"),
                     delta_score=None,
                     research_score=score,
-                    acceptance_rate=0.0,
+                    acceptance_rate=0.25,
                     average_metrics={
                         "total_return": score,
                         "sharpe": score,
@@ -1302,7 +1327,7 @@ class MutationTests(unittest.TestCase):
                     baseline_score=kwargs.get("baseline_score"),
                     delta_score=None,
                     research_score=score,
-                    acceptance_rate=0.0,
+                    acceptance_rate=0.25,
                     average_metrics={
                         "total_return": score,
                         "sharpe": score,

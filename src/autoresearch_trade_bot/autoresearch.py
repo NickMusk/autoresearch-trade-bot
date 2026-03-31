@@ -264,7 +264,23 @@ def slugify(value: str) -> str:
 
 
 def _report_can_be_promoted(report: AutoresearchRunReport) -> bool:
-    return "no_trades_executed" not in report.gate_failures
+    failures = set(report.gate_failures)
+    if "no_trades_executed" in failures:
+        return False
+    if "drawdown_above_gate" in failures:
+        return False
+    if report.acceptance_rate < 0.10:
+        return False
+    if {"total_return_below_gate", "sharpe_below_gate"}.issubset(failures):
+        return False
+    average_metrics = report.average_metrics
+    if float(average_metrics.get("total_return", 0.0)) <= -0.05:
+        return False
+    if float(average_metrics.get("sharpe", 0.0)) <= -0.5:
+        return False
+    if float(average_metrics.get("max_drawdown", 0.0)) > 0.35:
+        return False
+    return True
 
 
 def diff_train_configs(
