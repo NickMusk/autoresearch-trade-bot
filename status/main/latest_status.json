@@ -1,11 +1,9 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker active",
+  "phase": "LLM autoresearch worker transient error",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Research champion still fails paper gate: sharpe_below_gate.",
-    "Research champion passes paper metrics, but it still has not cleared the fast holdout screen.",
-    "No rollout champion has cleared holdout validation yet."
+    "validate_train_candidate_semantics() got an unexpected keyword argument 'strategy_family'"
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -26,11 +24,9 @@
   "current_best_ready_for_paper": true,
   "latest_cycle_rollout_ready": false,
   "next_milestones": [
-    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
-    "Accumulate multiple kept improvements in the research branch.",
-    "Promote only candidates that satisfy the hard rollout gates."
+    "Wait for the worker to recover from the latest transient API, repo, or campaign failure."
   ],
-  "loop_state": "searching",
+  "loop_state": "transient_error",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260330t085500z",
   "latest_cycle_completed_at": "2026-03-31T04:27:00.353783+00:00",
   "last_processed_bar": "2026-03-31T04:20:00+00:00",
@@ -38,7 +34,7 @@
   "evaluation_acceptance_rate": 0.3333333333333333,
   "generation_validity_rate": 1.0,
   "mutation_win_rate": 0.3333333333333333,
-  "consecutive_failures": 0,
+  "consecutive_failures": 1,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
   "current_best_validation_pass_rate": 0.0,
