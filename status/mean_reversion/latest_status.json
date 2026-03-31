@@ -37,8 +37,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t042500z",
-  "latest_cycle_completed_at": "2026-03-31T07:32:00.282576+00:00",
-  "last_processed_bar": "2026-03-31T07:30:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T07:36:35.871755+00:00",
+  "last_processed_bar": "2026-03-31T07:35:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -84,7 +84,7 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-5986c1ea",
+      "mutation_label": "llm-215e07e9",
       "baseline_score": -7.642887107387666,
       "candidate_score": 0.0,
       "candidate_acceptance_rate": 0.0,
@@ -214,7 +214,7 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-5986c1ea",
+    "mutation_label": "llm-215e07e9",
     "baseline_score": -7.642887107387666,
     "candidate_score": 0.0,
     "candidate_acceptance_rate": 0.0,
@@ -237,7 +237,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ibs-reversion-refined-1",
+    "strategy_name": "ibs-reversion-short-horizon-v2",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -250,12 +250,12 @@
     },
     "train_config": {
       "gross_target": 0.5,
-      "lookback_bars": 20,
+      "lookback_bars": 24,
       "reversion_horizon_bars": 4,
       "ibs_threshold": 0.28,
-      "top_k": 1,
+      "top_k": 2,
       "reversion_strength_floor": 0.03,
-      "volatility_floor": 0.01,
+      "volatility_floor": 0.005,
       "use_trend_filter": false,
       "trend_lookback_bars": 36
     },
