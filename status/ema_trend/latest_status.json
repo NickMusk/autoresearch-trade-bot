@@ -1,15 +1,9 @@
 {
   "mission": "Continuously mutate train.py with an LLM against a frozen crypto campaign and keep only score improvements.",
-  "phase": "LLM autoresearch worker active",
+  "phase": "LLM autoresearch worker transient error",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate passed screen but underperformed on the full campaign.",
-    "Latest kept candidate still fails gate: total_return_below_gate.",
-    "Latest kept candidate still fails gate: sharpe_below_gate.",
-    "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
-    "Research champion still fails paper gate: total_return_below_gate.",
-    "Research champion still fails paper gate: sharpe_below_gate.",
-    "No rollout champion has cleared holdout validation yet."
+    "Command '['git', 'pull', '--ff-only', 'origin', 'main']' returned non-zero exit status 1."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
   "promotion_gate": {
@@ -30,11 +24,9 @@
   "current_best_ready_for_paper": false,
   "latest_cycle_rollout_ready": false,
   "next_milestones": [
-    "Keep finding an LLM-generated candidate that survives full campaign evaluation.",
-    "Accumulate multiple kept improvements in the research branch.",
-    "Promote only candidates that satisfy the hard rollout gates."
+    "Wait for the worker to recover from the latest transient API, repo, or campaign failure."
   ],
-  "loop_state": "searching",
+  "loop_state": "transient_error",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t045500z",
   "latest_cycle_completed_at": "2026-03-31T15:39:13.507934+00:00",
   "last_processed_bar": "2026-03-31T15:35:00+00:00",
@@ -42,7 +34,7 @@
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.8333333333333334,
   "mutation_win_rate": 0.0,
-  "consecutive_failures": 0,
+  "consecutive_failures": 1,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
   "current_best_validation_pass_rate": 0.0,
