@@ -3,7 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate underperformed the baseline on the screen window.",
+    "Latest LLM candidate passed screen but underperformed on the full campaign.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t090000z",
-  "latest_cycle_completed_at": "2026-03-31T19:41:38.339140+00:00",
-  "last_processed_bar": "2026-03-31T19:35:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T19:56:43.090360+00:00",
+  "last_processed_bar": "2026-03-31T19:50:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -81,19 +81,19 @@
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-binance-usdm-futures-5m-20260331t090000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_screen",
-      "stage": "screen",
-      "mutation_label": "llm-e9cb4c3a",
+      "decision": "discard_full",
+      "stage": "full",
+      "mutation_label": "llm-14416328",
       "baseline_score": -32.92768654482868,
-      "candidate_score": -37.69123433709474,
+      "candidate_score": -28.140606721135995,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.13101731359613134,
-        "sharpe": -36.48204031586395,
-        "max_drawdown": 0.13101731359613134,
-        "average_turnover": 0.030038198865609444,
+        "total_return": -0.040675561664969884,
+        "sharpe": -27.76538208923264,
+        "max_drawdown": 0.040675561664969884,
+        "average_turnover": 0.009144576918624841,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 489
+        "nonzero_turnover_steps": 154
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -120,7 +120,7 @@
   },
   "leaderboard": [
     {
-      "strategy_name": "llm-ff0d3f40",
+      "strategy_name": "llm-14416328",
       "params": {
         "decision": "screen_pass",
         "provider_name": "llm",
@@ -128,17 +128,17 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -22.340848,
+      "score": -28.140607,
       "metrics": {
-        "total_return": -0.022516,
-        "sharpe": -22.133227,
-        "max_drawdown": 0.022516,
-        "average_turnover": 0.004977
+        "total_return": -0.040676,
+        "sharpe": -27.765382,
+        "max_drawdown": 0.040676,
+        "average_turnover": 0.009145
       },
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-ff0d3f40",
+      "strategy_name": "llm-14416328",
       "params": {
         "decision": "discard_full",
         "provider_name": "llm",
@@ -146,12 +146,12 @@
         "stage": "full"
       },
       "accepted": false,
-      "score": -22.340848,
+      "score": -28.140607,
       "metrics": {
-        "total_return": -0.022516,
-        "sharpe": -22.133227,
-        "max_drawdown": 0.022516,
-        "average_turnover": 0.004977
+        "total_return": -0.040676,
+        "sharpe": -27.765382,
+        "max_drawdown": 0.040676,
+        "average_turnover": 0.009145
       },
       "rejection_reasons": []
     },
@@ -211,19 +211,19 @@
     }
   ],
   "latest_decision": {
-    "decision": "discard_screen",
-    "stage": "screen",
-    "mutation_label": "llm-e9cb4c3a",
+    "decision": "discard_full",
+    "stage": "full",
+    "mutation_label": "llm-14416328",
     "baseline_score": -32.92768654482868,
-    "candidate_score": -37.69123433709474,
+    "candidate_score": -28.140606721135995,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.13101731359613134,
-      "sharpe": -36.48204031586395,
-      "max_drawdown": 0.13101731359613134,
-      "average_turnover": 0.030038198865609444,
+      "total_return": -0.040675561664969884,
+      "sharpe": -27.76538208923264,
+      "max_drawdown": 0.040675561664969884,
+      "average_turnover": 0.009144576918624841,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 489
+      "nonzero_turnover_steps": 154
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -237,29 +237,29 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "configurable-momentum",
-    "research_score": -37.69123433709474,
+    "research_score": -28.140606721135995,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.13101731359613134,
-      "sharpe": -36.48204031586395,
-      "max_drawdown": 0.13101731359613134,
-      "average_turnover": 0.030038198865609444,
+      "total_return": -0.040675561664969884,
+      "sharpe": -27.76538208923264,
+      "max_drawdown": 0.040675561664969884,
+      "average_turnover": 0.009144576918624841,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 489
+      "nonzero_turnover_steps": 154
     },
     "train_config": {
       "gross_target": 0.5,
       "lookback_bars": 24,
-      "min_signal_strength": 0.03,
+      "min_signal_strength": 0.025,
       "ranking_mode": "risk_adjusted",
       "regime_lookback_bars": 36,
       "regime_threshold": 0.015,
       "top_k": 2,
       "use_regime_filter": true,
-      "min_cross_sectional_spread": 0.07,
+      "min_cross_sectional_spread": 0.05,
       "volatility_floor": 0.01,
       "reversal_bias_weight": 0.25,
-      "funding_penalty_weight": 0.08
+      "funding_penalty_weight": 0.1
     },
     "gate_failures": [
       "total_return_below_gate",
