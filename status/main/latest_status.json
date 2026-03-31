@@ -3,7 +3,7 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
-    "Latest LLM candidate passed screen but underperformed on the full campaign.",
+    "Latest LLM candidate underperformed the baseline on the screen window.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t090000z",
-  "latest_cycle_completed_at": "2026-03-31T14:32:12.273015+00:00",
-  "last_processed_bar": "2026-03-31T14:25:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T14:46:32.406551+00:00",
+  "last_processed_bar": "2026-03-31T14:40:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.9166666666666666,
@@ -81,19 +81,19 @@
     "campaign_path": "/var/data/autoresearch/llm/campaigns/render-binance-usdm-futures-5m-20260331t090000z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "discard_full",
-      "stage": "full",
-      "mutation_label": "llm-ef504796",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-ce7e1423",
       "baseline_score": -32.92768654482868,
-      "candidate_score": -22.34795129350365,
+      "candidate_score": -34.133484157722386,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.02372854334376273,
-        "sharpe": -22.128143679946422,
-        "max_drawdown": 0.02372854334376273,
-        "average_turnover": 0.006250723463363815,
+        "total_return": -0.1246918121137367,
+        "sharpe": -32.98284020776809,
+        "max_drawdown": 0.1246918121137367,
+        "average_turnover": 0.02841764093066327,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 104
+        "nonzero_turnover_steps": 464
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -211,19 +211,19 @@
     }
   ],
   "latest_decision": {
-    "decision": "discard_full",
-    "stage": "full",
-    "mutation_label": "llm-ef504796",
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-ce7e1423",
     "baseline_score": -32.92768654482868,
-    "candidate_score": -22.34795129350365,
+    "candidate_score": -34.133484157722386,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.02372854334376273,
-      "sharpe": -22.128143679946422,
-      "max_drawdown": 0.02372854334376273,
-      "average_turnover": 0.006250723463363815,
+      "total_return": -0.1246918121137367,
+      "sharpe": -32.98284020776809,
+      "max_drawdown": 0.1246918121137367,
+      "average_turnover": 0.02841764093066327,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 104
+      "nonzero_turnover_steps": 464
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -237,15 +237,15 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "configurable-momentum",
-    "research_score": -22.34795129350365,
+    "research_score": -34.133484157722386,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.02372854334376273,
-      "sharpe": -22.128143679946422,
-      "max_drawdown": 0.02372854334376273,
-      "average_turnover": 0.006250723463363815,
+      "total_return": -0.1246918121137367,
+      "sharpe": -32.98284020776809,
+      "max_drawdown": 0.1246918121137367,
+      "average_turnover": 0.02841764093066327,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 104
+      "nonzero_turnover_steps": 464
     },
     "train_config": {
       "gross_target": 0.5,
@@ -256,9 +256,9 @@
       "regime_threshold": 0.015,
       "top_k": 2,
       "use_regime_filter": true,
-      "min_cross_sectional_spread": 0.05,
+      "min_cross_sectional_spread": 0.06,
       "volatility_floor": 0.005,
-      "reversal_bias_weight": 0.35,
+      "reversal_bias_weight": 0.25,
       "funding_penalty_weight": 0.1
     },
     "gate_failures": [
