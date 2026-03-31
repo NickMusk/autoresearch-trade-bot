@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t045500z",
-  "latest_cycle_completed_at": "2026-03-31T18:40:53.619512+00:00",
-  "last_processed_bar": "2026-03-31T18:35:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T18:46:50.875657+00:00",
+  "last_processed_bar": "2026-03-31T18:40:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.9166666666666666,
@@ -83,17 +83,17 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-c3e7c726",
+      "mutation_label": "llm-fa8d9d38",
       "baseline_score": -45.5098805984557,
-      "candidate_score": -44.00295442216185,
+      "candidate_score": -41.353716355659515,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.07199886223481688,
-        "sharpe": -43.338254551489655,
-        "max_drawdown": 0.07220601056128029,
-        "average_turnover": 0.015881517252990397,
+        "total_return": -0.06376067054608836,
+        "sharpe": -40.76412919200994,
+        "max_drawdown": 0.0640848888976897,
+        "average_turnover": 0.014444255328377639,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 281
+        "nonzero_turnover_steps": 254
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -119,24 +119,6 @@
     "rollout_champion_strategy_name": ""
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-e34d8539",
-      "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": -8.304881,
-      "metrics": {
-        "total_return": -0.001893,
-        "sharpe": -8.287425,
-        "max_drawdown": 0.001893,
-        "average_turnover": 0.000417
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-e34d8539",
       "params": {
@@ -208,22 +190,40 @@
         "average_turnover": 0.011069
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-eb5fbda7",
+      "params": {
+        "decision": "discard_full",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": false,
+      "score": -35.218687,
+      "metrics": {
+        "total_return": -0.04804,
+        "sharpe": -34.772799,
+        "max_drawdown": 0.048654,
+        "average_turnover": 0.011069
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-c3e7c726",
+    "mutation_label": "llm-fa8d9d38",
     "baseline_score": -45.5098805984557,
-    "candidate_score": -44.00295442216185,
+    "candidate_score": -41.353716355659515,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.07199886223481688,
-      "sharpe": -43.338254551489655,
-      "max_drawdown": 0.07220601056128029,
-      "average_turnover": 0.015881517252990397,
+      "total_return": -0.06376067054608836,
+      "sharpe": -40.76412919200994,
+      "max_drawdown": 0.0640848888976897,
+      "average_turnover": 0.014444255328377639,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 281
+      "nonzero_turnover_steps": 254
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -237,15 +237,15 @@
   },
   "latest_candidate_summary": {
     "strategy_name": "dual-momentum-timeseries",
-    "research_score": -44.00295442216185,
+    "research_score": -41.353716355659515,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.07199886223481688,
-      "sharpe": -43.338254551489655,
-      "max_drawdown": 0.07220601056128029,
-      "average_turnover": 0.015881517252990397,
+      "total_return": -0.06376067054608836,
+      "sharpe": -40.76412919200994,
+      "max_drawdown": 0.0640848888976897,
+      "average_turnover": 0.014444255328377639,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 281
+      "nonzero_turnover_steps": 254
     },
     "train_config": {
       "gross_target": 0.6,
