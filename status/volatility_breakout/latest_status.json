@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t050000z",
-  "latest_cycle_completed_at": "2026-03-31T15:53:45.092024+00:00",
-  "last_processed_bar": "2026-03-31T15:50:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T16:01:43.299566+00:00",
+  "last_processed_bar": "2026-03-31T16:00:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -83,7 +83,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-d908c0a0",
+      "mutation_label": "llm-0c232139",
       "baseline_score": -1.546240533505294,
       "candidate_score": -3.9976727067673044,
       "candidate_acceptance_rate": 0.0,
@@ -119,24 +119,6 @@
     "rollout_champion_strategy_name": ""
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-fe568a51",
-      "params": {
-        "decision": "screen_pass",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-fe568a51",
       "params": {
@@ -208,12 +190,30 @@
         "average_turnover": 0.0
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-868d165a",
+      "params": {
+        "decision": "discard_full",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "full"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-d908c0a0",
+    "mutation_label": "llm-0c232139",
     "baseline_score": -1.546240533505294,
     "candidate_score": -3.9976727067673044,
     "candidate_acceptance_rate": 0.0,
@@ -236,7 +236,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "donchian-atr-breakout-voladj",
+    "strategy_name": "donchian-atr-breakout-conservative",
     "research_score": -3.9976727067673044,
     "ready_for_paper": false,
     "average_metrics": {
