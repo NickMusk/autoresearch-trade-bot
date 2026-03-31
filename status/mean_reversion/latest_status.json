@@ -3,12 +3,12 @@
   "phase": "LLM autoresearch worker active",
   "research_rollout_ready": false,
   "research_blockers": [
+    "Latest LLM candidate underperformed the baseline on the screen window.",
     "Latest kept candidate still fails gate: total_return_below_gate.",
     "Latest kept candidate still fails gate: sharpe_below_gate.",
     "Latest kept candidate still fails gate: acceptance_rate_below_gate.",
     "Research champion still fails paper gate: total_return_below_gate.",
     "Research champion still fails paper gate: sharpe_below_gate.",
-    "Research champion still fails paper gate: drawdown_above_gate.",
     "No rollout champion has cleared holdout validation yet."
   ],
   "baseline_strategy": "Karpathy-style single-file strategy mutation on train.py using frozen historical campaigns.",
@@ -19,12 +19,12 @@
     "min_acceptance_rate": 0.6
   },
   "baseline_metrics": {
-    "total_return": -0.6084,
-    "sharpe": -180.5137,
-    "max_drawdown": 0.6087,
-    "average_turnover": 0.2249,
+    "total_return": -0.004,
+    "sharpe": -7.6016,
+    "max_drawdown": 0.0051,
+    "average_turnover": 0.001,
     "bars_processed": 8639,
-    "score": -186.2154
+    "score": -7.6429
   },
   "accepted_for_paper": false,
   "current_best_ready_for_paper": false,
@@ -36,12 +36,12 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t042500z",
-  "latest_cycle_completed_at": "2026-03-31T05:09:19.506294+00:00",
-  "last_processed_bar": "2026-03-31T05:05:00+00:00",
-  "recent_acceptance_rate": 1.0,
-  "evaluation_acceptance_rate": 1.0,
-  "generation_validity_rate": 0.8,
-  "mutation_win_rate": 1.0,
+  "latest_cycle_completed_at": "2026-03-31T05:13:50.401920+00:00",
+  "last_processed_bar": "2026-03-31T05:10:00+00:00",
+  "recent_acceptance_rate": 0.8,
+  "evaluation_acceptance_rate": 0.8,
+  "generation_validity_rate": 0.8333333333333334,
+  "mutation_win_rate": 0.8,
   "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
   "current_best_fast_holdout_passed": false,
@@ -81,12 +81,12 @@
     "campaign_path": "/var/data/autoresearch/mean_reversion_v2/campaigns/render-binance-usdm-futures-5m-20260331t042500z.json",
     "campaign_refreshed_this_cycle": false,
     "latest_decision": {
-      "decision": "keep",
-      "stage": "full",
-      "mutation_label": "llm-2206cc60",
-      "baseline_score": -186.2153793342043,
-      "candidate_score": -7.642887107387666,
-      "kept_commit": "606c42b148b3ddabc463adf172c6ed69baaec78d",
+      "decision": "discard_screen",
+      "stage": "screen",
+      "mutation_label": "llm-ac465270",
+      "baseline_score": -7.642887107387666,
+      "candidate_score": -20.483265323661797,
+      "kept_commit": null,
       "failure_reason": "",
       "provider_name": "llm",
       "model_name": "gpt-5-mini-2025-08-07",
@@ -97,7 +97,7 @@
       ]
     },
     "baseline_strategy_name": "ibs-reversion-short-horizon",
-    "baseline_score": -186.2153793342043,
+    "baseline_score": -7.642887107387666,
     "model_name": "gpt-5-mini-2025-08-07",
     "provider_name": "llm",
     "current_best_ready_for_paper": false,
@@ -145,15 +145,33 @@
         "average_turnover": 0.001042
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-ac465270",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": -20.483265,
+      "metrics": {
+        "total_return": -0.017122,
+        "sharpe": -20.325923,
+        "max_drawdown": 0.017122,
+        "average_turnover": 0.003241
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
-    "decision": "keep",
-    "stage": "full",
-    "mutation_label": "llm-2206cc60",
-    "baseline_score": -186.2153793342043,
-    "candidate_score": -7.642887107387666,
-    "kept_commit": "606c42b148b3ddabc463adf172c6ed69baaec78d",
+    "decision": "discard_screen",
+    "stage": "screen",
+    "mutation_label": "llm-ac465270",
+    "baseline_score": -7.642887107387666,
+    "candidate_score": -20.483265323661797,
+    "kept_commit": null,
     "failure_reason": "",
     "provider_name": "llm",
     "model_name": "gpt-5-mini-2025-08-07",
@@ -164,27 +182,27 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ibs-reversion-short-horizon",
-    "research_score": -7.642887107387666,
+    "strategy_name": "ibs-reversion-short-horizon-v2",
+    "research_score": -20.483265323661797,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.003989140135479574,
-      "sharpe": -7.6015772714849295,
-      "max_drawdown": 0.00508058699536118,
-      "average_turnover": 0.0010417872438939692,
+      "total_return": -0.017122315954906542,
+      "sharpe": -20.32592336419775,
+      "max_drawdown": 0.017122315954906542,
+      "average_turnover": 0.003241115869892349,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 18
+      "nonzero_turnover_steps": 56
     },
     "train_config": {
       "gross_target": 0.5,
       "lookback_bars": 24,
       "reversion_horizon_bars": 6,
-      "ibs_threshold": 0.2,
+      "ibs_threshold": 0.18,
       "top_k": 1,
-      "reversion_strength_floor": 0.06,
-      "volatility_floor": 0.01,
-      "use_trend_filter": false,
-      "trend_lookback_bars": 48
+      "reversion_strength_floor": 0.1,
+      "volatility_floor": 0.02,
+      "use_trend_filter": true,
+      "trend_lookback_bars": 30
     },
     "gate_failures": [
       "total_return_below_gate",
@@ -196,26 +214,5 @@
     "failure_reason": ""
   },
   "current_best_strategy_name": "ibs-reversion-short-horizon",
-  "latest_kept_summary": {
-    "strategy_name": "ibs-reversion-short-horizon",
-    "baseline_strategy_name": "ibs-reversion-short-horizon",
-    "score_delta": 178.572492,
-    "config_diff": [
-      {
-        "key": "ibs_threshold",
-        "before": 0.25,
-        "after": 0.2
-      },
-      {
-        "key": "reversion_strength_floor",
-        "before": 0.0,
-        "after": 0.06
-      },
-      {
-        "key": "volatility_floor",
-        "before": 0.0,
-        "after": 0.01
-      }
-    ]
-  }
+  "latest_kept_summary": {}
 }
