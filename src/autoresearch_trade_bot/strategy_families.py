@@ -23,6 +23,8 @@ class StrategyFamilyProfile:
     family_id: str
     display_name: str
     strategy_name: str
+    strategy_class_name: str
+    required_config_keys: tuple[str, ...]
     default_train_config: dict[str, Any]
     attempt_role_specs: tuple[dict[str, str], ...]
     prompt_directions: tuple[str, ...]
@@ -33,6 +35,21 @@ PROFILES: dict[str, StrategyFamilyProfile] = {
         family_id=FAMILY_MOMENTUM,
         display_name="Cross-Sectional Momentum",
         strategy_name="configurable-momentum",
+        strategy_class_name="ConfigurableMomentumStrategy",
+        required_config_keys=(
+            "lookback_bars",
+            "top_k",
+            "gross_target",
+            "ranking_mode",
+            "use_regime_filter",
+            "regime_lookback_bars",
+            "regime_threshold",
+            "min_signal_strength",
+            "min_cross_sectional_spread",
+            "volatility_floor",
+            "reversal_bias_weight",
+            "funding_penalty_weight",
+        ),
         default_train_config={
             "gross_target": 0.5,
             "lookback_bars": 24,
@@ -74,6 +91,18 @@ PROFILES: dict[str, StrategyFamilyProfile] = {
         family_id=FAMILY_MEAN_REVERSION,
         display_name="IBS Reversion",
         strategy_name="ibs-reversion-short-horizon",
+        strategy_class_name="IBSReversionStrategy",
+        required_config_keys=(
+            "lookback_bars",
+            "reversion_horizon_bars",
+            "ibs_threshold",
+            "top_k",
+            "gross_target",
+            "reversion_strength_floor",
+            "volatility_floor",
+            "use_trend_filter",
+            "trend_lookback_bars",
+        ),
         default_train_config={
             "gross_target": 0.5,
             "lookback_bars": 24,
@@ -112,6 +141,19 @@ PROFILES: dict[str, StrategyFamilyProfile] = {
         family_id=FAMILY_EMA_TREND,
         display_name="Dual Momentum",
         strategy_name="dual-momentum-timeseries",
+        strategy_class_name="DualMomentumStrategy",
+        required_config_keys=(
+            "gross_target",
+            "fast_horizon_bars",
+            "medium_horizon_bars",
+            "slow_horizon_bars",
+            "top_k",
+            "min_signal_strength",
+            "absolute_momentum_floor",
+            "relative_strength_weight",
+            "use_absolute_filter",
+            "volatility_floor",
+        ),
         default_train_config={
             "gross_target": 0.5,
             "fast_horizon_bars": 12,
@@ -151,6 +193,18 @@ PROFILES: dict[str, StrategyFamilyProfile] = {
         family_id=FAMILY_VOLATILITY_BREAKOUT,
         display_name="Donchian ATR Breakout",
         strategy_name="donchian-atr-breakout-trend",
+        strategy_class_name="DonchianATRBreakoutStrategy",
+        required_config_keys=(
+            "gross_target",
+            "channel_bars",
+            "atr_lookback_bars",
+            "atr_multiplier",
+            "breakout_buffer",
+            "top_k",
+            "breakout_score_floor",
+            "use_trend_filter",
+            "trend_lookback_bars",
+        ),
         default_train_config={
             "gross_target": 0.5,
             "channel_bars": 24,
@@ -244,6 +298,24 @@ def family_attempt_role_specs(strategy_family: str) -> tuple[dict[str, str], ...
 
 def family_prompt_directions(strategy_family: str) -> tuple[str, ...]:
     return get_strategy_family_profile(strategy_family).prompt_directions
+
+
+def family_template_constraints(strategy_family: str) -> tuple[str, ...]:
+    profile = get_strategy_family_profile(strategy_family)
+    if strategy_family == FAMILY_MOMENTUM:
+        return (
+            f"Preserve the {profile.strategy_class_name} template and keep build_strategy returning {profile.strategy_class_name}.",
+            "Keep the momentum family config surface explicit; do not replace TRAIN_CONFIG with a different family's keys.",
+        )
+    return (
+        f"Preserve the {profile.strategy_class_name} template and keep build_strategy returning {profile.strategy_class_name}.",
+        (
+            "Keep the candidate inside the family-specific TRAIN_CONFIG surface with keys: "
+            + ", ".join(profile.required_config_keys)
+            + "."
+        ),
+        "Do not fall back to the generic configurable-momentum template in this family branch.",
+    )
 
 
 def family_mutation_bounds(
@@ -411,10 +483,18 @@ def deterministic_mutation_specs(
 def validate_train_candidate_semantics(
     strategy_family: str,
     *,
+    candidate_text: str | None = None,
     candidate_config: Mapping[str, Any],
     current_config: Mapping[str, Any],
     symbol_count: int,
 ) -> tuple[bool, str]:
+    if candidate_text is not None:
+        template_ok, template_failure = validate_family_template_integrity(
+            candidate_text,
+            strategy_family=strategy_family,
+        )
+        if not template_ok:
+            return False, template_failure
     candidate = normalize_train_config(candidate_config, strategy_family=strategy_family)
     current = normalize_train_config(current_config, strategy_family=strategy_family)
     bounds = family_mutation_bounds(strategy_family, symbol_count=symbol_count)
@@ -530,6 +610,45 @@ def validate_train_candidate_semantics(
     return True, ""
 
 
+def validate_family_template_integrity(
+    train_text: str,
+    *,
+    strategy_family: str,
+) -> tuple[bool, str]:
+    profile = get_strategy_family_profile(strategy_family)
+    try:
+        tree = ast.parse(train_text)
+    except SyntaxError:
+        return False, "invalid_python_syntax"
+    raw_config = _extract_raw_train_config(train_text)
+    missing_keys = [key for key in profile.required_config_keys if key not in raw_config]
+    if missing_keys:
+        return False, f"missing_family_config_keys:{','.join(sorted(missing_keys))}"
+    class_names = {
+        node.name
+        for node in tree.body
+        if isinstance(node, ast.ClassDef)
+    }
+    if profile.strategy_class_name not in class_names:
+        return False, f"missing_family_strategy_class:{profile.strategy_class_name}"
+    build_strategy = next(
+        (
+            node
+            for node in tree.body
+            if isinstance(node, ast.FunctionDef) and node.name == "build_strategy"
+        ),
+        None,
+    )
+    if build_strategy is None:
+        return False, "missing_build_strategy"
+    for statement in build_strategy.body:
+        if isinstance(statement, ast.Return) and isinstance(statement.value, ast.Call):
+            callee = statement.value.func
+            if isinstance(callee, ast.Name) and callee.id == profile.strategy_class_name:
+                return True, ""
+    return False, f"build_strategy_must_return:{profile.strategy_class_name}"
+
+
 def config_traits(strategy_family: str, config: Mapping[str, Any]) -> list[str]:
     if not config:
         return []
@@ -621,6 +740,23 @@ def _bucket(value: float, cutoffs: tuple[float, float]) -> str:
     if value <= high:
         return "mid"
     return "high"
+
+
+def _extract_raw_train_config(train_text: str) -> dict[str, Any]:
+    try:
+        tree = ast.parse(train_text)
+    except SyntaxError:
+        return {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "TRAIN_CONFIG":
+                    try:
+                        value = ast.literal_eval(node.value)
+                    except Exception:
+                        return {}
+                    return dict(value) if isinstance(value, dict) else {}
+    return {}
 
 
 def _render_momentum_file(payload: str, strategy_name: str) -> str:

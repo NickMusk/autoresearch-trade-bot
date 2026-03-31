@@ -32,6 +32,7 @@ from .strategy_families import (
     FAMILY_VOLATILITY_BREAKOUT,
     config_traits as family_config_traits,
     extract_strategy_family,
+    family_template_constraints,
     family_attempt_role_specs,
     family_mutation_bounds,
     family_prompt_directions,
@@ -358,6 +359,7 @@ def validate_train_candidate_semantics(
     current_config = extract_train_config(current_train_text)
     return validate_family_candidate_semantics(
         current_family,
+        candidate_text=candidate_text,
         candidate_config=candidate_config,
         current_config=current_config,
         symbol_count=symbol_count,
@@ -612,6 +614,10 @@ def build_llm_mutation_prompt(
                 context.strategy_family,
                 symbol_count=context.symbol_count,
             ),
+            "Family template constraints:\n"
+            + "\n".join(
+                f"- {item}" for item in family_template_constraints(context.strategy_family)
+            ),
             f"Research memory:\n{context.experiment_memory_summary}",
             "Recent raw results:\n" + recent_result_lines,
             "Current train.py to mutate:\n" + context.current_train_text,
@@ -626,7 +632,8 @@ def build_llm_mutation_prompt(
                 "- Use the promising directions from research memory and avoid repeated dead zones.\n"
                 "- Keep compute cheap and stay within the one-file editable boundary.\n"
                 "- Make the smallest full-file edit that expresses the hypothesis; do not bloat the file.\n"
-                "- Reuse existing helpers and structure instead of introducing large new code blocks."
+                "- Reuse existing helpers and structure instead of introducing large new code blocks.\n"
+                "- Preserve the family-specific class template and explicit config surface; do not swap in another family's template."
             ),
         ]
     )

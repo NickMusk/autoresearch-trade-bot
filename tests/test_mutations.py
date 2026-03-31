@@ -380,12 +380,14 @@ class MutationTests(unittest.TestCase):
         self.assertIn("Keep the candidate under 48000 bytes", system_prompt)
         self.assertIn("Preserve the existing file structure whenever possible", system_prompt)
         self.assertIn("Hard mutation bounds:", user_prompt)
+        self.assertIn("Family template constraints:", user_prompt)
         self.assertIn("paired long/short engine requires top_k between 1 and 2 inclusive", user_prompt)
         self.assertIn("Do not set top_k above 2", user_prompt)
         self.assertIn("Research memory:", user_prompt)
         self.assertIn("Promising directions:", user_prompt)
         self.assertIn("Recent raw results:", user_prompt)
         self.assertIn("Make the smallest full-file edit that expresses the hypothesis", user_prompt)
+        self.assertIn("Preserve the family-specific class template", user_prompt)
 
     def test_family_mutation_bounds_cap_top_k_from_symbol_count(self) -> None:
         bounds = family_mutation_bounds(FAMILY_MEAN_REVERSION, symbol_count=5)
@@ -435,6 +437,42 @@ class MutationTests(unittest.TestCase):
             ),
             (False, "likely_no_trade_ibs_floor_stack"),
         )
+
+    def test_family_prompt_includes_family_specific_template_constraints(self) -> None:
+        current_train = render_family_train_file(
+            {
+                "lookback_bars": 24,
+                "reversion_horizon_bars": 6,
+                "ibs_threshold": 0.25,
+                "top_k": 1,
+                "gross_target": 0.5,
+                "reversion_strength_floor": 0.0,
+                "volatility_floor": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 48,
+            },
+            strategy_family=FAMILY_MEAN_REVERSION,
+        )
+        context = MutationContext(
+            campaign_id="unit",
+            campaign_name="unit-campaign",
+            branch_name="codex/family-mean-reversion",
+            parent_commit="abc123",
+            train_path=Path("/tmp/train.py"),
+            results_path=Path("/tmp/results.tsv"),
+            artifact_root=Path("/tmp/artifacts"),
+            program_text="Mutate train.py only.",
+            current_train_text=current_train,
+            strategy_family=FAMILY_MEAN_REVERSION,
+            recent_results=(),
+            symbol_count=5,
+            experiment_memory_summary="Decision mix: no prior LLM evaluations yet.",
+        )
+        _system_prompt, user_prompt = build_llm_mutation_prompt(context=context, max_mutations=1)
+        self.assertIn("Family template constraints:", user_prompt)
+        self.assertIn("Preserve the IBSReversionStrategy template", user_prompt)
+        self.assertIn("reversion_horizon_bars", user_prompt)
+        self.assertIn("Do not fall back to the generic configurable-momentum template", user_prompt)
 
     def test_family_specific_memory_guidance_surfaces_dual_momentum_dead_zones(self) -> None:
         current_train = render_family_train_file(
@@ -652,6 +690,81 @@ class MutationTests(unittest.TestCase):
                 symbol_count=5,
             ),
             (False, "likely_no_trade_breakout_threshold_stack"),
+        )
+
+    def test_validate_train_candidate_semantics_rejects_momentum_template_drift_inside_family_branch(self) -> None:
+        current_train = render_family_train_file(
+            {
+                "lookback_bars": 24,
+                "reversion_horizon_bars": 6,
+                "ibs_threshold": 0.25,
+                "top_k": 1,
+                "gross_target": 0.5,
+                "reversion_strength_floor": 0.0,
+                "volatility_floor": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 48,
+            },
+            strategy_family=FAMILY_MEAN_REVERSION,
+        )
+        drifted_candidate = render_train_file(
+            {
+                "lookback_bars": 24,
+                "top_k": 1,
+                "gross_target": 0.5,
+                "ranking_mode": "risk_adjusted",
+                "use_regime_filter": False,
+                "regime_lookback_bars": 36,
+                "regime_threshold": 0.015,
+                "min_signal_strength": 0.02,
+                "min_cross_sectional_spread": 0.04,
+                "volatility_floor": 0.001,
+                "reversal_bias_weight": 0.05,
+                "funding_penalty_weight": 0.01,
+            }
+        ).replace('STRATEGY_FAMILY = "momentum"', f'STRATEGY_FAMILY = "{FAMILY_MEAN_REVERSION}"')
+        self.assertEqual(
+            validate_train_candidate_semantics(
+                drifted_candidate,
+                current_train_text=current_train,
+                symbol_count=5,
+            ),
+            (
+                False,
+                "missing_family_config_keys:ibs_threshold,reversion_horizon_bars,reversion_strength_floor,trend_lookback_bars,use_trend_filter",
+            ),
+        )
+
+    def test_validate_train_candidate_semantics_rejects_family_template_with_wrong_strategy_class(self) -> None:
+        current_train = render_family_train_file(
+            {
+                "gross_target": 0.5,
+                "fast_horizon_bars": 12,
+                "medium_horizon_bars": 36,
+                "slow_horizon_bars": 96,
+                "top_k": 1,
+                "min_signal_strength": 0.0,
+                "absolute_momentum_floor": 0.0,
+                "relative_strength_weight": 0.6,
+                "use_absolute_filter": True,
+                "volatility_floor": 0.0,
+            },
+            strategy_family=FAMILY_EMA_TREND,
+        )
+        drifted_candidate = current_train.replace(
+            "class DualMomentumStrategy:",
+            "class ConfigurableMomentumStrategy:",
+        ).replace(
+            "return DualMomentumStrategy(",
+            "return ConfigurableMomentumStrategy(",
+        )
+        self.assertEqual(
+            validate_train_candidate_semantics(
+                drifted_candidate,
+                current_train_text=current_train,
+                symbol_count=5,
+            ),
+            (False, "missing_family_strategy_class:DualMomentumStrategy"),
         )
 
     def test_attempt_prompt_uses_family_specific_role_specs(self) -> None:
