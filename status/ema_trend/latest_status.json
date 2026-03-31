@@ -34,11 +34,11 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t045500z",
-  "latest_cycle_completed_at": "2026-03-31T05:33:34.991521+00:00",
-  "last_processed_bar": "2026-03-31T05:30:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T05:38:35.196963+00:00",
+  "last_processed_bar": "2026-03-31T05:35:00+00:00",
   "recent_acceptance_rate": 0.4,
   "evaluation_acceptance_rate": 0.4,
-  "generation_validity_rate": 0.7142857142857143,
+  "generation_validity_rate": 0.625,
   "mutation_win_rate": 0.4,
   "consecutive_failures": 0,
   "current_best_fast_validation_pass_rate": 0.0,
@@ -81,9 +81,18 @@
     "latest_decision": {
       "decision": "discard_error",
       "stage": "validation",
-      "mutation_label": "llm-e5ac948c",
+      "mutation_label": "llm-d061a5d8",
       "baseline_score": -45.5098805984557,
       "candidate_score": -Infinity,
+      "candidate_acceptance_rate": 0.0,
+      "candidate_average_metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 1.0,
+        "average_turnover": 0.0,
+        "bars_processed": 0,
+        "nonzero_turnover_steps": 0
+      },
       "kept_commit": null,
       "failure_reason": "no_op_train_config",
       "provider_name": "llm",
@@ -179,14 +188,43 @@
       "rejection_reasons": [
         "no_op_train_config"
       ]
+    },
+    {
+      "strategy_name": "llm-d061a5d8",
+      "params": {
+        "decision": "discard_error",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "validation"
+      },
+      "accepted": false,
+      "score": -Infinity,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 1.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": [
+        "no_op_train_config"
+      ]
     }
   ],
   "latest_decision": {
     "decision": "discard_error",
     "stage": "validation",
-    "mutation_label": "llm-e5ac948c",
+    "mutation_label": "llm-d061a5d8",
     "baseline_score": -45.5098805984557,
     "candidate_score": -Infinity,
+    "candidate_acceptance_rate": 0.0,
+    "candidate_average_metrics": {
+      "total_return": 0.0,
+      "sharpe": 0.0,
+      "max_drawdown": 1.0,
+      "average_turnover": 0.0,
+      "bars_processed": 0,
+      "nonzero_turnover_steps": 0
+    },
     "kept_commit": null,
     "failure_reason": "no_op_train_config",
     "provider_name": "llm",
