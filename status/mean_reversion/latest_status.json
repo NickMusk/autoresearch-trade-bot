@@ -38,8 +38,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t042500z",
-  "latest_cycle_completed_at": "2026-03-31T22:47:18.168572+00:00",
-  "last_processed_bar": "2026-03-31T22:45:00+00:00",
+  "latest_cycle_completed_at": "2026-03-31T22:52:12.351676+00:00",
+  "last_processed_bar": "2026-03-31T22:50:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -87,17 +87,17 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-7c518f2c",
+      "mutation_label": "llm-272de93e",
       "baseline_score": -167.28125173457806,
-      "candidate_score": -148.1310860798167,
+      "candidate_score": -131.9294150035453,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.3712415826449973,
-        "sharpe": -144.6808009787639,
-        "max_drawdown": 0.3712415826449973,
-        "average_turnover": 0.10911085724783896,
+        "total_return": -0.311200481378469,
+        "sharpe": -129.04046389489184,
+        "max_drawdown": 0.311200481378469,
+        "average_turnover": 0.08814677624725084,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 1947
+        "nonzero_turnover_steps": 1538
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -197,7 +197,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-8bc82f88",
+      "strategy_name": "llm-2ddabfaa",
       "params": {
         "decision": "screen_pass",
         "provider_name": "llm",
@@ -205,12 +205,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -73.868578,
+      "score": -93.998246,
       "metrics": {
-        "total_return": -0.127868,
-        "sharpe": -72.686081,
-        "max_drawdown": 0.127868,
-        "average_turnover": 0.031682
+        "total_return": -0.195491,
+        "sharpe": -92.187631,
+        "max_drawdown": 0.195491,
+        "average_turnover": 0.051198
       },
       "rejection_reasons": []
     }
@@ -218,17 +218,17 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-7c518f2c",
+    "mutation_label": "llm-272de93e",
     "baseline_score": -167.28125173457806,
-    "candidate_score": -148.1310860798167,
+    "candidate_score": -131.9294150035453,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.3712415826449973,
-      "sharpe": -144.6808009787639,
-      "max_drawdown": 0.3712415826449973,
-      "average_turnover": 0.10911085724783896,
+      "total_return": -0.311200481378469,
+      "sharpe": -129.04046389489184,
+      "max_drawdown": 0.311200481378469,
+      "average_turnover": 0.08814677624725084,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 1947
+      "nonzero_turnover_steps": 1538
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -242,16 +242,16 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "ibs-reversion-tuned-short6",
-    "research_score": -148.1310860798167,
+    "strategy_name": "ibs-reversion-short-horizon-v2",
+    "research_score": -131.9294150035453,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.3712415826449973,
-      "sharpe": -144.6808009787639,
-      "max_drawdown": 0.3712415826449973,
-      "average_turnover": 0.10911085724783896,
+      "total_return": -0.311200481378469,
+      "sharpe": -129.04046389489184,
+      "max_drawdown": 0.311200481378469,
+      "average_turnover": 0.08814677624725084,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 1947
+      "nonzero_turnover_steps": 1538
     },
     "train_config": {
       "gross_target": 0.5,
@@ -260,7 +260,7 @@
       "ibs_threshold": 0.28,
       "top_k": 2,
       "reversion_strength_floor": 0.03,
-      "volatility_floor": 0.001,
+      "volatility_floor": 0.01,
       "use_trend_filter": false,
       "trend_lookback_bars": 36
     },
