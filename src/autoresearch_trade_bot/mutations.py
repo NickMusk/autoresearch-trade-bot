@@ -349,9 +349,10 @@ def validate_train_candidate_semantics(
     candidate_text: str,
     *,
     current_train_text: str,
+    strategy_family: str | None = None,
     symbol_count: int,
 ) -> tuple[bool, str]:
-    current_family = extract_strategy_family(current_train_text)
+    current_family = strategy_family or extract_strategy_family(current_train_text)
     candidate_family = extract_strategy_family(candidate_text)
     if candidate_family != current_family:
         return False, "strategy_family_mismatch"

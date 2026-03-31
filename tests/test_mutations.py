@@ -834,6 +834,47 @@ class MutationTests(unittest.TestCase):
             (False, "missing_family_strategy_class:DualMomentumStrategy"),
         )
 
+    def test_validate_train_candidate_semantics_uses_explicit_family_override(self) -> None:
+        current_train = render_train_file(
+            {
+                "lookback_bars": 24,
+                "top_k": 1,
+                "gross_target": 0.5,
+                "ranking_mode": "risk_adjusted",
+                "use_regime_filter": False,
+                "regime_lookback_bars": 36,
+                "regime_threshold": 0.015,
+                "min_signal_strength": 0.0,
+                "min_cross_sectional_spread": 0.0,
+                "volatility_floor": 0.0,
+                "reversal_bias_weight": 0.0,
+                "funding_penalty_weight": 0.0,
+            }
+        )
+        family_candidate = render_family_train_file(
+            {
+                "lookback_bars": 24,
+                "reversion_horizon_bars": 6,
+                "ibs_threshold": 0.25,
+                "top_k": 1,
+                "gross_target": 0.5,
+                "reversion_strength_floor": 0.0,
+                "volatility_floor": 0.0,
+                "use_trend_filter": False,
+                "trend_lookback_bars": 48,
+            },
+            strategy_family=FAMILY_MEAN_REVERSION,
+        )
+        self.assertEqual(
+            validate_train_candidate_semantics(
+                family_candidate,
+                current_train_text=current_train,
+                strategy_family=FAMILY_MEAN_REVERSION,
+                symbol_count=5,
+            ),
+            (True, ""),
+        )
+
     def test_attempt_prompt_uses_family_specific_role_specs(self) -> None:
         role_name, prompt = build_attempt_prompt(
             base_user_prompt="base prompt",
