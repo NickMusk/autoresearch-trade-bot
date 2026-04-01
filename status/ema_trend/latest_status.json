@@ -36,8 +36,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t045500z",
-  "latest_cycle_completed_at": "2026-04-01T01:49:22.796087+00:00",
-  "last_processed_bar": "2026-04-01T01:45:00+00:00",
+  "latest_cycle_completed_at": "2026-04-01T01:55:08.905206+00:00",
+  "last_processed_bar": "2026-04-01T01:50:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 0.6666666666666666,
@@ -83,17 +83,17 @@
     "latest_decision": {
       "decision": "discard_full",
       "stage": "full",
-      "mutation_label": "llm-5c5cbb31",
+      "mutation_label": "llm-b9c3a52a",
       "baseline_score": -45.5098805984557,
-      "candidate_score": -37.6230222762867,
+      "candidate_score": -41.357290119405064,
       "candidate_acceptance_rate": 0.0,
       "candidate_average_metrics": {
-        "total_return": -0.05213326583296418,
-        "sharpe": -37.14214280941611,
-        "max_drawdown": 0.05213326583296418,
-        "average_turnover": 0.011680074373911492,
+        "total_return": -0.050854693695696174,
+        "sharpe": -40.8883214873317,
+        "max_drawdown": 0.050854693695696174,
+        "average_turnover": 0.011276388812101312,
         "bars_processed": 8639,
-        "nonzero_turnover_steps": 211
+        "nonzero_turnover_steps": 239
       },
       "kept_commit": null,
       "failure_reason": "",
@@ -192,7 +192,7 @@
       "rejection_reasons": []
     },
     {
-      "strategy_name": "llm-12ad12d1",
+      "strategy_name": "llm-b9c3a52a",
       "params": {
         "decision": "screen_pass",
         "provider_name": "llm",
@@ -200,12 +200,12 @@
         "stage": "screen"
       },
       "accepted": false,
-      "score": -42.603719,
+      "score": -41.35729,
       "metrics": {
-        "total_return": -0.05724,
-        "sharpe": -42.075141,
-        "max_drawdown": 0.05739,
-        "average_turnover": 0.012818
+        "total_return": -0.050855,
+        "sharpe": -40.888321,
+        "max_drawdown": 0.050855,
+        "average_turnover": 0.011276
       },
       "rejection_reasons": []
     }
@@ -213,17 +213,17 @@
   "latest_decision": {
     "decision": "discard_full",
     "stage": "full",
-    "mutation_label": "llm-5c5cbb31",
+    "mutation_label": "llm-b9c3a52a",
     "baseline_score": -45.5098805984557,
-    "candidate_score": -37.6230222762867,
+    "candidate_score": -41.357290119405064,
     "candidate_acceptance_rate": 0.0,
     "candidate_average_metrics": {
-      "total_return": -0.05213326583296418,
-      "sharpe": -37.14214280941611,
-      "max_drawdown": 0.05213326583296418,
-      "average_turnover": 0.011680074373911492,
+      "total_return": -0.050854693695696174,
+      "sharpe": -40.8883214873317,
+      "max_drawdown": 0.050854693695696174,
+      "average_turnover": 0.011276388812101312,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 211
+      "nonzero_turnover_steps": 239
     },
     "kept_commit": null,
     "failure_reason": "",
@@ -236,26 +236,26 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "dual-momentum-timeseries",
-    "research_score": -37.6230222762867,
+    "strategy_name": "dual-momentum-timeseries-v2",
+    "research_score": -41.357290119405064,
     "ready_for_paper": false,
     "average_metrics": {
-      "total_return": -0.05213326583296418,
-      "sharpe": -37.14214280941611,
-      "max_drawdown": 0.05213326583296418,
-      "average_turnover": 0.011680074373911492,
+      "total_return": -0.050854693695696174,
+      "sharpe": -40.8883214873317,
+      "max_drawdown": 0.050854693695696174,
+      "average_turnover": 0.011276388812101312,
       "bars_processed": 8639,
-      "nonzero_turnover_steps": 211
+      "nonzero_turnover_steps": 239
     },
     "train_config": {
-      "gross_target": 0.6,
+      "gross_target": 0.5,
       "fast_horizon_bars": 12,
       "medium_horizon_bars": 36,
       "slow_horizon_bars": 120,
       "top_k": 2,
       "min_signal_strength": 0.12,
       "absolute_momentum_floor": 0.04,
-      "relative_strength_weight": 0.5,
+      "relative_strength_weight": 0.55,
       "use_absolute_filter": true,
       "volatility_floor": 0.001
     },
