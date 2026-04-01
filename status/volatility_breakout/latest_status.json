@@ -37,8 +37,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t050000z",
-  "latest_cycle_completed_at": "2026-04-01T01:10:00.537082+00:00",
-  "last_processed_bar": "2026-04-01T01:05:00+00:00",
+  "latest_cycle_completed_at": "2026-04-01T01:17:48.438163+00:00",
+  "last_processed_bar": "2026-04-01T01:15:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -84,7 +84,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-544ca5a9",
+      "mutation_label": "llm-216816ad",
       "baseline_score": 0.0,
       "candidate_score": 0.0,
       "candidate_acceptance_rate": 0.0,
@@ -120,24 +120,6 @@
     "rollout_champion_strategy_name": ""
   },
   "leaderboard": [
-    {
-      "strategy_name": "llm-877d9c63",
-      "params": {
-        "decision": "discard_screen",
-        "provider_name": "llm",
-        "model_name": "gpt-5-mini-2025-08-07",
-        "stage": "screen"
-      },
-      "accepted": false,
-      "score": 0.0,
-      "metrics": {
-        "total_return": 0.0,
-        "sharpe": 0.0,
-        "max_drawdown": 0.0,
-        "average_turnover": 0.0
-      },
-      "rejection_reasons": []
-    },
     {
       "strategy_name": "llm-6fdcbf49",
       "params": {
@@ -209,12 +191,30 @@
         "average_turnover": 0.0
       },
       "rejection_reasons": []
+    },
+    {
+      "strategy_name": "llm-90bd7021",
+      "params": {
+        "decision": "discard_screen",
+        "provider_name": "llm",
+        "model_name": "gpt-5-mini-2025-08-07",
+        "stage": "screen"
+      },
+      "accepted": false,
+      "score": 0.0,
+      "metrics": {
+        "total_return": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "average_turnover": 0.0
+      },
+      "rejection_reasons": []
     }
   ],
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-544ca5a9",
+    "mutation_label": "llm-216816ad",
     "baseline_score": 0.0,
     "candidate_score": 0.0,
     "candidate_acceptance_rate": 0.0,
@@ -237,7 +237,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "donchian-atr-breakout-trend",
+    "strategy_name": "donchian-atr-breakout-v2",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -249,10 +249,10 @@
       "nonzero_turnover_steps": 0
     },
     "train_config": {
-      "gross_target": 0.6,
-      "channel_bars": 20,
-      "atr_lookback_bars": 10,
-      "atr_multiplier": 0.9,
+      "gross_target": 0.5,
+      "channel_bars": 24,
+      "atr_lookback_bars": 14,
+      "atr_multiplier": 1.0,
       "breakout_buffer": 0.05,
       "top_k": 2,
       "breakout_score_floor": 0.08,
