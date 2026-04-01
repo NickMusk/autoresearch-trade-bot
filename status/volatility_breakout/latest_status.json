@@ -37,8 +37,8 @@
   ],
   "loop_state": "searching",
   "latest_dataset_id": "render-binance-usdm-futures-5m-20260331t050000z",
-  "latest_cycle_completed_at": "2026-04-01T03:09:00.360969+00:00",
-  "last_processed_bar": "2026-04-01T03:05:00+00:00",
+  "latest_cycle_completed_at": "2026-04-01T03:16:45.562052+00:00",
+  "last_processed_bar": "2026-04-01T03:15:00+00:00",
   "recent_acceptance_rate": 0.0,
   "evaluation_acceptance_rate": 0.0,
   "generation_validity_rate": 1.0,
@@ -84,7 +84,7 @@
     "latest_decision": {
       "decision": "discard_screen",
       "stage": "screen",
-      "mutation_label": "llm-596b2986",
+      "mutation_label": "llm-4f757d7a",
       "baseline_score": 0.0,
       "candidate_score": 0.0,
       "candidate_acceptance_rate": 0.0,
@@ -214,7 +214,7 @@
   "latest_decision": {
     "decision": "discard_screen",
     "stage": "screen",
-    "mutation_label": "llm-596b2986",
+    "mutation_label": "llm-4f757d7a",
     "baseline_score": 0.0,
     "candidate_score": 0.0,
     "candidate_acceptance_rate": 0.0,
@@ -237,7 +237,7 @@
     ]
   },
   "latest_candidate_summary": {
-    "strategy_name": "donchian-atr-breakout-trend",
+    "strategy_name": "donchian-atr-breakout-v2",
     "research_score": 0.0,
     "ready_for_paper": false,
     "average_metrics": {
@@ -252,9 +252,9 @@
       "gross_target": 0.5,
       "channel_bars": 24,
       "atr_lookback_bars": 14,
-      "atr_multiplier": 0.95,
+      "atr_multiplier": 1.0,
       "breakout_buffer": 0.05,
-      "top_k": 1,
+      "top_k": 2,
       "breakout_score_floor": 0.08,
       "use_trend_filter": false,
       "trend_lookback_bars": 48
